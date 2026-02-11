@@ -96,7 +96,6 @@ export function SearchScreen({ navigation }: Props) {
           }
         />
       </ScrollView>
-
       <BottomTabMock active="search" onTabPress={handleTabPress} />
     </SafeAreaView>
   );

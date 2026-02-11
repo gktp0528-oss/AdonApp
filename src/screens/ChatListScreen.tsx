@@ -76,7 +76,6 @@ export function ChatListScreen({ navigation }: Props) {
           </Pressable>
         ))}
       </ScrollView>
-
       <BottomTabMock active="chat" onTabPress={handleTabPress} />
     </SafeAreaView>
   );

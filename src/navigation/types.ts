@@ -6,8 +6,25 @@ export type RootStackParamList = {
   Search: undefined;
   CategoryList: { categoryId: string; categoryName: string };
   ChatList: undefined;
-  Product: undefined;
+  Product:
+  | {
+    productId?: string;
+    product?: {
+      id: string;
+      name: string;
+      price: string;
+      image: string;
+      meta?: string;
+      oldPrice?: string;
+      description?: string;
+      isPremium?: boolean;
+      sellerId?: string;
+    };
+  }
+  | undefined;
   Seller: undefined;
   Chat: undefined;
-  AiListing: undefined;
+  AiListing: { selectedCategory?: string } | undefined;
+  CategorySelect: { parentId?: string; currentPath?: string } | undefined;
+  AiIntro: undefined;
 };

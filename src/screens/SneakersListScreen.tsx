@@ -144,7 +144,6 @@ const itemsByCategory: Record<string, ListItem[]> = {
 export function SneakersListScreen({ navigation, route }: Props) {
   const { categoryId, categoryName } = route.params;
   const items = useMemo(() => itemsByCategory[categoryId] ?? fallbackItems, [categoryId]);
-
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'search');
 
   return (
@@ -177,7 +176,21 @@ export function SneakersListScreen({ navigation, route }: Props) {
 
       <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
         {items.map((item) => (
-          <Pressable key={item.id} style={styles.card} onPress={() => navigation.navigate('Product')}>
+          <Pressable
+            key={item.id}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('Product', {
+                product: {
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                  meta: item.meta,
+                },
+              })
+            }
+          >
             <Image source={{ uri: item.image }} style={styles.image} />
             <View style={styles.pricePill}>
               <Text style={styles.price}>{item.price}</Text>
@@ -189,8 +202,8 @@ export function SneakersListScreen({ navigation, route }: Props) {
           </Pressable>
         ))}
       </ScrollView>
-
       <BottomTabMock active="search" onTabPress={handleTabPress} />
+
     </SafeAreaView>
   );
 }

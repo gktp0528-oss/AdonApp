@@ -13,6 +13,8 @@ import { ProductScreen } from './src/screens/ProductScreen';
 import { SellerScreen } from './src/screens/SellerScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { AiListingScreen } from './src/screens/AiListingScreen';
+import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
+import { AiIntroScreen } from './src/screens/AiIntroScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -22,7 +24,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          initialRouteName="Splash"
+          screenOptions={{
+            headerShown: false,
+            animation: 'none',
+            gestureEnabled: true,
+          }}
+        >
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
@@ -34,6 +43,8 @@ export default function App() {
           <Stack.Screen name="Seller" component={SellerScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AiListing" component={AiListingScreen} />
+          <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
+          <Stack.Screen name="AiIntro" component={AiIntroScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

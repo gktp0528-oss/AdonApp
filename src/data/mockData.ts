@@ -85,3 +85,72 @@ export const CATEGORIES = [
     { id: 'home', label: 'Home' },
     { id: 'kids', label: 'Kids' },
 ];
+
+export const FRESH_FINDS = [
+    {
+        id: 'f1',
+        name: 'Canon AE-1 Program',
+        price: '€150',
+        time: '2h ago',
+        image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+        id: 'f2',
+        name: 'North Face Backpack',
+        price: '€65',
+        time: '10m ago',
+        image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+        id: 'f3',
+        name: 'Cotton Essentials...',
+        price: '€12',
+        time: '5h ago',
+        image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+        id: 'f4',
+        name: 'Sony XM4 Wireless',
+        price: '€210',
+        time: '3h ago',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+        id: 'f5',
+        name: 'Apple Watch SE',
+        price: '€180',
+        time: '1d ago',
+        image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+        id: 'f6',
+        name: 'MacBook Air M1',
+        price: '€700',
+        time: '6h ago',
+        image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=1000&auto=format&fit=crop',
+    },
+    // More items for infinite scroll simulation
+    { id: 'f7', name: 'Vintage Polaroid', price: '€85', time: '8h ago', image: 'https://images.unsplash.com/photo-1526170315873-3a91e5ee057a?q=80&w=1000&auto=format&fit=crop' },
+    { id: 'f8', name: 'Leather Boots', price: '€120', time: '12h ago', image: 'https://images.unsplash.com/photo-1520639889410-d65c39fdceae?q=80&w=1000&auto=format&fit=crop' },
+    { id: 'f9', name: 'Minimalist Desk Lamp', price: '€45', time: '1d ago', image: 'https://images.unsplash.com/photo-1534073828943-f801091bb18c?q=80&w=1000&auto=format&fit=crop' },
+    { id: 'f10', name: 'Analog Record Player', price: '€195', time: '2d ago', image: 'https://images.unsplash.com/photo-1539375665275-f9de415ef9ac?q=80&w=1000&auto=format&fit=crop' },
+];
+
+export interface PaginatedResult<T> {
+    items: T[];
+    nextCursor: string | null;
+}
+
+export const fetchFreshFinds = async (cursor: string | null, limit: number = 4): Promise<PaginatedResult<any>> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const startIndex = cursor ? FRESH_FINDS.findIndex(item => item.id === cursor) + 1 : 0;
+    const items = FRESH_FINDS.slice(startIndex, startIndex + limit);
+    const nextCursor = startIndex + limit < FRESH_FINDS.length ? items[items.length - 1].id : null;
+
+    return {
+        items,
+        nextCursor
+    };
+};
