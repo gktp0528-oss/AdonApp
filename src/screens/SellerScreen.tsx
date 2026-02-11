@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,59 +8,170 @@ import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { DetailBackButton } from '../components/DetailBackButton';
 import { BottomTabMock } from '../components/BottomTabMock';
-import { USERS } from '../data/mockData';
+import { userService } from '../services/userService';
+import { listingService } from '../services/listingService';
+import { User } from '../types/user';
+import { Listing } from '../types/listing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Seller'>;
 
-export function SellerScreen({ navigation }: Props) {
+export function SellerScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const seller = USERS.seller;
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'profile');
+
+  // Params - Default to current user if no param (mock current user ID)
+  const sellerId = route.params?.sellerId || userService.getCurrentUserId();
+
+  const [seller, setSeller] = useState<User | null>(null);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribeUser = userService.watchUserById(sellerId, (userData) => {
+      setSeller(userData);
+      setLoading(false);
+    });
+    const unsubscribeListings = listingService.watchListingsBySeller(sellerId, (userListings) => {
+      setListings(userListings);
+    });
+
+    return () => {
+      unsubscribeUser();
+      unsubscribeListings();
+    };
+  }, [sellerId]);
+
+  if (loading) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <ActivityIndicator size="large" color="#16a34a" />
+      </View>
+    );
+  }
+
+  if (!seller) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <Text>User not found</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View>
-          <Image source={{ uri: seller.avatar }} style={styles.cover} />
+        <View style={styles.headerContainer}>
+          <Image
+            source={{ uri: seller.coverImage || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80' }}
+            style={styles.cover}
+          />
+          <View style={styles.coverOverlay} />
 
           {/* Back Button */}
           <View style={[styles.backButton, { top: insets.top + 14 }]}>
-            <DetailBackButton onPress={() => navigation.goBack()} />
+            {route.params?.sellerId && navigation.canGoBack() && (
+              <DetailBackButton onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }} />
+            )}
+          </View>
+
+          {/* Centered Avatar Overlapping */}
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={{ uri: seller.avatar || 'https://via.placeholder.com/200' }}
+                style={styles.avatar}
+              />
+            </View>
+            {seller.isVerified && (
+              <View style={styles.verifiedBadge}>
+                <MaterialIcons name="verified" size={16} color="#fff" />
+              </View>
+            )}
           </View>
         </View>
 
-        <View style={styles.profileCard}>
-          <View style={styles.nameRow}>
+        <View style={styles.profileInfo}>
+          <View style={styles.nameSection}>
             <Text style={styles.name}>{seller.name}</Text>
-            <View style={styles.badge}><MaterialIcons name="verified" size={14} color="#166534" /><Text style={styles.badgeText}>PRO</Text></View>
+            <Text style={styles.location}>{seller.location || 'European Region'}</Text>
           </View>
-          <Text style={styles.meta}>{seller.meta}</Text>
 
           <View style={styles.statRow}>
-            <View style={styles.stat}><Text style={styles.statValue}>{seller.rating}</Text><Text style={styles.statLabel}>Rating</Text></View>
-            <View style={styles.stat}><Text style={styles.statValue}>{seller.sales}+</Text><Text style={styles.statLabel}>Vouched</Text></View>
-            <View style={styles.stat}><Text style={styles.statValue}>{seller.shipTime}</Text><Text style={styles.statLabel}>Ship Time</Text></View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{seller.positiveRate ? `${seller.positiveRate}%` : '100%'}</Text>
+              <Text style={styles.statLabel}>Trust</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{seller.sales || 0}</Text>
+              <Text style={styles.statLabel}>Sales</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{seller.responseTime || 'Fast'}</Text>
+              <Text style={styles.statLabel}>Reply</Text>
+            </View>
           </View>
 
-          <View style={styles.bioBox}>
-            <Text style={styles.bioHead}>SELLER BIO</Text>
-            <Text style={styles.bioText}>
-              {seller.bio}
-            </Text>
+          <View style={styles.reliabilityCard}>
+            <Text style={styles.cardTitle}>ADON RELIABILITY</Text>
+            <View style={styles.reliabilityContent}>
+              <MaterialIcons name="security" size={20} color="#16a34a" />
+              <Text style={styles.reliabilityText}>
+                {seller.reliabilityLabel || 'Top-tier seller with verified European identification.'}
+              </Text>
+            </View>
           </View>
 
-          <Text style={styles.section}>Fall Favorites</Text>
-          <View style={styles.favorites}>
-            <View style={styles.favCard}><Text style={styles.favName}>Cream Knit</Text><Text style={styles.favPrice}>$45</Text></View>
-            <View style={styles.favCard}><Text style={styles.favName}>Leather Coat</Text><Text style={styles.favPrice}>$120</Text></View>
-            <View style={styles.favCard}><Text style={styles.favName}>Plaid Skirt</Text><Text style={styles.favPrice}>$28</Text></View>
+          <View style={styles.productsSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Selling Collection</Text>
+              <Pressable>
+                <Text style={styles.seeAllText}>View All ({listings.length})</Text>
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+              {listings.length === 0 ? (
+                <Text style={styles.emptyText}>No items curated yet.</Text>
+              ) : (
+                listings.map(item => (
+                  <Pressable
+                    key={item.id}
+                    style={styles.productCard}
+                    onPress={() => navigation.navigate('Product', { listingId: item.id })}
+                  >
+                    <Image
+                      source={{ uri: item.photos?.[0] || 'https://via.placeholder.com/150' }}
+                      style={styles.productImage}
+                    />
+                    <View style={styles.productInfo}>
+                      <Text numberOfLines={1} style={styles.productTitle}>{item.title}</Text>
+                      <Text style={styles.productPrice}>
+                        {item.currency === 'USD' ? '$' : '€'}{item.price}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
           </View>
         </View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
-        <PrimaryButton label="상품 보기" onPress={() => navigation.navigate('Product')} />
-        <PrimaryButton label="채팅 시작" tone="ghost" onPress={() => navigation.navigate('ChatList')} />
+        {sellerId === userService.getCurrentUserId() ? (
+          <PrimaryButton label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
+        ) : (
+          <>
+            <PrimaryButton label="Share Profile" onPress={() => { }} />
+            <PrimaryButton label="Start Chat" tone="ghost" onPress={() => navigation.navigate('ChatList')} />
+          </>
+        )}
       </View>
       <BottomTabMock active="profile" onTabPress={handleTabPress} />
     </View>
@@ -69,46 +180,207 @@ export function SellerScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#ffffff' },
-  content: { paddingBottom: 220 },
-  cover: { width: '100%', height: 250 },
+  content: { paddingBottom: 120 },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  headerContainer: {
+    height: 280,
+    width: '100%',
+    position: 'relative',
+    backgroundColor: '#000',
+  },
+  cover: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.85,
+  },
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
   backButton: {
     position: 'absolute',
     left: 16,
+    zIndex: 10,
   },
-  profileCard: { marginTop: -22, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: '#fff', padding: 16 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  name: { fontSize: 24, fontWeight: '900', color: '#0f172a', textTransform: 'uppercase' },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#dcfce7', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
-  badgeText: { fontSize: 10, fontWeight: '800', color: '#166534' },
-  meta: { marginTop: 4, color: '#64748b', fontWeight: '600' },
+  avatarContainer: {
+    position: 'absolute',
+    bottom: -40,
+    alignSelf: 'center',
+    zIndex: 20,
+  },
+  avatarBorder: {
+    padding: 4,
+    backgroundColor: '#fff',
+    borderRadius: 60,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#f1f5f9',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: '#16a34a',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  profileInfo: {
+    marginTop: 50,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  nameSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.5,
+  },
+  location: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 4,
+    fontWeight: '600',
+  },
   statRow: {
-    marginTop: 16,
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 16,
-    paddingVertical: 12,
+    borderRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    width: '100%',
+    marginBottom: 24,
   },
-  stat: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '900', color: '#0f172a' },
-  statLabel: { marginTop: 4, fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase' },
-  bioBox: { marginTop: 16, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#bbf7d0', borderRadius: 16, padding: 14 },
-  bioHead: { color: '#166534', fontWeight: '800', fontSize: 12, letterSpacing: 0.8 },
-  bioText: { marginTop: 8, color: '#065f46', lineHeight: 21, fontWeight: '500' },
-  section: { marginTop: 16, fontSize: 18, fontWeight: '800', color: '#0f172a' },
-  favorites: { marginTop: 8, gap: 8 },
-  favCard: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 12, flexDirection: 'row', justifyContent: 'space-between' },
-  favName: { fontWeight: '700', color: '#0f172a' },
-  favPrice: { fontWeight: '900', color: '#0f172a' },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 25,
+    backgroundColor: '#e2e8f0',
+  },
+  reliabilityCard: {
+    backgroundColor: '#f0fdf4',
+    width: '100%',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#dcfce7',
+    marginBottom: 24,
+  },
+  cardTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#166534',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  reliabilityContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reliabilityText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#14532d',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  productsSection: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  seeAllText: {
+    fontSize: 13,
+    color: '#16a34a',
+    fontWeight: '700',
+  },
+  horizontalScroll: {
+    paddingRight: 20,
+    gap: 12,
+  },
+  productCard: {
+    width: 160,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: '100%',
+    height: 120,
+    backgroundColor: '#f8fafc',
+  },
+  productInfo: {
+    padding: 10,
+  },
+  productTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  productPrice: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginTop: 4,
+  },
+  emptyText: {
+    color: '#94a3b8',
+    fontStyle: 'italic',
+    paddingLeft: 4,
+  },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: '#f1f5f9',
     padding: 16,
   },
 });

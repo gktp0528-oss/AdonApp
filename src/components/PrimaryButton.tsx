@@ -6,19 +6,25 @@ type Props = {
   label: string;
   onPress: () => void;
   tone?: 'primary' | 'ghost';
+  disabled?: boolean;
 };
 
-export function PrimaryButton({ label, onPress, tone = 'primary' }: Props) {
+export function PrimaryButton({ label, onPress, tone = 'primary', disabled }: Props) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
       style={({ pressed }) => [
         styles.base,
         tone === 'primary' ? styles.primary : styles.ghost,
-        pressed && styles.pressed,
+        pressed && !disabled && styles.pressed,
+        disabled && styles.disabled,
       ]}
     >
-      <Text style={[styles.label, tone === 'ghost' && styles.ghostLabel]}>{label}</Text>
+      <Text style={[
+        styles.label,
+        tone === 'ghost' && styles.ghostLabel,
+        disabled && styles.disabledLabel
+      ]}>{label}</Text>
     </Pressable>
   );
 }
@@ -49,5 +55,12 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.9,
+  },
+  disabled: {
+    backgroundColor: '#e5e7eb',
+    borderColor: '#e5e7eb',
+  },
+  disabledLabel: {
+    color: '#9ca3af',
   },
 });

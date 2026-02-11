@@ -4,6 +4,7 @@ import { StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { authService } from '../services/authService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
@@ -12,7 +13,7 @@ export function SignupScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!name.trim()) {
       Alert.alert('Missing Input', 'Please enter your full name.');
       return;
@@ -26,8 +27,18 @@ export function SignupScreen({ navigation }: Props) {
       return;
     }
 
-    // In a real app, API call would happen here
-    navigation.replace('Home');
+    try {
+      await authService.signUp(email, password, name);
+      Alert.alert('Success', 'Account created successfully!', [
+        { text: 'OK', onPress: () => navigation.replace('Home') }
+      ]);
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('Error', 'This email is already registered.');
+      } else {
+        Alert.alert('Error', error.message || 'Failed to sign up.');
+      }
+    }
   };
 
   return (

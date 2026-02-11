@@ -12,7 +12,10 @@ const firebaseConfig = {
     appId: "1:760431967573:web:6f12693cdd82a6faee83dc"
 };
 
+import { getAuth } from 'firebase/auth';
+
 const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const db = getFirestore(app);
 // Using VertexAIBackend for better integration with Firebase project settings

@@ -11,10 +11,12 @@ import { SneakersListScreen } from './src/screens/SneakersListScreen';
 import { ChatListScreen } from './src/screens/ChatListScreen';
 import { ProductScreen } from './src/screens/ProductScreen';
 import { SellerScreen } from './src/screens/SellerScreen';
+import { EditProfileScreen } from './src/screens/EditProfileScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { AiListingScreen } from './src/screens/AiListingScreen';
 import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
 import { AiIntroScreen } from './src/screens/AiIntroScreen';
+import AiPriceAssistantScreen from './src/screens/PriceAssistantScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -41,10 +43,12 @@ export default function App() {
           <Stack.Screen name="ChatList" component={ChatListScreen} />
           <Stack.Screen name="Product" component={ProductScreen} />
           <Stack.Screen name="Seller" component={SellerScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AiListing" component={AiListingScreen} />
           <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
+          <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

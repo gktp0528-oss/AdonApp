@@ -12,6 +12,8 @@ import {
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,15 +22,23 @@ import { RootStackParamList } from '../navigation/types';
 import { getPostExitTab, resetToTab } from '../navigation/tabRouting';
 
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getGenerativeModel } from "firebase/ai";
 import { storage, db, aiBackend } from '../firebaseConfig';
+
+import { listingService } from '../services/listingService';
+import { userService } from '../services/userService';
+import { ListingCondition } from '../types/listing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+
+  // Temporary: get current seller ID
+  const sellerId = userService.getCurrentUserId();
 
   useEffect(() => {
     if (route.params?.selectedCategory) {
@@ -48,38 +58,184 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
-  const [condition, setCondition] = useState('New'); // Default to first option
+  const [condition, setCondition] = useState<ListingCondition>('New'); // Default to first option
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]); // Array of image URIs
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
+  const [aiLiveFeed, setAiLiveFeed] = useState<string[]>([]);
+  const [scannerAnim] = useState(new Animated.Value(0));
+  const [progressAnim] = useState(new Animated.Value(0));
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
 
-  const conditions = ['New', 'Like New', 'Good', 'Fair'];
+  useEffect(() => {
+    const listenerId = progressAnim.addListener(({ value }) => {
+      setDisplayProgress(Math.floor(value));
+    });
+    return () => progressAnim.removeListener(listenerId);
+  }, []);
 
-  const handlePostItem = () => {
-    // Implement post logic here
-    console.log({ title, price, category, condition, description, photos });
-    resetToTab(navigation, getPostExitTab(), 'post'); // Navigate back after posting (mock behavior)
+  useEffect(() => {
+    if (isAiLoading) {
+      setAiLiveFeed(['⚡️ Adon Vision Engine 초기화 중...']);
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scannerAnim, {
+            toValue: 1,
+            duration: 2000,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scannerAnim, {
+            toValue: 0,
+            duration: 2000,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      scannerAnim.setValue(0);
+    }
+  }, [isAiLoading]);
+
+  const addFeed = (msg: string) => {
+    setAiLiveFeed(prev => [...prev.slice(-4), msg]);
+  };
+
+  const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
+
+  const handlePostItem = async () => {
+    if (isPosting) return;
+
+    const normalizedTitle = title.trim();
+    const normalizedCategory = category.trim();
+    const normalizedDescription = description.trim();
+    const normalizedPrice = Number(price.replace(',', '.'));
+
+    if (!normalizedTitle) {
+      Alert.alert('제목을 입력해 주세요.');
+      return;
+    }
+    if (!normalizedCategory) {
+      Alert.alert('카테고리를 선택해 주세요.');
+      return;
+    }
+    if (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0) {
+      Alert.alert('가격을 올바르게 입력해 주세요.');
+      return;
+    }
+    if (!normalizedDescription) {
+      Alert.alert('설명을 입력해 주세요.');
+      return;
+    }
+    if (photos.length === 0) {
+      Alert.alert('사진을 1장 이상 등록해 주세요.');
+      return;
+    }
+
+    setIsPosting(true);
+    try {
+      const uploadedPhotos = await Promise.all(
+        photos.map(async (uri, index) => {
+          if (uri.startsWith('http')) {
+            return uri;
+          }
+
+          const filename = uri.split('/').pop() || `listing_${index}.jpg`;
+          const storagePath = `listings/photos/${Date.now()}_${index}_${filename}`;
+          const storageRef = ref(storage, storagePath);
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          await uploadBytes(storageRef, blob);
+          return getDownloadURL(storageRef);
+        })
+      );
+
+      await listingService.createListing({
+        title: normalizedTitle,
+        price: normalizedPrice,
+        category: normalizedCategory,
+        condition,
+        description: normalizedDescription,
+        photos: uploadedPhotos,
+        currency: 'EUR',
+        status: 'active',
+        sellerId: sellerId,
+        // Optional fields can be added here
+      });
+
+      Alert.alert('등록 완료', '상품이 정상적으로 등록되었어요.', [
+        {
+          text: '확인',
+          onPress: () => resetToTab(navigation, getPostExitTab(), 'post'),
+        },
+      ]);
+    } catch (error: any) {
+      console.error('Post Item failed:', error);
+      Alert.alert(
+        '등록 실패',
+        `글 등록 중 문제가 발생했어요: ${error?.message || '알 수 없는 에러'}`
+      );
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   const pickImage = async () => {
+    if (photos.length >= 10) {
+      Alert.alert('사진은 최대 10장까지 등록할 수 있어요.');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsMultipleSelection: true,
+      selectionLimit: 10 - photos.length,
       quality: 0.8,
       base64: true,
     });
 
     if (!result.canceled) {
-      const { uri, base64 } = result.assets[0];
-      setPhotos([uri]);
-      analyzeWithAi(uri, base64 || undefined);
+      const newUris = result.assets.map(a => a.uri);
+      const combinedPhotos = [...photos, ...newUris];
+      setPhotos(combinedPhotos);
+
+      // Immediate visual feedback
+      setIsAiLoading(true);
+      setAiStep('uploading');
+      progressAnim.setValue(0);
+
+      // Analyze all selected photos together
+      analyzePhotosWithAi(newUris);
     }
   };
 
-  const analyzeWithAi = async (uri: string, base64?: string) => {
-    // Fail-safe check for AbortSignal.any right before AI call
+  const processImage = async (uri: string) => {
+    try {
+      const manipulResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 1024 } }], // Resize to max width 1024px
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      return manipulResult.uri;
+    } catch (error) {
+      console.warn('Image resizing failed, using original:', error);
+      return uri;
+    }
+  };
+
+  const analyzePhotosWithAi = async (originalUris: string[]) => {
+    // If somehow not already loading, ensure it starts
+    if (!isAiLoading) setIsAiLoading(true);
+    if (!aiStep) setAiStep('uploading');
+
+    // Smoothly animate to 15% immediately for 'uploading' start
+    Animated.timing(progressAnim, { toValue: 15, duration: 1000, useNativeDriver: false }).start();
+
+    // Fail-safe check
     const g = (typeof global !== 'undefined' ? global : window) as any;
     if (g.AbortSignal && !g.AbortSignal.any) {
       console.warn('AbortSignal.any missing again, applying inline fix... 🛠️');
@@ -93,77 +249,90 @@ export function AiListingScreen({ navigation, route }: Props) {
       };
     }
 
-    setIsAiLoading(true);
-    setAiStep('uploading');
+    addFeed('⚡️ Adon Vision Engine 초기화 완료');
+    addFeed('📤 사진 데이터 클라우드 업로드 중...');
+
     try {
-      const filename = uri.split('/').pop();
-      const storagePath = `listings/${Date.now()}_${filename}`;
+      // Optimize images before upload & analysis
+      const uris = await Promise.all(originalUris.map(uri => processImage(uri)));
+
+      const primaryUri = uris[0];
+      const filename = primaryUri.split('/').pop();
+      const storagePath = `listings/ai_logs/${Date.now()}_${filename}`;
       const storageRef = ref(storage, storagePath);
 
-      const response = await fetch(uri);
+      const response = await fetch(primaryUri);
       const blob = await response.blob();
       await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
 
+      Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
-      const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash" });
+      addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
+      const model = getGenerativeModel(aiBackend, { model: "gemini-3.0-flash" });
 
-      const prompt = `당신은 유럽 최고의 중고 거래 플랫폼 'Adon'의 전문 큐레이터입니다. 
-      이 사진 속 상품을 분석하여 하이엔드 중고 리스팅을 작성해주세요.
-      
-      반드시 다음 JSON 형식을 엄격히 지켜주세요:
-      {
-        "title": "대표님을 위한 세련되고 직관적인 상품명",
-        "price": 유럽 시장 시세를 반영한 유로 가격 (숫자만),
-        "category": "추천 카테고리 (가장 적합한 하나)",
-        "description": "상품의 가치, 상태, 그리고 구매자의 마음을 사로잡을 섹시하고 전문적인 설명 (한국어로 작성)"
-      }
-      
-      주의사항:
-      - 벤치마크 앱(Vinted, Wallapop 등)보다 더 전문적이고 고급스러운 톤앤매너로 작성하세요.
-      - 답변은 반드시 한국어로 작성하세요.`;
-
-      let finalBase64 = base64;
-      if (!finalBase64) {
-        const reader = new FileReader();
-        finalBase64 = await new Promise((resolve) => {
+      // Prepare all images for Gemini
+      const imageParts = await Promise.all(uris.map(async (uri, idx) => {
+        // addFeed(`📸 ${idx + 1}번 이미지 정밀 스캔 중...`); // Reduced clutter
+        const resp = await fetch(uri);
+        const b = await resp.blob();
+        const base64: string = await new Promise((resolve) => {
+          const reader = new FileReader();
           reader.onloadend = () => {
             const result = reader.result as string;
             resolve(result.split(',')[1]);
           };
-          reader.readAsDataURL(blob);
+          reader.readAsDataURL(b);
         });
+        return {
+          inlineData: {
+            data: base64,
+            mimeType: "image/jpeg",
+          },
+        };
+      }));
+
+      const prompt = `당신은 유럽 전역의 중고 마켓을 꿰뚫고 있는 시세 전문가입니다. 
+      어떤 종류의 제품이든(전자제품, 명품, 패션 등) 사진 속의 마커(단자, 각인, 로고, 재질 패턴 등)를 통해 정확한 이름과 가치를 뽑아내세요.
+      
+      다음 JSON 형식으로 상세 리포트를 작성해주세요:
+      {
+        "itemName": "식별된 정확한 모델명 (예: Apple AirPods Pro 2nd Gen USB-C / Hermès Birkin 30 등)",
+        "conditionScore": 1~10 사이 점수,
+        "marketDemand": "유럽 내 수요 (High/Medium/Low)",
+        "priceRange": { "min": 최소유로, "max": 최대유로 },
+        "insights": ["모델별 사양 차이", "상태 분석 결과", "유럽 주요 도시별 시세"],
+        "reasoning": "왜 이 모델로 판정했는지 사진 속의 시각적 근거를 바탕으로 한 상세 설명"
       }
+      반드시 한국어로 작성하세요.`;
 
-      const imagePart = {
-        inlineData: {
-          data: finalBase64 as string,
-          mimeType: "image/jpeg",
-        },
-      };
+      addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...');
+      Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
 
-      const result = await model.generateContent([prompt, imagePart]);
+      const result = await model.generateContent([prompt, ...imageParts]);
       const aiResponse = await result.response;
       const responseText = aiResponse.text();
 
       setAiStep('finalizing');
+      Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
+      addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
 
       try {
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
         if (data) {
-          setTitle(data.title || '');
-          setPrice(data.price?.toString() || '');
+          setTitle(data.itemName || ''); // Notice: itemName used in prompt but title in form
+          setAiPriceRange(data.priceRange || null);
           setCategory(data.category || '');
-          setDescription(data.description || '');
+          setDescription(data.reasoning || data.description || '');
           setCondition('Good');
         } else {
           setTitle('AI 분석 완료');
           setDescription(responseText);
         }
 
-        await addDoc(collection(db, 'listings'), {
+        await addDoc(collection(db, 'ai_processing_logs'), {
           image: downloadURL,
           aiResult: data || responseText,
           status: 'completed',
@@ -200,7 +369,7 @@ export function AiListingScreen({ navigation, route }: Props) {
         case 'uploading':
           return '사진을 안전하게 클라우드로 전송 중이에요... 📤';
         case 'analyzing':
-          return 'Gemini AI가 사진을 꼼꼼히 분석하고 있어요... 🧠✨';
+          return 'Adon Vision AI가 상품을 정밀 분석하고 있어요... 🧠✨';
         case 'finalizing':
           return '멋진 제목과 설명을 거의 다 만들었어요! 😍';
         default:
@@ -210,17 +379,98 @@ export function AiListingScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.loadingOverlay}>
-        <View style={styles.loadingCard}>
-          <ActivityIndicator size="large" color="#FF3B30" />
-          <Text style={styles.loadingTitle}>AI 분석 중</Text>
-          <Text style={styles.loadingSubtitle}>{getStepMessage()}</Text>
-          <View style={styles.progressBarBg}>
-            <View
-              style={[
-                styles.progressBarFill,
-                { width: aiStep === 'uploading' ? '30%' : aiStep === 'analyzing' ? '70%' : '100%' }
-              ]}
-            />
+        <View style={styles.scanningWrap}>
+          {photos.length > 0 && (
+            <View style={styles.scanningPreviewBox}>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                style={{ width: '100%', height: '100%' }}
+                contentContainerStyle={{ alignItems: 'center' }}
+              >
+                {photos.map((p, i) => (
+                  <View key={i} style={{ width: 280, height: 220, marginRight: 0 }}>
+                    <Image source={{ uri: p }} style={styles.scanningPreviewImg} resizeMode="cover" />
+                  </View>
+                ))}
+              </ScrollView>
+
+              <Animated.View
+                style={[
+                  styles.scannerLine,
+                  {
+                    transform: [{
+                      translateY: scannerAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 220],
+                      })
+                    }]
+                  }
+                ]}
+              />
+              <View style={styles.scanningOverlayTint} />
+
+              {/* Slide Indicators */}
+              <View style={{ position: 'absolute', bottom: 10, flexDirection: 'row', gap: 6, alignSelf: 'center' }}>
+                {photos.map((_, i) => (
+                  <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#30e86e', opacity: 0.8 }} />
+                ))}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.aiLiveContent}>
+            <View style={styles.aiHeaderRow}>
+              <View style={styles.aiPulseContainer}>
+                <View style={styles.aiPulse} />
+              </View>
+              <Text style={styles.aiLiveTitle}>ADON VISION ENGINE</Text>
+              <View style={styles.percentageBadge}>
+                <Text style={styles.percentageText}>{displayProgress}%</Text>
+              </View>
+            </View>
+
+            <View style={styles.liveFeedContainer}>
+              <View style={styles.feedScroll}>
+                {aiLiveFeed.map((msg, i) => (
+                  <View key={i} style={styles.feedRow}>
+                    <Text style={styles.feedArrow}>{'>'}</Text>
+                    <Text style={[styles.feedItem, i === aiLiveFeed.length - 1 && styles.feedItemActive]}>
+                      {msg}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.progressSection}>
+              <View style={styles.progressBarBg}>
+                <Animated.View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                      })
+                    }
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.progressGlow,
+                    {
+                      left: progressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                      })
+                    }
+                  ]}
+                />
+              </View>
+            </View>
+            <Text style={styles.overlayStepMessage}>{getStepMessage().toUpperCase()}</Text>
           </View>
         </View>
       </View>
@@ -275,7 +525,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
             <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
               <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-              <Text style={styles.addPhotoText}>Add Photo</Text>
+              <Text style={styles.addPhotoText}>Add Photo ({photos.length}/10)</Text>
             </Pressable>
             {photos.map((uri, index) => (
               <View key={index} style={styles.photoCard}>
@@ -315,7 +565,24 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Price Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Price</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>Price</Text>
+              <Pressable
+                style={styles.aiPriceBtn}
+                onPress={() => {
+                  if (photos.length > 0) {
+                    navigation.navigate('AiPriceAssistant', { imageUris: photos, initialPrice: price });
+                  } else {
+                    Alert.alert('사진을 먼저 등록해주세요!', '상품 사진이 있어야 AI가 정확한 시세를 분석할 수 있어요! 📸');
+                  }
+                }}
+              >
+                <MaterialIcons name="auto-awesome" size={16} color="#30e86e" />
+                <Text style={styles.aiPriceBtnText}>
+                  {aiPriceRange ? `AI 시세: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 시세 분석'}
+                </Text>
+              </Pressable>
+            </View>
             <View style={styles.priceContainer}>
               <Text style={styles.currencySymbol}>€</Text>
               <TextInput
@@ -365,8 +632,12 @@ export function AiListingScreen({ navigation, route }: Props) {
 
         {/* Footer / CTA */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-          <Pressable style={styles.ctaBtn} onPress={handlePostItem}>
-            <Text style={styles.ctaText}>Post Item</Text>
+          <Pressable
+            style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+            onPress={handlePostItem}
+            disabled={isPosting}
+          >
+            <Text style={styles.ctaText}>{isPosting ? 'Posting...' : 'Post Item'}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -441,10 +712,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   addPhotoText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#19e61b',
-    marginTop: 4,
+    marginTop: 6,
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   photoCard: {
     width: 100,
@@ -576,6 +849,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  ctaBtnDisabled: {
+    opacity: 0.65,
+  },
   ctaText: {
     fontSize: 18,
     fontWeight: '700',
@@ -619,48 +895,185 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Bright background
     zIndex: 1000,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  loadingCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
+  scanningWrap: {
+    width: '85%',
     alignItems: 'center',
+  },
+  scanningPreviewBox: {
+    width: 280,
+    height: 220,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 30,
+    borderWidth: 2,
+    borderColor: '#30e86e',
+    backgroundColor: '#fff',
+    shadowColor: '#30e86e',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  scanningPreviewImg: {
+    width: 280,
+    height: 220,
+  },
+  scannerLine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#30e86e',
+    shadowColor: '#30e86e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 10,
+  },
+  scanningOverlayTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(48, 232, 110, 0.1)', // Light green tint
+  },
+  aiLiveContent: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
   },
-  loadingTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginTop: 20,
-    marginBottom: 8,
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    justifyContent: 'space-between',
   },
-  loadingSubtitle: {
-    fontSize: 15,
-    color: '#666',
-    textAlign: 'center',
+  aiPulseContainer: {
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiPulse: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30e86e',
+  },
+  aiLiveTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a', // Dark text for contrast
+    letterSpacing: 1,
+    flex: 1,
+    marginLeft: 12,
+  },
+  percentageBadge: {
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#30e86e',
+  },
+  percentageText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#16a34a',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  liveFeedContainer: {
+    height: 130,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 24,
-    lineHeight: 22,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  feedScroll: {
+    flex: 1,
+  },
+  feedRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'flex-start',
+  },
+  feedArrow: {
+    fontSize: 12,
+    color: '#30e86e',
+    marginRight: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  feedItem: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 18,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  feedItemActive: {
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+  progressSection: {
+    marginBottom: 16,
   },
   progressBarBg: {
     width: '100%',
-    height: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 4,
     overflow: 'hidden',
+    position: 'relative',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#FF3B30',
-    borderRadius: 3,
+    backgroundColor: '#30e86e',
+    borderRadius: 4,
+  },
+  progressGlow: {
+    position: 'absolute',
+    top: 0,
+    width: 40,
+    height: '100%',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 5,
+  },
+  overlayStepMessage: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#30e86e',
+    textAlign: 'center',
+    letterSpacing: 1,
+    opacity: 1,
+  },
+  aiPriceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#1e293b',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  aiPriceBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#30e86e',
   },
 });

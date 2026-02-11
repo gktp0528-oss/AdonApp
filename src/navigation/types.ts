@@ -20,11 +20,14 @@ export type RootStackParamList = {
       isPremium?: boolean;
       sellerId?: string;
     };
+    listingId?: string;
   }
   | undefined;
-  Seller: undefined;
+  Seller: { sellerId: string } | undefined;
+  EditProfile: undefined;
   Chat: undefined;
   AiListing: { selectedCategory?: string } | undefined;
   CategorySelect: { parentId?: string; currentPath?: string } | undefined;
   AiIntro: undefined;
+  AiPriceAssistant: { imageUris?: string[]; initialPrice?: string } | undefined;
 };

@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
     paddingTop: 10,
+    zIndex: 1000,
   },
   tab: {
     alignItems: 'center',

@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "adon-315b7"
+  },
   "targets": {},
   "etags": {}
 }

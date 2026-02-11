@@ -1,28 +1,98 @@
-import React from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { PRODUCTS, USERS } from '../data/mockData';
+import { listingService } from '../services/listingService';
+import { userService } from '../services/userService';
+import { Listing } from '../types/listing';
+import { User } from '../types/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Product'>;
 
 export function ProductScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const fromRoute = route.params?.product;
-  const byId = route.params?.productId
-    ? PRODUCTS.find((item) => item.id === route.params?.productId)
-    : undefined;
-  const product = fromRoute ?? byId ?? PRODUCTS[2];
-  const seller = USERS.seller;
+
+  // Params
+  const { listingId, productId, product: paramProduct } = route.params || {};
+  const targetId = listingId || productId || paramProduct?.id;
+
+  // State
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [seller, setSeller] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!targetId) {
+      setLoading(false);
+      return;
+    }
+
+    // Subscribe to listing updates
+    const unsubscribeListing = listingService.watchListingById(targetId, (data) => {
+      setListing(data);
+      setLoading(false);
+
+      if (!data) {
+        // Handle deleted or non-existent listing
+        if (!loading) setError('Item not found');
+      }
+    });
+
+    return () => unsubscribeListing();
+  }, [targetId]);
+
+  // Fetch seller info when listing is loaded
+  useEffect(() => {
+    if (listing?.sellerId) {
+      const unsubscribeUser = userService.watchUserById(listing.sellerId, (userData) => {
+        setSeller(userData);
+      });
+      return () => unsubscribeUser();
+    }
+  }, [listing?.sellerId]);
+
+  // Loading State
+  if (loading) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <ActivityIndicator size="large" color="#22c55e" />
+      </View>
+    );
+  }
+
+  // Error/Empty State
+  if (!listing) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <MaterialIcons name="error-outline" size={48} color="#94a3b8" />
+        <Text style={styles.errorText}>Item not found or removed.</Text>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>Go Back</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // Display Logic
+  const heroImage = listing.photos?.[0] || 'https://via.placeholder.com/400';
+  const priceDisplay = listing.currency === 'USD' ? `$${listing.price}` : `€${listing.price}`;
+
+  // Formatting helper
+  const formatDate = (ts: any) => {
+    if (!ts) return '';
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    return date.toLocaleDateString();
+  };
 
   return (
     <View style={styles.root}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.heroWrap}>
-          <Image source={{ uri: product.image }} style={styles.hero} />
+          <Image source={{ uri: heroImage }} style={styles.hero} />
 
           <View style={[styles.topActions, { top: insets.top + 12 }]}>
             <DetailBackButton onPress={() => navigation.goBack()} />
@@ -36,28 +106,36 @@ export function ProductScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <View style={styles.authWrap}>
-            <View style={styles.authPill}>
-              <MaterialIcons name="verified" size={14} color="#22c55e" />
-              <Text style={styles.authText}>AI Verified Authentic</Text>
+          {(listing.isVerifiedAuthentic) && (
+            <View style={styles.authWrap}>
+              <View style={styles.authPill}>
+                <MaterialIcons name="verified" size={14} color="#22c55e" />
+                <Text style={styles.authText}>AI Verified Authentic</Text>
+              </View>
             </View>
-            <View style={styles.dots}>
-              <View style={[styles.dot, styles.dotActive]} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
+          )}
+
+          {/* Pagination dots if multiple photos */}
+          {listing.photos.length > 1 && (
+            <View style={[styles.authWrap, { justifyContent: 'center', bottom: 10 }]}>
+              <View style={styles.dots}>
+                {listing.photos.map((_, i) => (
+                  <View key={i} style={[styles.dot, i === 0 && styles.dotActive]} />
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </View>
 
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{product.name}</Text>
-            {(product.isPremium ?? false) ? <Text style={styles.premium}>PREMIUM</Text> : null}
+            <Text style={styles.title}>{listing.title}</Text>
+            {listing.isPremium && <Text style={styles.premium}>PREMIUM</Text>}
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{product.price}</Text>
-            {product.oldPrice ? <Text style={styles.oldPrice}>{product.oldPrice}</Text> : null}
+            <Text style={styles.price}>{priceDisplay}</Text>
+            {listing.oldPrice && <Text style={styles.oldPrice}>{listing.currency === 'USD' ? '$' : '€'}{listing.oldPrice}</Text>}
           </View>
 
           <View style={styles.safeBox}>
@@ -65,13 +143,21 @@ export function ProductScreen({ navigation, route }: Props) {
             <Text style={styles.safeText}>Safe Payment Guaranteed</Text>
           </View>
 
+          {/* Seller Card */}
           <View style={styles.sellerCard}>
             <View style={styles.sellerTop}>
               <View style={styles.sellerLeft}>
-                <Image source={{ uri: seller.avatar }} style={styles.avatar} />
+                <Image
+                  source={{ uri: seller?.avatar || 'https://via.placeholder.com/100' }}
+                  style={styles.avatar}
+                />
                 <View style={styles.sellerTextWrap}>
-                  <Text style={styles.sellerName}>{seller.name}</Text>
-                  <Text style={styles.sellerMeta}>{seller.positiveRate}% Positive · {seller.sales} Sales</Text>
+                  <Text style={styles.sellerName}>{seller?.name || 'Unknown Seller'}</Text>
+                  <Text style={styles.sellerMeta}>
+                    {seller?.positiveRate ? `${seller.positiveRate}% Positive` : 'New Seller'}
+                    {' · '}
+                    {seller?.sales ? `${seller.sales} Sales` : '0 Sales'}
+                  </Text>
                 </View>
               </View>
               <Pressable style={styles.followBtn}>
@@ -82,37 +168,52 @@ export function ProductScreen({ navigation, route }: Props) {
             <View style={styles.trustRow}>
               <View style={styles.trustCard}>
                 <Text style={styles.trustLabel}>RESPONSE TIME</Text>
-                <Text style={styles.trustValue}>&lt; 1 hour</Text>
+                <Text style={styles.trustValue}>{seller?.responseTime || 'Unknown'}</Text>
               </View>
               <View style={styles.trustCard}>
                 <Text style={styles.trustLabel}>RELIABILITY</Text>
-                <Text style={styles.trustValue}>Top Rated</Text>
+                <Text style={styles.trustValue}>{seller?.reliabilityLabel || 'Unverified'}</Text>
               </View>
             </View>
           </View>
 
+          {/* Specs */}
           <View style={styles.specGrid}>
             <View style={styles.specCol}>
-              <Text style={styles.specKey}>Brand</Text>
-              <Text style={styles.specValue}>Heritage Lux</Text>
-            </View>
-            <View style={styles.specCol}>
-              <Text style={styles.specKey}>Size</Text>
-              <Text style={styles.specValue}>Medium (EU 38)</Text>
+              <Text style={styles.specKey}>Category</Text>
+              <Text style={styles.specValue}>{listing.category}</Text>
             </View>
             <View style={styles.specCol}>
               <Text style={styles.specKey}>Condition</Text>
               <View style={styles.inlineValue}>
-                <Text style={styles.specValue}>Like New</Text>
+                <Text style={styles.specValue}>{listing.condition}</Text>
                 <View style={[styles.colorDot, { backgroundColor: '#22c55e' }]} />
               </View>
             </View>
-            <View style={styles.specCol}>
-              <Text style={styles.specKey}>Color</Text>
-              <View style={styles.inlineValue}>
-                <Text style={styles.specValue}>Beige</Text>
-                <View style={[styles.colorDot, { backgroundColor: '#d6c8b2' }]} />
+            {listing.brand && (
+              <View style={styles.specCol}>
+                <Text style={styles.specKey}>Brand</Text>
+                <Text style={styles.specValue}>{listing.brand}</Text>
               </View>
+            )}
+            {listing.size && (
+              <View style={styles.specCol}>
+                <Text style={styles.specKey}>Size</Text>
+                <Text style={styles.specValue}>{listing.size}</Text>
+              </View>
+            )}
+            {listing.colorName && (
+              <View style={styles.specCol}>
+                <Text style={styles.specKey}>Color</Text>
+                <View style={styles.inlineValue}>
+                  <Text style={styles.specValue}>{listing.colorName}</Text>
+                  {listing.colorHex && <View style={[styles.colorDot, { backgroundColor: listing.colorHex }]} />}
+                </View>
+              </View>
+            )}
+            <View style={styles.specCol}>
+              <Text style={styles.specKey}>Listed</Text>
+              <Text style={styles.specValue}>{formatDate(listing.createdAt)}</Text>
             </View>
           </View>
 
@@ -120,39 +221,13 @@ export function ProductScreen({ navigation, route }: Props) {
 
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.desc}>
-            {product.description ??
-              'Well-maintained item in great condition. Clean details and ready to wear. No major flaws reported by seller.'}
+            {listing.description || 'No description provided.'}
           </Text>
-          <Pressable>
-            <Text style={styles.readMore}>Read More</Text>
-          </Pressable>
 
-          <Text style={[styles.sectionTitle, styles.sectionGap]}>Shipping & Pickup</Text>
-          <View style={styles.shipCard}>
-            <View style={styles.shipIconWrap}>
-              <MaterialIcons name="local-shipping" size={18} color="#64748b" />
-            </View>
-            <View style={styles.shipTextWrap}>
-              <Text style={styles.shipTitle}>Express Shipping</Text>
-              <Text style={styles.shipMeta}>Arrives in 2-3 business days</Text>
-            </View>
-            <Text style={styles.shipPrice}>$12.50</Text>
-          </View>
-
-          <View style={[styles.shipCard, styles.shipCardActive]}>
-            <View style={[styles.shipIconWrap, styles.shipIconWrapActive]}>
-              <MaterialIcons name="storefront" size={18} color="#16a34a" />
-            </View>
-            <View style={styles.shipTextWrap}>
-              <Text style={styles.shipTitle}>In-store Verification</Text>
-              <Text style={styles.shipMeta}>Secure pickup at local hub</Text>
-            </View>
-            <Text style={styles.shipPriceFree}>Free</Text>
-          </View>
-
+          {/* Shipping & Location (Static/Placeholder for now as per schema optional) */}
+          <Text style={[styles.sectionTitle, styles.sectionGap]}>Location</Text>
           <View style={styles.locationHead}>
-            <Text style={styles.sectionTitle}>Location</Text>
-            <Text style={styles.locationText}>London, United Kingdom</Text>
+            <Text style={styles.locationText}>{seller?.location || 'Location hidden'}</Text>
           </View>
 
           <View style={styles.mapCard}>
@@ -160,10 +235,11 @@ export function ProductScreen({ navigation, route }: Props) {
               <View style={styles.mapPinInner} />
             </View>
           </View>
+
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}> 
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.chatBtn} onPress={() => navigation.navigate('Chat')}>
           <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
         </Pressable>
@@ -179,6 +255,10 @@ export function ProductScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f2f4f3' },
   content: { paddingBottom: 140 },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  errorText: { marginTop: 16, fontSize: 16, color: '#64748b', marginBottom: 20 },
+  backBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#0f172a', borderRadius: 8 },
+  backBtnText: { color: '#fff', fontWeight: 'bold' },
 
   heroWrap: { position: 'relative' },
   hero: { width: '100%', height: 500, backgroundColor: '#d6c79b' },
@@ -189,6 +269,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    zIndex: 10,
   },
   rightActions: { flexDirection: 'row', gap: 8 },
   iconCircle: {
@@ -220,7 +301,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   authText: { color: '#ffffff', fontWeight: '700', fontSize: 13 },
-  dots: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  dots: { flexDirection: 'row', gap: 6, alignItems: 'center', alignSelf: 'center' },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.62)' },
   dotActive: { width: 26, borderRadius: 999, backgroundColor: '#22c55e' },
 
@@ -273,7 +354,7 @@ const styles = StyleSheet.create({
   },
   sellerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sellerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  avatar: { width: 46, height: 46, borderRadius: 23 },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#ccc' },
   sellerTextWrap: { flex: 1 },
   sellerName: { fontSize: 16, fontWeight: '800', color: '#0f172a' },
   sellerMeta: { marginTop: 2, color: '#16a34a', fontWeight: '700', fontSize: 13 },
@@ -342,7 +423,7 @@ const styles = StyleSheet.create({
   shipPrice: { fontWeight: '800', color: '#111827', fontSize: 22 / 2 },
   shipPriceFree: { fontWeight: '800', color: '#16a34a', fontSize: 22 / 2 },
 
-  locationHead: { marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  locationHead: { marginTop: 10, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   locationText: { color: '#94a3b8', fontSize: 15 },
   mapCard: {
     marginTop: 10,

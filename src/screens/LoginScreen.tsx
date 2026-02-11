@@ -4,6 +4,7 @@ import { StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { authService } from '../services/authService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -11,7 +12,7 @@ export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim()) {
       Alert.alert('Missing Input', 'Please enter your email address.');
       return;
@@ -20,13 +21,18 @@ export function LoginScreen({ navigation }: Props) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
-    if (!password || password.length < 6) {
-      Alert.alert('Invalid Password', 'Password must be at least 6 characters.');
+    if (!password) {
+      Alert.alert('Missing Password', 'Please enter your password.');
       return;
     }
 
-    // In a real app, API call would happen here
-    navigation.replace('Home');
+    try {
+      await authService.login(email, password);
+      // login successful, navigate to Home
+      navigation.replace('Home');
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message || 'Invalid email or password');
+    }
   };
 
   return (
