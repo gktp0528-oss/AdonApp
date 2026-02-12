@@ -217,8 +217,8 @@ export function AiListingScreen({ navigation, route }: Props) {
     try {
       const manipulResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 1024 } }], // Resize to max width 1024px
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 512 } }], // Aggressive resize to 512px for speed
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
       );
       return manipulResult.uri;
     } catch (error) {
