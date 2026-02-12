@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adon Chat: Delivery &amp; Meetup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#19e61b",
+                "background-light": "#f6f8f6",
+                "background-dark": "#112111",
+                },
+                fontFamily: {
+                "display": ["Inter"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                backgroundImage: {
+                    'dot-pattern': "radial-gradient(#19e61b 1px, transparent 1px)",
+                }
+            },
+            },
+        }
+    </script>
+<style>.scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .bg-dots {
+            background-size: 20px 20px;
+            opacity: 0.4;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display h-screen flex flex-col antialiased overflow-hidden relative">
+<div class="absolute inset-0 bg-dot-pattern bg-dots pointer-events-none z-0"></div>
+<header class="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md dark:bg-[#112111]/90 border-b border-gray-100 dark:border-gray-800 shrink-0 z-20 shadow-sm sticky top-0">
+<div class="flex items-center gap-3">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-200 transition-colors">
+<span class="material-icons">arrow_back_ios_new</span>
+</button>
+<div class="relative">
+<img alt="User Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" data-alt="Portrait of smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASkki48k7Y_GiD_qkNOaOZN4B_ps1X8Ti8XofNsGyFTibiK0unE51r_0GLVezIaKhAUSzund9mfVao0dk8L3qlHt_PyTIj7hQ6P8Tt5C18lJjLlTwW2bCKGdssTc6OQrlt_fg8iisj4URb5hDtYvVqPa4ozDYLmj2XDGkakMu5xUIQZfnu-9PTxsIAHxBnIC8s0QBOw2mtYfUE-osx2TyPsScFr5cXDNXXqbKFOei7SgTSkOsZURrmBqYHe43KQ_5X_YgIJpCCXb9X"/>
+<span class="absolute -bottom-1 -right-1 bg-primary w-3 h-3 rounded-full border-2 border-white dark:border-[#112111]"></span>
+</div>
+<div>
+<div class="flex items-center gap-1">
+<h1 class="font-bold text-base text-gray-900 dark:text-white leading-tight">Sarah J.</h1>
+<span class="bg-yellow-50 text-yellow-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border border-yellow-100">
+<span class="material-icons text-[10px]">star</span> 4.9
+                    </span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">Online now</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-primary/10 text-primary transition-colors" title="Safety Tips">
+<span class="material-symbols-outlined filled">security</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-icons">more_vert</span>
+</button>
+</div>
+</header>
+<div class="bg-white/95 backdrop-blur-sm dark:bg-[#112111]/95 px-4 py-3 border-b border-gray-100 dark:border-gray-800 shrink-0 shadow-sm z-10">
+<div class="flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="text-sm font-semibold text-primary uppercase tracking-wide mb-1 flex items-center gap-1">
+<span class="material-icons text-base">event</span>
+                        Meetup Scheduled
+                    </h2>
+<p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Starbucks Coffee</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Today at 2:00 PM • In 45 mins</p>
+</div>
+<button class="text-xs bg-primary/10 text-emerald-900 dark:text-emerald-100 hover:bg-primary/20 px-3 py-1.5 rounded-full font-medium transition-colors border border-primary/20">
+                    Change Plan
+                </button>
+</div>
+<div class="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group cursor-pointer shadow-sm">
+<img class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="Map showing city streets" data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzXWhbnJ5z4-8ZgZvWjSiOWZU5n4f811ihe5Pk6CXW4GfjQcZbIzxvMqSfyCvx5qfaHEXmxTCKisY8-hwGmAm9ZAmFVlZ3u_FAUOY7qHLoBXlZAPe8dsU2lb0VLKs64i6u7xOhYy52AXLWlpGIauyXmeZgagfbN3V7BoNiym5lXbLY5cR28N5HUD6col-qT2YoQZm90TVDizIGjmjNeCPm1EzO9hEJqE9kAZS_4p3DR_dxfW5xhrr6GunPOTpKxIvk5jH67QHhMIo9"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+<div class="flex justify-between w-full items-end">
+<div class="flex items-center gap-1 text-white">
+<span class="material-icons text-sm text-primary">location_on</span>
+<span class="text-xs font-medium drop-shadow-md">1.2 miles away</span>
+</div>
+<button class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 border border-gray-100 dark:border-gray-700">
+<span class="material-icons text-xs text-primary">directions</span>
+                            Get Directions
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide p-4 flex flex-col gap-4 z-10 relative">
+<div class="flex justify-center my-2">
+<span class="text-[10px] font-medium text-gray-500 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-3 py-1 rounded-full uppercase tracking-wider border border-gray-100 dark:border-gray-700 shadow-sm">Today</span>
+</div>
+<div class="flex justify-center mb-2">
+<div class="bg-[#f0fdf0] dark:bg-emerald-900/20 border border-primary/30 text-emerald-900 dark:text-emerald-100 text-xs px-4 py-3 rounded-lg max-w-[90%] text-center shadow-sm">
+<div class="flex items-center justify-center gap-2 mb-1 text-emerald-700 dark:text-primary font-bold">
+<span class="material-icons text-sm">verified_user</span>
+                    Payment Secure
+                </div>
+                Funds are held in escrow until you confirm the item is received as described.
+            </div>
+</div>
+<div class="flex items-end gap-2 max-w-[85%]">
+<img class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0 shadow-sm" data-alt="Small portrait of woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVWat9P5zEhViyHmTNnlbWAXtTnEtFE_ORFNfVmEIQLzacsmXBVyViRw2C7vwzJabRe1nOvliMQRCv3AvXqBxQIxIaOJy7v5VW_DkLb_ODtOl8AJw_z7fFBJ7x-PeonzI30i8rzuwDFTGBQho87juh-zOGbHK3KJhnNZByGR-U17fvIZKggw66EEEbvYGc9OAcOX7fCYe3SwCfRW2nOdQ79ilgh7aC3o-8YFF4NEAR1rmQuahaoQO1H4JaBYcYkgphInBr_eX0n0jF"/>
+<div class="flex flex-col gap-1">
+<div class="bg-white dark:bg-[#1a2e1a] p-3 rounded-2xl rounded-bl-none shadow-sm text-sm text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-800">
+<p>Hey! I'm leaving my place now. Should be there right at 2 PM.</p>
+</div>
+<span class="text-[10px] text-gray-400 ml-1 font-medium">1:15 PM</span>
+</div>
+</div>
+<div class="flex items-end gap-2 max-w-[85%] self-end flex-row-reverse">
+<div class="flex flex-col gap-1 items-end">
+<div class="bg-primary text-emerald-950 p-3 rounded-2xl rounded-br-none shadow-md text-sm font-medium">
+<p>Great! I'm already nearby running some errands.</p>
+</div>
+<div class="flex items-center gap-1 mr-1">
+<span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">1:16 PM</span>
+<span class="material-icons text-[12px] text-primary">done_all</span>
+</div>
+</div>
+</div>
+<div class="flex items-end gap-2 max-w-[85%]">
+<img class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0 shadow-sm" data-alt="Small portrait of woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAPe2pgCYuCQ-tsKh85Xu_42L9C0Y92NksOLXSo_BbJacW6D7Qdy7_HVk8ro5B9DSUdgvv2MQzETllwKPqQ-BiVVDRNA7iq5YY8WEm-vTE6tgOqNbuQG542WckoXYBnlH8yNUlaC_NH3il2WKEuEwXERLBWFghw53TV4OR9tz7O7nAbhqfJ08BPtCsODw5upm2nQ47iRWUHg8Agb475Utw35LEEtIW0z3I8pWu03DJOaY5AEP7Yv7cZTGI6htEhLoVZBHNP310rph7"/>
+<div class="flex flex-col gap-1">
+<div class="bg-white dark:bg-[#1a2e1a] p-1 rounded-2xl rounded-bl-none shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+<img class="w-48 h-32 object-cover rounded-xl" data-alt="Close up of vintage sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8T1VkruuM1mC2TmA1TmobG1wxO-5j3P_srTQlThS4L4fUm2FlmliRDEGWQmdWgLtf-T8QF3RLQCwQZoe8jLhEoMepLo-sdLjyucBxwMTdPI3Z8k60I0U8irbGc7k7yQ3fCkccv6xI8NnaRiMFyDeDG_B4QRKu2N-aFgXu4QhcBld6WGUFUxB6HjWtMB7JKn5jEIgkf--MRsbZFFS6OBcD9vDybZZHtlawHd63OmAseRD4OXJeb1gY9ID57LuMayVXZFL6KhGTZYzK"/>
+</div>
+<div class="bg-white dark:bg-[#1a2e1a] p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-800 mt-0.5">
+<p>Just packed it up in the original box for you.</p>
+</div>
+<span class="text-[10px] text-gray-400 ml-1 font-medium">1:17 PM</span>
+</div>
+</div>
+<div class="flex justify-center my-2 w-full">
+<div class="w-full bg-white dark:bg-[#1a2e1a] rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full text-emerald-700 dark:text-primary">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div>
+<p class="text-xs font-bold text-gray-900 dark:text-white">Shipping Alternative</p>
+<p class="text-[10px] text-gray-500">Label created</p>
+</div>
+</div>
+<button class="text-xs bg-primary hover:bg-lime-500 text-emerald-950 px-3 py-1.5 rounded-lg font-bold shadow-sm transition-colors">
+                    Track Package
+                </button>
+</div>
+</div>
+</div>
+<div class="bg-white/95 backdrop-blur-md dark:bg-[#112111]/95 border-t border-gray-100 dark:border-gray-800 shrink-0 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide border-b border-gray-50 dark:border-gray-800">
+<button class="shrink-0 text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                👋 I've arrived
+            </button>
+<button class="shrink-0 text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                📍 Where are you?
+            </button>
+<button class="shrink-0 text-xs font-medium bg-primary/10 dark:bg-primary/20 text-emerald-800 dark:text-emerald-100 px-3 py-1.5 rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors border border-primary/20">
+                ✅ Item received
+            </button>
+<button class="shrink-0 text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-800">
+                ⚠️ Report Issue
+            </button>
+</div>
+<div class="p-3 flex items-end gap-2">
+<button class="p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-icons">add_circle_outline</span>
+</button>
+<div class="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center px-4 py-2 min-h-[44px] border border-transparent focus-within:border-primary/50 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all">
+<input class="bg-transparent border-none outline-none w-full text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:ring-0 p-0 m-0" placeholder="Type a message..." type="text"/>
+<button class="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+<span class="material-icons text-[20px]">sentiment_satisfied_alt</span>
+</button>
+</div>
+<button class="p-2 bg-primary text-emerald-950 rounded-full hover:bg-lime-400 transition-colors shadow-sm flex items-center justify-center w-11 h-11 transform active:scale-95 duration-100">
+<span class="material-icons text-[20px]">send</span>
+</button>
+</div>
+<div class="h-6 w-full"></div>
+</div>
+
+</body></html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adon Sign Up Splash Style</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e61b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112111",
+                        // Brand identity colors
+                        "adon-deep": "#064e3b", 
+                        "adon-darker": "#022c22",
+                        "adon-neon": "#bef264", 
+                        "adon-pop-pink": "#f472b6",
+                        "adon-pop-blue": "#38bdf8",
+                        "light-bg-base": "#ffffff",
+                        "light-bg-subtle": "#f3f4f6",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                    animation: {
+                        'float-slow': 'float 7s ease-in-out infinite',
+                        'float-medium': 'float 5s ease-in-out infinite reverse',
+                        'float-fast': 'float 4s ease-in-out infinite',
+                        'spin-slow': 'spin 15s linear infinite',
+                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-subtle': 'bounce-subtle 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-20px) rotate(5deg)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                            '50%': { opacity: '.8', transform: 'scale(1.05)' },
+                        },
+                        'bounce-subtle': {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .cube-wrapper {
+            perspective: 1000px;
+        }
+        .cube {
+            width: 50px;
+            height: 50px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg) rotateY(-30deg);
+        }
+        .face {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #bef264;
+            border: 1.5px solid #064e3b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #064e3b;
+        }
+        .front  { transform: rotateY(0deg) translateZ(25px); }
+        .back   { transform: rotateY(180deg) translateZ(25px); }
+        .right  { transform: rotateY(90deg) translateZ(25px); background: #a3e635;}
+        .left   { transform: rotateY(-90deg) translateZ(25px); background: #a3e635; }
+        .top    { transform: rotateX(90deg) translateZ(25px); background: #d9f99d;}
+        .bottom { transform: rotateX(-90deg) translateZ(25px); }
+        .cutout-a {
+            color: #064e3b;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+        }
+        .bg-grid-pattern {
+            background-image: radial-gradient(#d1fae5 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+        }.custom-input {
+            transition: all 0.3s ease;
+        }
+        .custom-input:focus {
+            box-shadow: 0 4px 12px rgba(190, 242, 100, 0.2);
+            border-color: #bef264;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display h-screen w-full overflow-hidden flex items-center justify-center relative">
+<div class="relative w-full max-w-md h-full max-h-[900px] bg-gradient-to-b from-light-bg-base to-light-bg-subtle overflow-hidden shadow-2xl flex flex-col items-center justify-start pt-12 border border-gray-100">
+<div class="absolute inset-0 bg-grid-pattern opacity-60 pointer-events-none"></div>
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<div class="absolute -top-20 -right-20 w-80 h-80 bg-adon-neon/20 rounded-full blur-[80px] animate-pulse"></div>
+<div class="absolute -bottom-20 -left-20 w-96 h-96 bg-adon-pop-blue/10 rounded-full blur-[100px]"></div>
+<div class="absolute top-24 -left-8 animate-float-slow z-0 opacity-40">
+<div class="relative w-20 h-20 rotate-12">
+<div class="absolute inset-0 bg-adon-pop-pink/10 rounded-full blur-xl transform scale-150"></div>
+</div>
+</div>
+<div class="absolute bottom-36 -right-6 animate-float-medium z-0 opacity-40">
+<div class="relative w-24 h-24 -rotate-12">
+<div class="absolute inset-0 bg-adon-pop-blue/10 rounded-full blur-xl transform scale-150"></div>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center justify-center w-full px-8 mb-8">
+<div class="flex items-center gap-4 mb-2 animate-bounce-subtle">
+<div class="cube-wrapper">
+<div class="cube">
+<div class="face front">
+<span class="cutout-a font-display font-black">A</span>
+</div>
+<div class="face back"></div>
+<div class="face right"></div>
+<div class="face left"></div>
+<div class="face top"></div>
+<div class="face bottom"></div>
+</div>
+</div>
+<h1 class="text-4xl font-display font-black text-adon-deep tracking-tighter drop-shadow-sm">
+                    ADON
+                </h1>
+</div>
+<p class="text-gray-500 font-medium tracking-wide text-sm">Join the premium resale community</p>
+</div>
+<div class="relative z-20 w-full px-6 flex-1 flex flex-col justify-start">
+<div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 p-8 w-full">
+<h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create Account</h2>
+<form action="#" class="space-y-5" onsubmit="event.preventDefault()">
+<div class="space-y-1.5">
+<label class="block text-xs font-bold text-gray-500 uppercase tracking-wider ml-1" for="fullname">Full Name</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 group-focus-within:text-adon-deep transition-colors text-[20px]">person</span>
+</div>
+<input class="custom-input block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-adon-neon/50 bg-gray-50/50" id="fullname" name="fullname" placeholder="John Doe" type="text"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="block text-xs font-bold text-gray-500 uppercase tracking-wider ml-1" for="email">Email Address</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 group-focus-within:text-adon-deep transition-colors text-[20px]">mail</span>
+</div>
+<input class="custom-input block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-adon-neon/50 bg-gray-50/50" id="email" name="email" placeholder="hello@example.com" type="email"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="block text-xs font-bold text-gray-500 uppercase tracking-wider ml-1" for="password">Password</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 group-focus-within:text-adon-deep transition-colors text-[20px]">lock</span>
+</div>
+<input class="custom-input block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-adon-neon/50 bg-gray-50/50" id="password" name="password" placeholder="••••••••" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer">
+<span class="material-symbols-outlined text-gray-400 hover:text-gray-600 text-[20px]">visibility</span>
+</div>
+</div>
+</div>
+<div class="pt-4">
+<button class="w-full bg-adon-neon text-adon-deep font-bold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_rgba(190,242,100,0.5)] hover:shadow-[0_6px_20px_rgba(190,242,100,0.6)] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group" type="submit">
+                            Sign Up
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+<div class="mt-6 text-center">
+<p class="text-sm text-gray-500">
+                        By signing up, you agree to our 
+                        <a class="font-semibold text-adon-deep hover:underline" href="#">Terms</a> &amp; 
+                        <a class="font-semibold text-adon-deep hover:underline" href="#">Privacy Policy</a>
+</p>
+</div>
+</div>
+<div class="mt-auto mb-10 w-full flex justify-center z-20">
+<p class="text-gray-600 font-medium">
+                    Already have an account? 
+                    <a class="text-adon-deep font-bold hover:text-adon-darker transition-colors ml-1" href="#">Sign In</a>
+</p>
+</div>
+</div>
+</div>
+
+</body></html>

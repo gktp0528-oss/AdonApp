@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adon Home - Variant 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e61b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112111",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    backgroundImage: {
+                        'dot-pattern': "radial-gradient(#19e61b 1px, transparent 1px)",
+                        'dot-pattern-dark': "radial-gradient(#19e61b 1px, transparent 1px)"
+                    },
+                    backgroundSize: {
+                        'dot-size': '20px 20px'
+                    }
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}
+        .bg-dots {
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .dark .bg-dots {
+            background-image: radial-gradient(#374151 1px, transparent 1px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-white antialiased">
+<div class="max-w-md mx-auto min-h-screen relative pb-28 overflow-hidden shadow-2xl bg-white dark:bg-background-dark bg-dots">
+<header class="sticky top-0 z-50 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="User profile" class="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAigth2QvzKuPyxvlqDuxR1Y4praIaYx84Oi3dLB7r3GhwhUQGjcnKxSuKdTy_U9guRX_ciJwefSs97RbIQlMvROLE4S3Lvv_V8W8E4x2IGgAjGDjjHoVJl84492_vCV1nPNgp4jEVxqL54T66MYpBwlcrNOdz75K11isOmc_i-V_RBHoQmz_ma0odEi4bo90Wla47lzjQ23AcMmH5S0q5FKXcXNr_uxMqTNzxvOpbIvQ7rkAd6faQEn2B0O8yyThl_pnXhnG9XIG8C"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-primary border-2 border-white dark:border-background-dark rounded-full"></div>
+</div>
+<div>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Good Morning,</p>
+<h1 class="text-lg font-bold text-gray-900 dark:text-white leading-tight">Sarah</h1>
+</div>
+</div>
+<button class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-background-dark"></span>
+</button>
+</div>
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-12 pr-12 py-3.5 bg-background-light dark:bg-gray-800 border-none rounded-full text-sm font-medium focus:ring-2 focus:ring-primary/50 shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white" placeholder="Find clothes, decor, tech..." type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-sm text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">tune</span>
+</button>
+</div>
+</header>
+<main class="space-y-8 pt-6">
+<section class="pl-6">
+<div class="flex gap-3 overflow-x-auto no-scrollbar pr-6 pb-2">
+<button class="flex items-center gap-2 px-5 py-2.5 bg-primary text-black rounded-full shadow-lg shadow-primary/25 whitespace-nowrap transition-transform active:scale-95 font-semibold">
+<span class="material-symbols-outlined text-lg">checkroom</span>
+<span class="text-sm">Fashion</span>
+</button>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+<span class="material-symbols-outlined text-lg">devices</span>
+<span class="text-sm font-medium">Tech</span>
+</button>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+<span class="material-symbols-outlined text-lg">chair</span>
+<span class="text-sm font-medium">Home</span>
+</button>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+<span class="material-symbols-outlined text-lg">toys</span>
+<span class="text-sm font-medium">Kids</span>
+</button>
+</div>
+</section>
+<section class="pl-6">
+<div class="flex items-center justify-between pr-6 mb-4">
+<div class="flex items-center gap-2">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Picked for you</h2>
+<span class="bg-primary/20 text-green-800 dark:text-green-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">AI Curated</span>
+</div>
+<a class="text-sm font-medium text-green-700 hover:text-primary dark:text-green-400" href="#">See all</a>
+</div>
+<div class="flex gap-5 overflow-x-auto no-scrollbar pr-6 pb-4 snap-x snap-mandatory">
+<div class="snap-start shrink-0 w-64 group cursor-pointer">
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 shadow-md bg-gray-100 dark:bg-gray-800">
+<img alt="Denim Jacket" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyzPmqR0xA6If0DoO4Sk0x0KxD_sOdhBimE6C1Ctf0W4EryqqEMuo7SDV7wxOgr3NlmNE5hp1dYNmh7LCNytzPtEPCaBUl5kNouptG41S2gjMjJ02ePSRUVU8CnfQIAqwQ-09H4pgoVkrIu0W82mTNJjyawubCXugSXPJ_dWPvTHaTxsgjKZl4pwR_W_nXf41m2FYVQcSrgYRlOiLeXaMoyZ4I3uomIIVFb49h_JKDtdQB1amgcbOZgRhaB6UdD6-YM8PtERah5njJ"/>
+<div class="absolute top-3 right-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+<span class="text-xs font-bold text-gray-800 dark:text-gray-200">Trusted</span>
+</div>
+<div class="absolute bottom-3 left-3 bg-white/90 dark:bg-black/60 backdrop-blur-md text-black dark:text-white px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
+<span class="font-bold text-green-700 dark:text-primary">$45.00</span>
+</div>
+</div>
+<h3 class="font-semibold text-gray-900 dark:text-white truncate">Vintage Levi's Trucker Jacket</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Size M • Excellent Condition</p>
+</div>
+<div class="snap-start shrink-0 w-64 group cursor-pointer">
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 shadow-md bg-gray-100 dark:bg-gray-800">
+<img alt="Sneakers" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlUrLCtCrDCrVYbfyMGfy0TIZHxQ05gbNoP0PifQlEVJlP--pZ10xxPBqyREmPDrrFhx2XIHGue9G0NHdAPG-3tBwUkM6h8P6nu_lF-d0n17zT3zsDbjWJ3B5WO4n2yhyRIkQvngQ5pjT97ofPat6xRSbdQ8ZvEoS-gDhXfquyAtr3sZ5EbfoRUXrAvX_SrfflRoJRGOi3CWs-P8WLr7XJRXIfd6Q3Xn04vQsGtScDgVF-82FDnVhSboMPaSX06TvsiJ0-G1afHxfL"/>
+<div class="absolute top-3 right-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+<span class="text-xs font-bold text-gray-800 dark:text-gray-200">Trusted</span>
+</div>
+<div class="absolute bottom-3 left-3 bg-white/90 dark:bg-black/60 backdrop-blur-md text-black dark:text-white px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
+<span class="font-bold text-green-700 dark:text-primary">$120.00</span>
+</div>
+</div>
+<h3 class="font-semibold text-gray-900 dark:text-white truncate">Nike Air Force 1 '07</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Size 9 • Like New</p>
+</div>
+<div class="snap-start shrink-0 w-64 group cursor-pointer">
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 shadow-md bg-gray-100 dark:bg-gray-800">
+<img alt="Handbag" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1duxq80OtJhHUAxkS3TQkbvWdGceek7yKzDDlOZIBLp2UkRkVzxwKdJH1r4dDRnJ08F8__8BOc20rav7nIVm7NuDJdsqwjt7VCMQQb77T41Xib6zDvenWRPGot_DXoe8V5FutNIceqX_dK8-7KEtgmrs0A8K64IKONgim0Wh0uFyJdgCNOsfuj5MYEwxuxmhCFGTiBxEe7aJnDYVz4hR5H7j1p3onDKRME-FZ9SPwy89816dovSw5C6cBIT8OzqevqnjwHKZNcJqW"/>
+<div class="absolute bottom-3 left-3 bg-white/90 dark:bg-black/60 backdrop-blur-md text-black dark:text-white px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
+<span class="font-bold text-green-700 dark:text-primary">$85.00</span>
+</div>
+</div>
+<h3 class="font-semibold text-gray-900 dark:text-white truncate">Coach Leather Crossbody</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Beige • Gently Used</p>
+</div>
+</div>
+</section>
+<section class="px-6">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Fresh finds</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-4">
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="Vintage Camera" class="w-full h-40 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2eYnGDU3JwtzKf4PtuOJihotgFNP5gOPVLNwlP_WBtl6dsTjF0IKXeFuqEUZy9218laAK3GiorvbHn8vglsyvEO02AwFwu6-E_4wAflkQlv0zwyN9fkg4rMknOBp6mRojAS_cIzO0ZEOxXxP8Jo9EFPDoOInCqLvd3dZ0aZ-2HHbqMzFFaPpU5zDUyX3LvjAI8GHz-nAzQZUhRCbzlRDVWBJKsYFDax2q24YK0a2hWzXPYjtfx0waTyuQry-H4bjZavaI57YBi-EL"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">Canon AE-1 Program</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$150</span>
+<span class="text-xs text-gray-500">2h ago</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="T-shirt" class="w-full h-56 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPgnZ-3-308A08UdzBRk5WjzKWyHU53Be_E37f3JyAkSkGBg_IhDiC8H20y9UxfVi1r2kJRDnDlKO_HpHChctopFsNeeyxIzkwfYnrYSI-4fFavNJ080id9tpaTfWs1AIGJyrGS8eu1sZ5Y23Iw0ODpVRJ18uVz2ZaerTDywPW93pYQyxlQLmTzfpWx3LRAW3aYlSNvO7KwcuWilv_p9fzqHKzJar6C85jQj5bEEnns8kVRD_xFHLE5dzFS5a89BdbvLCcXmLmWa1Q"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">Cotton Essentials Tee</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$12</span>
+<span class="text-xs text-gray-500">5h ago</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="Smart Watch" class="w-full h-40 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRMOMBNUO4tiKhJEkvMeTN78TnUjMQcZryzJD2RloCqDGDPYGdYmY8_rSzkuVQTuGAJOndYQCaV6hOJYqMJHchVJ4RAyHq2ztzf-Va8ydjqIkcbUaVk5hOIRMwrz-NsthgzJMllb6JZOxXEj329DVhZ9eXDeghsrisnepilvYagTTRo6Lv79pgAVvMEgCB7UDUi_kkIXuX5MoAAxAjUk6jSVSMDMQRL_IV1PGdZ3yGEH9P0sNI_mYbWY1v2qwmT9Ioa_1Ne5AqNqzV"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">Apple Watch SE</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$180</span>
+<span class="text-xs text-gray-500">1d ago</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-4 mt-8"> 
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="Backpack" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuzC6jxlNtGQs4LpKL5qsfcellg5b9iZ-s_a49vTDPo8iF7PBGY8ezd9De9qMbZ2Xry82CtxJ13NwTQasHlwONkzo63Zg_uGe0uMkP1mbGIuPUsQaj4zD5c4wsLTxvdHvQneSOzAQfoLh5tl29MeZL3Kg1bfCF1zNAZnLhI6YSDZo5cnmtTXNjjWHYF_TV5vu1imKTkSb4_fbTkd5DmRVLobUVYqLQKU4UVAlHrWhbpNYTlgSqscChnFELbq_P4Y8bMPCo1zzBMeaB"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">North Face Backpack</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$65</span>
+<span class="text-xs text-gray-500">10m ago</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="Headphones" class="w-full h-40 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClfttxxt6_ZaH38R0UiXm-lCApR-Ju3_acs7Oo02n6Z-_8r1_vyvCWKXtXi6jQz14Cxivzd1azM-K-qg0zF71r4XQaLQvU5ZR6eaXBiay67TNkE7KhD5LXb-BDR6DF19lKbzGgVywDZDgu_fFjGBdcx1V2UYvW0tVUIJQ8OWxaLl6aNfNNGLGKeqWbWHGwgrwcA5mric303dGQ0fIrY_OhL15u_1csGIsSpgWtWhjlCcozkHTnmZaYbiYR_A2nByjDxpU6G3DTE507"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">Sony XM4 Wireless</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$210</span>
+<span class="text-xs text-gray-500">3h ago</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 group">
+<div class="relative">
+<img alt="Macbook" class="w-full h-44 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBA5hZO6MW4DCtdmvAv9z3V8z3_6DVWEiKkAct1EZHRXX5Ei2XpC6wL-CeuH-Ph4rH56TwnsAEtRItMqVklnJ__fh-eY7UM_3_dEen31Lt99Z0fc6fyPhlVU90w0o2gxD_7QeR-u7BS7W9AkhekOcTEqmsnDRZsH9u21i_bpOevJtiIFj66ynaFeYaZ7-pZ2DdrSIU-zCYcPLcAgnfHPwfEpzv-GnKgVyyOGMmD2BJR555avKxPJEmKpaLz_hclrECc3N4pjHsk48r"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-white/80 dark:bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">MacBook Air M1</h4>
+<div class="flex items-center justify-between">
+<span class="text-green-600 dark:text-primary font-bold text-sm">$700</span>
+<span class="text-xs text-gray-500">6h ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="absolute bottom-0 left-0 w-full bg-white dark:bg-background-dark border-t border-gray-100 dark:border-gray-800 pb-8 pt-2 z-50">
+<div class="flex justify-between items-end px-6 relative h-16">
+<div class="flex gap-8">
+<a class="flex flex-col items-center gap-1 text-primary w-12" href="#">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 w-12" href="#">
+<span class="material-symbols-outlined text-[28px]">search</span>
+<span class="text-[10px] font-medium">Search</span>
+</a>
+</div>
+<div class="absolute left-1/2 -translate-x-1/2 -top-6">
+<a class="flex flex-col items-center justify-center group" href="#">
+<div class="bg-primary text-black p-4 rounded-full shadow-xl shadow-primary/30 border-4 border-white dark:border-background-dark group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-3xl">add_a_photo</span>
+</div>
+<span class="text-[10px] font-bold mt-1 text-primary">Sell</span>
+</a>
+</div>
+<div class="flex gap-8">
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 w-12" href="#">
+<span class="material-symbols-outlined text-[28px]">chat_bubble</span>
+<span class="text-[10px] font-medium">Inbox</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 w-12" href="#">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</div>
+</nav>
+</div>
+
+</body></html>

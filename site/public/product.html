@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Product Details - EcoMarket</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#30e86e",
+                "background-light": "#f6f8f6",
+                "background-dark": "#112116",
+              },
+              fontFamily: {
+                "display": ["Plus Jakarta Sans"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Mobile Screen Container -->
+<div class="max-w-[430px] mx-auto min-h-screen bg-white dark:bg-slate-950 relative shadow-2xl overflow-x-hidden">
+<!-- Header Actions (Overlay) -->
+<header class="absolute top-0 left-0 right-0 z-50 px-4 py-12 flex justify-between items-center pointer-events-none">
+<button class="pointer-events-auto h-10 w-10 flex items-center justify-center bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full text-slate-800 dark:text-white shadow-sm">
+<span class="material-icons-outlined text-xl">arrow_back_ios_new</span>
+</button>
+<div class="flex gap-2">
+<button class="pointer-events-auto h-10 w-10 flex items-center justify-center bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full text-slate-800 dark:text-white shadow-sm">
+<span class="material-icons-outlined text-xl">share</span>
+</button>
+<button class="pointer-events-auto h-10 w-10 flex items-center justify-center bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full text-slate-800 dark:text-white shadow-sm">
+<span class="material-icons-outlined text-xl">favorite_border</span>
+</button>
+</div>
+</header>
+<!-- Product Image Carousel -->
+<div class="relative w-full aspect-[4/5] bg-slate-200 dark:bg-slate-800">
+<img alt="Product Image" class="w-full h-full object-cover" data-alt="High-end beige designer trench coat hanging on a wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUghUQQPMsVltJ9By15ZQJ446-gIZiOOjWuioELYN-4lR_-wp5KGvw1qgvgLlRQodRn_Qpw2A0br88t8VCWtK_RbbqvsP1BOzzxRYXLz0QXBFgDL2Agppyg7nGQiTtUHgNvfjZswzmg-x9rfFY6CVUuwWCa2mAu80_ZAEFtrdq_xKEfzZJziTGxKY7m3odZWI4zJkZ9_w3zT7vy2AgnNJhtgYVM3rWwp5dKwA7mUUIFPXRTrMU7-5acnCrUAX25zcEpD5wyV0plq1M"/>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+<div class="w-6 h-1 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1 rounded-full bg-white/50"></div>
+<div class="w-1.5 h-1 rounded-full bg-white/50"></div>
+<div class="w-1.5 h-1 rounded-full bg-white/50"></div>
+</div>
+<!-- AI Verification Badge -->
+<div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-medium">
+<span class="material-icons-outlined text-primary text-sm">auto_awesome</span>
+                AI Verified Authentic
+            </div>
+</div>
+<!-- Main Content Scroll Area -->
+<div class="px-5 pt-6 pb-32 space-y-6">
+<!-- Title & Price Section -->
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Vintage Heritage Trench Coat</h1>
+<span class="bg-primary/10 text-primary px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Premium</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-extrabold text-slate-900 dark:text-white">$845.00</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm line-through">$1,250.00</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<div class="flex items-center gap-1.5 bg-primary/10 dark:bg-primary/20 text-primary-dark border border-primary/20 px-3 py-1.5 rounded-lg">
+<span class="material-icons-outlined text-base text-primary">verified_user</span>
+<span class="text-xs font-semibold text-primary">Safe Payment Guaranteed</span>
+</div>
+</div>
+</div>
+<!-- Seller Profile Card -->
+<div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="Seller" class="w-12 h-12 rounded-full object-cover border-2 border-primary/20" data-alt="Smiling female seller portrait profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvTqirmM3Y2pkW3-Zyh1pw3OoU1QJCFAGkgmkF4x7NxtvQXhqbsQt4CcvXmt10griTrP1ZTTenqp0UUXyfp_BGZ4jqytmOIEgD1_NGeYILb1Ot7xIG-Xkxyk1aTQjazRxoR5Zi0bwAsVlZhsHrM0S0V_t6o8qe6yLsID5EOVvwUhPJHg170dsmY1H7ce803jUcGwQf2I6eeNXGwg02KoXERcQFsP0ApNZCrf8-7mGuujcV7xIm-ALbD4eGnPYhwADqysBuMKv-ZLg"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white p-0.5 rounded-full border-2 border-white dark:border-slate-900">
+<span class="material-icons-outlined text-[10px] block">check</span>
+</div>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Elena Rodriguez</h3>
+<div class="flex items-center gap-1">
+<span class="text-primary font-bold text-xs">98% Positive</span>
+<span class="text-slate-400 text-[10px]">•</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">154 Sales</span>
+</div>
+</div>
+</div>
+<button class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
+                        Follow
+                    </button>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-2">
+<div class="bg-white dark:bg-slate-800 p-2 rounded-lg flex flex-col items-center justify-center text-center">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Response Time</span>
+<span class="text-xs font-semibold text-slate-900 dark:text-white">&lt; 1 hour</span>
+</div>
+<div class="bg-white dark:bg-slate-800 p-2 rounded-lg flex flex-col items-center justify-center text-center">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Reliability</span>
+<span class="text-xs font-semibold text-slate-900 dark:text-white">Top Rated</span>
+</div>
+</div>
+</div>
+<!-- Product Details List -->
+<div class="space-y-4">
+<div class="grid grid-cols-2 gap-y-4 text-sm">
+<div class="space-y-1">
+<p class="text-slate-400 dark:text-slate-500 text-xs">Brand</p>
+<p class="font-semibold text-slate-800 dark:text-slate-200">Heritage Lux</p>
+</div>
+<div class="space-y-1">
+<p class="text-slate-400 dark:text-slate-500 text-xs">Size</p>
+<p class="font-semibold text-slate-800 dark:text-slate-200">Medium (EU 38)</p>
+</div>
+<div class="space-y-1">
+<p class="text-slate-400 dark:text-slate-500 text-xs">Condition</p>
+<div class="flex items-center gap-1.5">
+<p class="font-semibold text-slate-800 dark:text-slate-200">Like New</p>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+</div>
+<div class="space-y-1">
+<p class="text-slate-400 dark:text-slate-500 text-xs">Color</p>
+<div class="flex items-center gap-1.5">
+<p class="font-semibold text-slate-800 dark:text-slate-200">Beige</p>
+<span class="w-3 h-3 rounded-full bg-[#E3D4C0] border border-slate-200"></span>
+</div>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 w-full"></div>
+<!-- Description -->
+<div class="space-y-2">
+<h4 class="font-bold text-slate-900 dark:text-white">Description</h4>
+<p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        This stunning vintage Heritage trench coat has been meticulously cared for. Features the iconic double-breasted closure and signature lining. AI inspection confirms zero visible wear on cuffs or collar. Perfect for transitional weather.
+                    </p>
+<button class="text-primary text-xs font-bold">Read More</button>
+</div>
+<!-- Shipping Options -->
+<div class="space-y-3">
+<h4 class="font-bold text-slate-900 dark:text-white">Shipping &amp; Pickup</h4>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-800 rounded-xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+<span class="material-icons-outlined text-slate-500">local_shipping</span>
+</div>
+<div>
+<p class="text-sm font-bold">Express Shipping</p>
+<p class="text-[10px] text-slate-500">Arrives in 2-3 business days</p>
+</div>
+</div>
+<span class="text-sm font-bold">$12.50</span>
+</div>
+<div class="flex items-center justify-between p-3 border border-primary/30 bg-primary/5 dark:bg-primary/10 rounded-xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+<span class="material-icons-outlined text-primary">store</span>
+</div>
+<div>
+<p class="text-sm font-bold">In-store Verification</p>
+<p class="text-[10px] text-slate-500">Secure pickup at local hub</p>
+</div>
+</div>
+<span class="text-sm font-bold text-primary">Free</span>
+</div>
+</div>
+</div>
+<!-- Location Map Placeholder -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<h4 class="font-bold text-slate-900 dark:text-white">Location</h4>
+<span class="text-xs text-slate-500">London, United Kingdom</span>
+</div>
+<div class="w-full h-32 rounded-xl bg-slate-200 dark:bg-slate-800 overflow-hidden relative">
+<img alt="Map" class="w-full h-full object-cover opacity-50 grayscale" data-alt="Stylized map showing city streets" data-location="London" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB11UEECXLXqebn4N3rq2kQCWH7KtFddt5WxbFD46S-gHU-cGrgzgMiU3MYLJs1I_0L8i5obKYv17YttLHfWkJXghLKrZ2uzw4ZnEB9sfXBj0GuXzSNXKnhc5kT8cYfbceO4kB3tgz9wAr3e-AKit0kzv-ScZjnMH0qEAud9QCfshOhwAM5ULBiuo2jkcNVnIVYS_xs7XRoalAdi1PoiJ458Q0lw9zRtxPOt_JjojiJ44mPBoYucjXBJERRId2Ahc2uQWC7dS7CQxOr"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center border-4 border-primary">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Persistent Bottom Bar -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 p-5 pb-8 z-[60]">
+<div class="flex gap-4 items-center">
+<button class="h-14 w-14 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex-shrink-0">
+<span class="material-icons-outlined">chat_bubble_outline</span>
+</button>
+<button class="h-14 flex-1 bg-primary hover:bg-opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-icons-outlined text-xl">shopping_bag</span>
+                    Buy Now
+                </button>
+</div>
+<!-- iOS Indicator Bar -->
+<div class="mt-4 w-32 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto"></div>
+</div>
+</div>
+</body></html>

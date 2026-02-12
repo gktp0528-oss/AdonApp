@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adon Chat List Variant 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e61b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112111",
+                        "emerald-dark": "#064e3b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .dotted-grid {
+            background-image: radial-gradient(#19e61b22 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-emerald-dark dark:text-white/90 antialiased min-h-screen flex justify-center">
+<!-- Mobile Container -->
+<main class="w-full max-w-[430px] h-[932px] bg-white dark:bg-background-dark relative flex flex-col overflow-hidden ios-shadow border-x border-gray-100 dark:border-white/5">
+<!-- Subtle Dotted Grid Background -->
+<div class="absolute inset-0 dotted-grid opacity-40 pointer-events-none"></div>
+<!-- Header -->
+<header class="relative z-10 px-6 pt-12 pb-6 flex items-center justify-between">
+<h1 class="text-3xl font-bold tracking-tight text-emerald-dark dark:text-primary">Messages</h1>
+<button class="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center text-primary shadow-sm active:scale-95 transition-transform">
+<span class="material-icons-round">tune</span>
+</button>
+</header>
+<!-- Search Bar (Implicitly part of clean premium lists) -->
+<div class="relative z-10 px-6 mb-6">
+<div class="relative flex items-center">
+<span class="material-icons-round absolute left-4 text-gray-400">search</span>
+<input class="w-full h-12 bg-gray-50 dark:bg-white/5 border-none rounded-xl pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-gray-400" placeholder="Search conversations..." type="text"/>
+</div>
+</div>
+<!-- Chat List -->
+<section class="relative z-10 flex-1 overflow-y-auto px-6 space-y-2 pb-24">
+<!-- Chat Row 1 (Unread) -->
+<div class="flex items-center gap-4 py-4 border-b border-gray-50 dark:border-white/5 group active:bg-gray-50/50 dark:active:bg-white/5 transition-colors cursor-pointer">
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded-full object-cover" data-alt="User profile picture of a smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXDFusrww-0NiN5lgomaHF6hJbfcOTH4KFRlbZXkentM66htaWigM6YfOdjGHPudkX60Em6SX-hlGmo-jpWmXEsKKRtGOPAJj5_CA4cTNJ32Sy-kUksUgYJzZ0yLaEdS2dSQhZ0rFiSMm9__3NjTHUI7cKqGcOOYUa4RfkBFC6qgW0KqaYLFsdej7I-lHbmB5RYNPbU4ENyB61Q3FaqpyEiVAuXeQh5roikYlImsB8iwnYfKxBl70Z9CXwOqvIMkcMDsw-JDf6wVlW"/>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-0.5">
+<h3 class="font-bold text-[15px] truncate">Sarah Jenkins</h3>
+<span class="text-[11px] text-gray-400 font-medium">2m ago</span>
+</div>
+<p class="text-[13px] text-gray-900 dark:text-white font-semibold truncate">Is the vintage camera still available?</p>
+</div>
+<div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+<img class="w-12 h-12 rounded-lg object-cover border border-gray-100 dark:border-white/10" data-alt="Close up of a vintage film camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF7rLTQjO6KOyK0jIIyC_BL_A69IAukq8ONvUyjzlWajGq2AZ2JJao9ahLGpwWl0GHqxUycO-2OQhNOWX6p40Eu-65cMa5mQ_ERrnZ24WtvLhVRgTaT_NHfPlqH-gL5LakbanJffHn9LzEAtl0w1Z3dczmeEMb1no8v6cCztxqyAeRClNHPraBS4kvdOd6KhPBlQkYzEQJyNQkTWzdzh9QDIy_uKrEwIhaLRI2ScgHFSZsJ-8eV3F-MOLy7cEpYv6tBAOo2oqgYSMj"/>
+<div class="w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_8px_rgba(25,230,27,0.6)]"></div>
+</div>
+</div>
+<!-- Chat Row 2 (Read) -->
+<div class="flex items-center gap-4 py-4 border-b border-gray-50 dark:border-white/5 group active:bg-gray-50/50 dark:active:bg-white/5 transition-colors cursor-pointer">
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded-full object-cover" data-alt="User profile picture of a man with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASxyrVXx5ugJot0JMAjzHKrogNY0gF51JKfqE2HSMM9S5-ZEvxHU_hBTUymrDkMcy751Y3qjlVZR8AzZMXz1aN1Ek2ct1nUZtS7zj0N7cD4yvIB8rQXHNg3X2iY7zI6auMldr6AErzh-9iX5-qZkcdAvbGVqt8yohDwsdptH3881Ln69sMiwaH9agB-gyS2w2wIrQqA-Ah4m2pYZju3qeH8VW7jc9Bw_CSEyt9sKCBHTQaXXvBbdqPWnWB2-FmeISNsIk1Ub1BnH2Y"/>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-0.5">
+<h3 class="font-bold text-[15px] truncate">Marcus Thorne</h3>
+<span class="text-[11px] text-gray-400 font-medium">1h ago</span>
+</div>
+<p class="text-[13px] text-gray-500 dark:text-gray-400 truncate">I can meet at 5 PM today near the station.</p>
+</div>
+<div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+<img class="w-12 h-12 rounded-lg object-cover border border-gray-100 dark:border-white/10 opacity-70" data-alt="Luxury wrist watch on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcMx43FMivIEiSMfS-DxNj9YLv1yal0ZKf0AbFwTtdivMBr-a-wVkMUy7O3rmYXN6QyirgomylDNpUMbWR-Xv5xQPFz7s8hyJOpvzPxdoObXB2jhXzkagaZfYcZzDKM8gmDT49UQYMRxW4XbCgjioCedL9HwUb43sFXgy4sOMIkJC6KV70foM1bzdTsQl6GEdiZAamJPQlkmixmowGucHpz3CLWPJSgOWVoj15yj0YnTK2d-7vwu_n8jmNRGAt4D63aCgRc7S4pCGc"/>
+</div>
+</div>
+<!-- Chat Row 3 (Read) -->
+<div class="flex items-center gap-4 py-4 border-b border-gray-50 dark:border-white/5 group active:bg-gray-50/50 dark:active:bg-white/5 transition-colors cursor-pointer">
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded-full object-cover" data-alt="User profile picture of a stylish woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2Bgt1YSShp4zseJXdGx2c_dK4quMWXXSzyfHiqqraxOqbIvIHHFcMZuYrbyT_BNqzgdKHqIfXle7meSgf6tFh2rOH1E1pry4ebis0o6KeOH_LOr-iBFrixzicXZWycs9LLLBwKa_QDpMmSMK8NPOMIWHF00vgh6qrtoZmy0sECaeHyTv62ur91pAx0xlUQk2fTQzMcpT1vzOgHuPcfZtD40vZm5etCgktREmO6tBaBU8BWHch1VeGGn9fXFOb5k2OIB1KrjHWOeuY"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-0.5">
+<h3 class="font-bold text-[15px] truncate text-gray-400">Elena Rossi</h3>
+<span class="text-[11px] text-gray-400 font-medium">4h ago</span>
+</div>
+<p class="text-[13px] text-gray-400 truncate">Perfect, thank you! I'll leave a review.</p>
+</div>
+<div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+<img class="w-12 h-12 rounded-lg object-cover border border-gray-100 dark:border-white/10 opacity-40" data-alt="Pair of designer sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFtQGNatBqcCC228SsiQwhN88e_SkB_uxYjMasnhwTZnK3DFWBuDMlaxQqW5MDPy_i8U3TooqpdxEGZQVmSfs2SMsX0CAO1n1UVlJB2wAVRGHIdXmSiHz54CVpPHcm3BPBSDuPONbij0rsZyBYBhMqI3d3NESqxsBbDUMxPeZ5K2M7Fq9ilaC1P2dlwW2OUWpFPCCMktq4gcBMBfmtDTORQkg-hoVdzLDUCHvxT6NC3O1CH-KEmdvFs6mNTFMnHLaTTxU-FzOI61qD"/>
+</div>
+</div>
+<!-- Chat Row 4 (Unread) -->
+<div class="flex items-center gap-4 py-4 border-b border-gray-50 dark:border-white/5 group active:bg-gray-50/50 dark:active:bg-white/5 transition-colors cursor-pointer">
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded-full object-cover" data-alt="User profile picture of a young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfuaDvPDZ2GeqFXPZ2vLIsEYIFBm42Oi8spkZFlbNp6ScH2zmPIRA18qK0CRuA75eXe9B2YCgo9H_Jb0y5XeOLzUHnkvjAQ4hOo4CvpuKkYiPihKct9WI9Vndc3a0Wxlt83lXgH9T7HmxQ7QVmV5DGN-nlzuPj0VkiOkp4JrF784Fg4hDdhzX_tF4WAOzdbtjzEGGOBxdTakeGhnOmds3r4bOiJZBfWJQaLsarkLbZm1TjPuNI93FfQ__5d4qeBCU3MnHRM_yLFNIR"/>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-0.5">
+<h3 class="font-bold text-[15px] truncate">Julian Reed</h3>
+<span class="text-[11px] text-gray-400 font-medium">8h ago</span>
+</div>
+<p class="text-[13px] text-gray-900 dark:text-white font-semibold truncate">Would you take $450 for the set?</p>
+</div>
+<div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+<img class="w-12 h-12 rounded-lg object-cover border border-gray-100 dark:border-white/10" data-alt="Studio headphones on a desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCdnAhwGiCX8c3zSgS5C7saqYIaMM0_3H_ue10sRtPdiOsKZn1Nrp7qJEStMgY8tev0uLsVCk4UWFh1L_127AoOdFG1jEg_5RSTJMiCat3ArjnxggKfsixvfBPAhFJjw41pliMJphGvv2_zttI4x4FWhRn-nB3fzCF1AKYrSsZLZbsUihr0VYMZCx_UQd-z3HkaVp8u3fAo-ZBLRsY-5excRx3C7xc2G4GnQjX-MlTKbXtKfO0kNhmdpn-3mf7pYgTN5SA7u-3xt-0"/>
+<div class="w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_8px_rgba(25,230,27,0.6)]"></div>
+</div>
+</div>
+<!-- Chat Row 5 (Read) -->
+<div class="flex items-center gap-4 py-4 border-b border-gray-50 dark:border-white/5 group active:bg-gray-50/50 dark:active:bg-white/5 transition-colors cursor-pointer">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                        DB
+                    </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-0.5">
+<h3 class="font-bold text-[15px] truncate">Daniel Bloom</h3>
+<span class="text-[11px] text-gray-400 font-medium">Yesterday</span>
+</div>
+<p class="text-[13px] text-gray-500 dark:text-gray-400 truncate">That works for me. Sent the payment link.</p>
+</div>
+<div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+<img class="w-12 h-12 rounded-lg object-cover border border-gray-100 dark:border-white/10 opacity-70" data-alt="Red running shoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiGjrQkwbA781vmbl_YeC9X31TcB2wu94tI6UCeYX6vGZuKay5mCEvT_OW7uyyZm7IEJ6EGP3Z05uJpl7J2tT46pNkUV96sR44Hmsls8awtoXl3O1u2RhA2hY2n6ic8MmZHPqp3rsh2A6uKUxZ2AA9JgDV19CRNaHE9lUJSL99QZpOmJH7nsO7zmBJzQvOPb4vOHObU6HVhpgxnfx0l7ICCBo-dJZQlfN6PjtY0oKWXfYeh3PsiYqcHZHwaeAF-1RmW07wO2Rbei5S"/>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation -->
+<nav class="absolute bottom-0 w-full bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-gray-100 dark:border-white/10 px-6 pb-8 pt-3 flex justify-between items-center z-20">
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-gray-400 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-gray-400 group-hover:text-primary transition-colors">search</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary">Search</span>
+</button>
+<button class="flex flex-col items-center gap-1 -mt-8">
+<div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/30 active:scale-95 transition-transform">
+<span class="material-icons-round text-2xl">add</span>
+</div>
+<span class="text-[10px] font-medium text-gray-400 mt-1">Sell</span>
+</button>
+<button class="flex flex-col items-center gap-1">
+<span class="material-icons-round text-primary">chat_bubble</span>
+<span class="text-[10px] font-bold text-primary">Chat</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-gray-400 group-hover:text-primary transition-colors">person_outline</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary">Profile</span>
+</button>
+</nav>
+<!-- iOS Indicator -->
+<div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black/10 dark:bg-white/20 rounded-full z-30"></div>
+</main>
+</body></html>

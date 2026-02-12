@@ -1,0 +1,43 @@
+# Adon 실데이터 전환 및 안정화 완료 보고 (2026-02-11)
+
+## 🏆 프로젝트 달성 목표
+Adon 앱의 **Mock Data 의존성**을 제거하고, 생산성을 위해 **Firestore 실데이터** 기반으로 모든 주요 화면을 전환했습니다.
+
+---
+
+## 🛠️ 핵심 구현 사항 (Features Implemented)
+
+### 1. 🔄 실시간 데이터 연동 (Real-time Sync)
+- **홈 화면 (`HomeScreen`)**: 최신 등록된 상품이 실시간으로 "Fresh finds"에 뜹니다.
+- **상품 상세 (`ProductScreen`)**: 상품 가격, 상태 정보 수정 시 보고 있는 사용자에게 즉시 반영됩니다.
+- **판매자 화면 (`SellerScreen`)**: [보완 완료] 판매자가 상품을 올리거나 판매완료 처리하면, 내 상점 목록도 실시간으로 바뀝니다.
+
+### 2. 🛡️ 보안 및 안전성 강화 (Quality Assurance)
+- **보안 규칙 (`firestore.rules`) [보완 완료]**:
+  - 기존: 누구나 쓰고 지울 수 있음 (위험) 🚨
+  - 개선: 데이터 모양(Shape)이 맞는지 검사하고, **판매자 본인만 상품 수정/삭제 가능**하도록 잠금. 🔒
+- **타입 안전성 (`Typescript`) [보완 완료]**:
+  - `ListingCondition`, `ListingStatus` 등 타입을 엄격하게 정의.
+  - `as any`와 같은 위험한 코드를 제거하여 앱이 더 견고해졌습니다.
+
+### 3. 🧩 서비스 구조화 (Refactoring)
+- **Service Layer 도입**: `listingService`, `userService`로 데이터 통신 로직을 깔끔하게 분리.
+- **임시 인증 시스템**: 아직 로그인이 없지만, `temp_seller_123`이라는 가상 ID로 판매자 경험을 완벽하게 시뮬레이션 가능.
+
+---
+
+## 📱 화면별 완료 상태
+
+| 화면 | 상태 | 연결 데이터 | 비고 |
+|:---:|:---:|:---|:---|
+| **Posting** | ✅ 완료 | `createListing` (생성) | AI 분석 로그 분리 저장 |
+| **Home** | ✅ 완료 | `watchLatestListings` (구독) | 최신순 정렬, 무한 스크롤 준비 |
+| **Product** | ✅ 완료 | `watchListingById` (구독) | 판매자 정보(`users`) 조인 |
+| **Seller** | ✅ 완료 | `watchListingsBySeller` (구독) | 판매자 통계 및 판매 목록 |
+
+---
+
+## 🏃 다음 단계 (Next Steps)
+1. **Firebase Auth**: 이제 진짜 '로그인' 기능을 붙여서 `temp_seller` 꼬리표를 뗄 차례입니다.
+2. **Chat**: "Chat" 버튼을 눌렀을 때 실제 채팅방이 만들어지도록 연결이 필요합니다.
+3. **Search**: 검색창에 입력한 키워드로 Firestore 쿼리를 날리는 작업이 남았습니다.
