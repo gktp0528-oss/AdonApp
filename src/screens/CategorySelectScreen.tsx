@@ -9,6 +9,7 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import ALL_CATEGORIES from '../data/categories.json';
 
@@ -20,9 +21,10 @@ type CategoryItem = {
     isLeaf: boolean;
     icon?: string;
 };
-const ROOT_PATH = 'All Categories';
 
 export function CategorySelectScreen({ navigation, route }: Props) {
+    const { t } = useTranslation();
+    const ROOT_PATH = t('category.all');
     const parentId = route.params?.parentId || null;
     const currentPath = route.params?.currentPath || ROOT_PATH;
     const isRootLevel = parentId === null;
@@ -35,7 +37,11 @@ export function CategorySelectScreen({ navigation, route }: Props) {
         const newPath = `${currentPath} > ${category.name}`;
         if (category.isLeaf) {
             const displayPath = newPath.replace(`${ROOT_PATH} > `, '');
-            navigation.navigate('AiListing', { selectedCategory: displayPath } as any);
+            navigation.navigate({
+                name: 'AiListing',
+                params: { selectedCategory: displayPath },
+                merge: true,
+            } as any);
         } else {
             navigation.push('CategorySelect', {
                 parentId: category.id,
@@ -51,7 +57,7 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                     <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
                 </Pressable>
                 <View style={styles.titleContainer}>
-                    <Text style={styles.headerTitle}>Select Category</Text>
+                    <Text style={styles.headerTitle}>{t('category.title')}</Text>
                     <Text style={styles.pathText} numberOfLines={1}>{currentPath}</Text>
                 </View>
                 <View style={styles.backBtn} />
@@ -99,7 +105,7 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                 )}
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <Text style={styles.emptyText}>No subcategories found.</Text>
+                        <Text style={styles.emptyText}>{t('category.noSubcategories')}</Text>
                     </View>
                 }
             />

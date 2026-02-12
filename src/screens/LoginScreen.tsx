@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StyleSheet, Text, TextInput, View, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { authService } from '../services/authService';
@@ -9,20 +10,21 @@ import { authService } from '../services/authService';
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Input', 'Please enter your email address.');
+      Alert.alert(t('common.required'), t('auth.emailRequired'));
       return;
     }
     if (!email.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Alert.alert(t('auth.emailInvalid'), t('auth.emailInvalid'));
       return;
     }
     if (!password) {
-      Alert.alert('Missing Password', 'Please enter your password.');
+      Alert.alert(t('common.required'), t('auth.passwordRequired'));
       return;
     }
 
@@ -31,12 +33,12 @@ export function LoginScreen({ navigation }: Props) {
       // login successful, navigate to Home
       navigation.replace('Home');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid email or password');
+      Alert.alert(t('auth.loginFailed'), error.message || t('auth.loginFailedMsg'));
     }
   };
 
   const handleComingSoon = (feature: string) => {
-    Alert.alert('Coming Soon', `${feature} is not available yet.`);
+    Alert.alert(t('common.comingSoon'), t('common.comingSoonMsg', { feature }));
   };
 
   return (
@@ -48,45 +50,49 @@ export function LoginScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.socialRow}>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Apple login')}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Apple ' + t('auth.login'))}>
           <Text style={styles.socialText}>Apple</Text>
         </Pressable>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Google login')}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Google ' + t('auth.login'))}>
           <Text style={styles.socialText}>Google</Text>
         </Pressable>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Meta login')}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Meta ' + t('auth.login'))}>
           <Text style={styles.socialText}>Meta</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.orText}>Or log in with email</Text>
+      <Text style={styles.orText}>{t('auth.loginWithEmail')}</Text>
 
       <View style={styles.formCard}>
-        <Text style={styles.label}>EMAIL ADDRESS</Text>
+        <Text style={styles.label}>{t('auth.email')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="hello@adon.app"
+          placeholder={t('auth.emailPlaceholder')}
+          placeholderTextColor="#6b7280"
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>PASSWORD</Text>
+        <Text style={styles.label}>{t('auth.password')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="••••••••"
+          placeholder={t('auth.passwordPlaceholder')}
+          placeholderTextColor="#6b7280"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        <Text style={styles.forgot} onPress={() => handleComingSoon('Password reset')}>Forgot Password?</Text>
-        <PrimaryButton label="로그인" onPress={handleLogin} />
+        <Pressable accessibilityRole="button" onPress={() => handleComingSoon(t('auth.forgotPassword'))}>
+          <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
+        </Pressable>
+        <PrimaryButton label={t('auth.login')} onPress={handleLogin} />
 
         <Text style={styles.bottomText}>
-          Don't have an account?
-          <Text style={styles.bottomLink} onPress={() => navigation.navigate('Signup')}> Sign Up</Text>
+          {t('auth.noAccount')}
+          <Text style={styles.bottomLink} onPress={() => navigation.navigate('Signup')}> {t('auth.signup')}</Text>
         </Text>
       </View>
     </SafeAreaView>

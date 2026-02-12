@@ -3,17 +3,16 @@ import { Image, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingV
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
-import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { BottomTabMock } from '../components/BottomTabMock';
 import { CHATS, USERS } from '../data/mockData';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 export function ChatScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const otherUser = USERS.chatUser;
-  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'chat');
   const [messages, setMessages] = useState(CHATS);
   const [draft, setDraft] = useState('');
 
@@ -45,20 +44,20 @@ export function ChatScreen({ navigation }: Props) {
             <Image source={{ uri: otherUser.avatar }} style={styles.avatar} />
             <View>
               <Text style={styles.user}>{otherUser.name}</Text>
-              <Text style={styles.online}>{otherUser.online}</Text>
+              <Text style={styles.online}>{otherUser.online === 'Online' ? t('common.online') : t('common.offline')}</Text>
             </View>
             <MaterialIcons name="verified-user" size={20} color="#16a34a" style={{ marginLeft: 'auto' }} />
           </View>
         </View>
 
         <View style={styles.meetCard}>
-          <Text style={styles.meetTitle}>Meetup Scheduled</Text>
+          <Text style={styles.meetTitle}>{t('chat.meetupConfirmed')}</Text>
           <Text style={styles.meetPlace}>Starbucks Coffee</Text>
-          <Text style={styles.meetMeta}>Today at 2:00 PM • In 45 mins</Text>
+          <Text style={styles.meetMeta}>{t('common.today')} 오후 2:00 • {t('common.minAgo', { count: 45 })}</Text>
         </View>
 
         <ScrollView style={styles.chatArea} contentContainerStyle={styles.chatContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.day}>TODAY</Text>
+          <Text style={styles.day}>{t('common.today')}</Text>
 
           {messages.map((chat) => {
             if (chat.sender === 'system') {
@@ -79,25 +78,25 @@ export function ChatScreen({ navigation }: Props) {
         </ScrollView>
 
         <View style={styles.quickActions}>
-          <Text style={styles.quickChip}>Reschedule</Text>
-          <Text style={styles.quickChip}>Share live location</Text>
-          <Text style={[styles.quickChip, styles.quickChipWarn]}>Safety tips</Text>
+          <Text style={styles.quickChip}>{t('chat.changeSchedule')}</Text>
+          <Text style={styles.quickChip}>{t('chat.changeSchedule')}</Text>
+          <Text style={styles.quickChip}>{t('chat.shareLocation')}</Text>
+          <Text style={[styles.quickChip, styles.quickChipWarn]}>{t('chat.safetyTips')}</Text>
         </View>
 
         <View style={styles.composer}>
           <TextInput
             style={styles.input}
-            placeholder="Type a message..."
-            placeholderTextColor="#9ca3af"
+            placeholder={t('chat.searchPlaceholder')}
+            placeholderTextColor="#6b7280"
             value={draft}
             onChangeText={setDraft}
           />
-          <Pressable style={styles.send} onPress={handleSend}>
+          <Pressable style={styles.send} onPress={handleSend} accessibilityRole="button" accessibilityLabel={t('chat.title')}>
             <MaterialIcons name="send" size={18} color="#05250f" />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-      <BottomTabMock active="chat" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 }

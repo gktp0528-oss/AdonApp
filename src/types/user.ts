@@ -5,6 +5,7 @@ export interface User {
     avatar?: string | null;
     coverImage?: string | null;
     location?: string;
+    bio?: string;
     positiveRate?: number;
     sales?: number;
     responseTime?: string; // e.g. "within 1 hour"

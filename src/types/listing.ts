@@ -14,6 +14,7 @@ export interface Listing {
     condition: ListingCondition;
     sellerId: string;
     status: ListingStatus;
+    originLanguage: string; // Added for automatic translation support
     createdAt: Timestamp;
     updatedAt: Timestamp;
 

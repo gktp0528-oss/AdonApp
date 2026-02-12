@@ -1,4 +1,5 @@
 import React from 'react';
+import './src/i18n';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './src/navigation/types';
@@ -37,12 +38,12 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
 
-          {/* Main Tabs - Reverted to default for faster, snappier transitions */}
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
-          <Stack.Screen name="AiListing" component={AiListingScreen} />
-          <Stack.Screen name="ChatList" component={ChatListScreen} />
-          <Stack.Screen name="Seller" component={SellerScreen} />
+          {/* Main Tabs - Use Fade for smooth tab switching feel */}
+          <Stack.Screen name="Home" component={HomeScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="AiListing" component={AiListingScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="ChatList" component={ChatListScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Seller" component={SellerScreen} options={{ animation: 'fade' }} />
 
           {/* Sub Screens - Default Slide Animation */}
           <Stack.Screen name="CategoryList" component={SneakersListScreen} />

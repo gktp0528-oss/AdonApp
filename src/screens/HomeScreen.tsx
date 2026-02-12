@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, RefreshControl } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { BottomTabMock } from '../components/BottomTabMock';
@@ -14,20 +15,22 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop';
 
-function toRelativeTime(date?: any): string {
-  if (!date) return 'just now';
+function toRelativeTime(date?: any, t?: any): string {
+  if (!date) return t('common.justNow');
   const d = date.toDate ? date.toDate() : new Date(date);
   const diffMin = Math.max(1, Math.floor((Date.now() - d.getTime()) / 60000));
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) return t('common.minAgo', { count: diffMin });
   const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}h ago`;
-  return `${Math.floor(diffHour / 24)}d ago`;
+  if (diffHour < 24) return t('common.hourAgo', { count: diffHour });
+  return t('common.dayAgo', { count: Math.floor(diffHour / 24) });
 }
 
 export function HomeScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const me = USERS.me;
   const [activeListings, setActiveListings] = useState<Listing[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     const unsubscribe = listingService.watchLatestListings((listings) => {
@@ -44,6 +47,11 @@ export function HomeScreen({ navigation }: Props) {
   };
 
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'home');
+  const chips = [{ id: 'all', label: '전체' }, ...CATEGORIES];
+  const selectedLabel = chips.find((chip) => chip.id === selectedCategory)?.label?.toLowerCase() || '';
+  const filteredListings = selectedCategory === 'all'
+    ? activeListings
+    : activeListings.filter((item) => (item.category || '').toLowerCase().includes(selectedLabel));
 
   const renderHeader = () => (
     <View>
@@ -51,7 +59,7 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.profileRow}>
           <Image source={{ uri: me.avatar }} style={styles.avatar} />
           <View>
-            <Text style={styles.greet}>Good Morning,</Text>
+            <Text style={styles.greet}>{t('home.greet')}</Text>
             <Text style={styles.name}>{me.name}</Text>
           </View>
           <View style={styles.notifyWrap}>
@@ -65,23 +73,29 @@ export function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Search')}
         >
           <MaterialIcons name="search" size={20} color="#9ca3af" />
-          <Text style={styles.searchTextPlaceholder}>Find clothes, decor, tech...</Text>
+          <Text style={styles.searchTextPlaceholder}>{t('home.searchPlaceholder')}</Text>
           <MaterialIcons name="tune" size={20} color="#6b7280" />
         </Pressable>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {CATEGORIES.map((cat, index) => (
-          <View key={cat.id} style={[styles.chip, index === 0 && styles.chipActive]}>
-            <Text style={index === 0 ? styles.chipActiveText : styles.chipText}>{cat.label}</Text>
-          </View>
+        {chips.map((cat) => (
+          <Pressable
+            key={cat.id}
+            style={[styles.chip, selectedCategory === cat.id && styles.chipActive]}
+            onPress={() => setSelectedCategory(cat.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`${cat.label} 카테고리`}
+          >
+            <Text style={selectedCategory === cat.id ? styles.chipActiveText : styles.chipText}>{cat.label}</Text>
+          </Pressable>
         ))}
       </ScrollView>
 
       {/* "Picked for you" Section - Currently hidden until personalized algo is ready, or shows subset of random items */}
       <View style={styles.sectionHead}>
-        <Text style={styles.sectionTitle}>Fresh finds</Text>
-        <Text style={styles.sectionTag}>JUST LANDED</Text>
+        <Text style={styles.sectionTitle}>{t('home.newItems')}</Text>
+        <Text style={styles.sectionTag}>{t('home.justPosted')}</Text>
       </View>
     </View>
   );
@@ -89,7 +103,7 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <FlatList
-        data={activeListings}
+        data={filteredListings}
         keyExtractor={item => item.id}
         numColumns={2}
         columnWrapperStyle={styles.freshRow}
@@ -99,7 +113,14 @@ export function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No items found. Be the first to post!</Text>
+            <Text style={styles.emptyText}>
+              {selectedCategory === 'all'
+                ? t('home.noItems')
+                : t('home.noItemsInCategory')}
+            </Text>
+            <Pressable style={styles.emptyBtn} onPress={onRefresh}>
+              <Text style={styles.emptyBtnText}>{t('home.refresh')}</Text>
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (
@@ -113,7 +134,7 @@ export function HomeScreen({ navigation }: Props) {
                 source={{ uri: item.photos?.[0] || FALLBACK_IMAGE }}
                 style={styles.freshImage}
               />
-              <Pressable style={styles.wishBtn}>
+              <Pressable style={styles.wishBtn} accessibilityRole="button" accessibilityLabel="관심 상품에 추가">
                 <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
               </Pressable>
             </View>
@@ -122,7 +143,7 @@ export function HomeScreen({ navigation }: Props) {
               <Text style={styles.freshPrice}>
                 {item.currency === 'USD' ? '$' : '€'}{item.price}
               </Text>
-              <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
+              <Text style={styles.freshTime}>{toRelativeTime(item.createdAt, t)}</Text>
             </View>
             <View style={styles.categoryTag}>
               <Text style={styles.categoryText}>{item.category}</Text>
@@ -195,5 +216,19 @@ const styles = StyleSheet.create({
   categoryTag: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   categoryText: { fontSize: 10, color: '#6b7280', fontWeight: '600' },
   emptyContainer: { padding: 40, alignItems: 'center' },
-  emptyText: { color: '#94a3b8', fontSize: 16 }
+  emptyText: { color: '#94a3b8', fontSize: 16 },
+  emptyBtn: {
+    marginTop: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  emptyBtnText: {
+    fontWeight: '700',
+    color: '#1f2937',
+    fontSize: 13,
+  },
 });

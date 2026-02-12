@@ -4,6 +4,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 import { RootStackParamList } from '../navigation/types';
 import { userService } from '../services/userService';
@@ -13,11 +15,13 @@ import { User } from '../types/user';
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
 export function EditProfileScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const userId = userService.getCurrentUserId();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
     const [location, setLocation] = useState('');
@@ -30,17 +34,18 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const loadUserProfile = async () => {
         try {
+            setLoadError(null);
             const user = await userService.getUserById(userId);
             if (user) {
                 setName(user.name || '');
-                setBio(user.reliabilityLabel || ''); // Using reliabilityLabel as bio for now, or add bio field later
+                setBio(user.bio || user.reliabilityLabel || '');
                 setLocation(user.location || '');
                 setAvatar(user.avatar || '');
                 setCoverImage(user.coverImage || '');
             }
         } catch (error) {
             console.error('Failed to load user', error);
-            Alert.alert('Error', 'Failed to load profile');
+            setLoadError(t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -74,7 +79,7 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const handleSave = async () => {
         if (!name.trim()) {
-            Alert.alert('Validation', 'Name cannot be empty');
+            Alert.alert(t('common.error'), t('signup.emailPlaceholder'));
             return;
         }
 
@@ -90,14 +95,14 @@ export function EditProfileScreen({ navigation }: Props) {
                 location,
                 avatar,
                 coverImage,
-                reliabilityLabel: bio, // Using this as bio/tagline
+                bio,
             };
 
             await userService.updateUser(userId, updates);
             navigation.goBack();
         } catch (error) {
             console.error('Failed to update profile', error);
-            Alert.alert('Error', 'Failed to update profile');
+            Alert.alert(t('common.error'), t('product.shareError'));
         } finally {
             setSaving(false);
         }
@@ -117,11 +122,19 @@ export function EditProfileScreen({ navigation }: Props) {
                 <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialIcons name="arrow-back" size={24} color="#1f2937" />
                 </Pressable>
-                <Text style={styles.headerTitle}>Edit Profile</Text>
+                <Text style={styles.headerTitle}>{t('seller.editProfile')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
+                {loadError ? (
+                    <View style={styles.errorBanner}>
+                        <Text style={styles.errorBannerText}>{loadError}</Text>
+                        <Pressable style={styles.retryBtn} onPress={loadUserProfile}>
+                            <Text style={styles.retryBtnText}>{t('common.confirm')}</Text>
+                        </Pressable>
+                    </View>
+                ) : null}
                 <View style={styles.coverSection}>
                     <Image
                         source={{ uri: coverImage || 'https://via.placeholder.com/400x225' }}
@@ -129,7 +142,7 @@ export function EditProfileScreen({ navigation }: Props) {
                     />
                     <Pressable style={styles.coverEditBtn} onPress={pickCoverImage}>
                         <MaterialIcons name="camera-alt" size={20} color="#fff" />
-                        <Text style={styles.coverEditBtnText}>Change Cover</Text>
+                        <Text style={styles.coverEditBtnText}>{t('ai.studioTitle')}</Text>
                     </Pressable>
                 </View>
 
@@ -143,47 +156,69 @@ export function EditProfileScreen({ navigation }: Props) {
                             <MaterialIcons name="edit" size={16} color="#fff" />
                         </View>
                     </Pressable>
-                    <Text style={styles.avatarHint}>Profile Photo</Text>
+                    <Text style={styles.avatarHint}>{t('signup.profileImage')}</Text>
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>Display Name</Text>
+                    <Text style={styles.label}>{t('signup.name')}</Text>
                     <TextInput
                         style={styles.input}
                         value={name}
                         onChangeText={setName}
-                        placeholder="e.g. Haeun Kim"
-                        placeholderTextColor="#9ca3af"
+                        placeholder="예: Haeun Kim"
+                        placeholderTextColor="#6b7280"
                     />
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>Location</Text>
+                    <Text style={styles.label}>{t('common.online')}</Text>
                     <TextInput
                         style={styles.input}
                         value={location}
                         onChangeText={setLocation}
-                        placeholder="e.g. Berlin, Germany"
-                        placeholderTextColor="#9ca3af"
+                        placeholder="예: Berlin, Germany"
+                        placeholderTextColor="#6b7280"
                     />
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>Bio / Tagline</Text>
+                    <Text style={styles.label}>{t('seller.verifiedSellerMsg')}</Text>
                     <TextInput
                         style={styles.input}
                         value={bio}
                         onChangeText={setBio}
-                        placeholder="e.g. Vintage collector & fashion lover"
-                        placeholderTextColor="#9ca3af"
+                        placeholder="예: 빈티지 수집가, 패션 러버"
+                        placeholderTextColor="#6b7280"
                     />
+                </View>
+
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>{t('common.language')}</Text>
+                    <View style={styles.langChips}>
+                        <Pressable
+                            style={[styles.langChip, i18n.language === 'ko' && styles.langChipActive]}
+                            onPress={() => i18n.changeLanguage('ko')}
+                        >
+                            <Text style={[styles.langChipText, i18n.language === 'ko' && styles.langChipActiveText]}>
+                                {t('common.korean')}
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            style={[styles.langChip, i18n.language === 'en' && styles.langChipActive]}
+                            onPress={() => i18n.changeLanguage('en')}
+                        >
+                            <Text style={[styles.langChipText, i18n.language === 'en' && styles.langChipActiveText]}>
+                                {t('common.english')}
+                            </Text>
+                        </Pressable>
+                    </View>
                 </View>
 
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
                 <PrimaryButton
-                    label={saving ? "Saving..." : "Save Changes"}
+                    label={saving ? t('post.posting') : t('common.confirm')}
                     onPress={handleSave}
                     disabled={saving}
                 />
@@ -207,6 +242,38 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
     backBtn: { padding: 4 },
     content: { paddingBottom: 40 },
+    errorBanner: {
+        margin: 16,
+        marginBottom: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#fecaca',
+        backgroundColor: '#fff1f2',
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+    },
+    errorBannerText: {
+        flex: 1,
+        color: '#b91c1c',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    retryBtn: {
+        borderRadius: 8,
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#fecaca',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+    },
+    retryBtnText: {
+        color: '#b91c1c',
+        fontWeight: '700',
+        fontSize: 12,
+    },
     coverSection: { height: 200, backgroundColor: '#f3f4f6', marginBottom: 60 },
     coverPreview: { width: '100%', height: '100%' },
     coverEditBtn: {
@@ -256,6 +323,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#111827',
     },
+    langChips: { flexDirection: 'row', gap: 10 },
+    langChip: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    langChipActive: {
+        borderColor: '#16a34a',
+        backgroundColor: '#f0fdf4',
+    },
+    langChipText: { fontSize: 14, fontWeight: '600', color: '#6b7280' },
+    langChipActiveText: { color: '#16a34a' },
     footer: {
         padding: 16,
         borderTopWidth: 1,

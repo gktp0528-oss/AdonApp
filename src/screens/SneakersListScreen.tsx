@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { DetailBackButton } from '../components/DetailBackButton';
@@ -142,6 +143,7 @@ const itemsByCategory: Record<string, ListItem[]> = {
 };
 
 export function SneakersListScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { categoryId, categoryName } = route.params;
   const items = useMemo(() => itemsByCategory[categoryId] ?? fallbackItems, [categoryId]);
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'search');
@@ -152,7 +154,7 @@ export function SneakersListScreen({ navigation, route }: Props) {
         <DetailBackButton onPress={() => navigation.goBack()} />
         <View style={styles.headerText}>
           <Text style={styles.title}>{categoryName}</Text>
-          <Text style={styles.subtitle}>{items.length * 23}+ items</Text>
+          <Text style={styles.subtitle}>{t('category.itemsCount', { count: items.length * 23 })}</Text>
         </View>
         <Pressable style={styles.filterBtn}>
           <MaterialIcons name="tune" size={20} color="#0f172a" />
@@ -161,21 +163,21 @@ export function SneakersListScreen({ navigation, route }: Props) {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         <View style={[styles.chip, styles.chipActive]}>
-          <Text style={styles.chipActiveText}>Latest</Text>
+          <Text style={styles.chipActiveText}>{t('category.newest')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>Price ↓</Text>
+          <Text style={styles.chipText}>{t('category.priceLow')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>Near You</Text>
+          <Text style={styles.chipText}>{t('category.nearby')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>Top Rated</Text>
+          <Text style={styles.chipText}>{t('category.rating')}</Text>
         </View>
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-        {items.map((item) => (
+        {items.map((item: ListItem) => (
           <Pressable
             key={item.id}
             style={styles.card}

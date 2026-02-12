@@ -18,6 +18,8 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { RootStackParamList } from '../navigation/types';
 import { getPostExitTab, resetToTab } from '../navigation/tabRouting';
 
@@ -35,6 +37,7 @@ import { ListingCondition } from '../types/listing';
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // Temporary: get current seller ID
@@ -112,6 +115,12 @@ export function AiListingScreen({ navigation, route }: Props) {
   };
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
+  const conditionLabelMap: Record<ListingCondition, string> = {
+    New: t('post.conditionNew') || '새 상품',
+    'Like New': t('post.conditionLikeNew') || '거의 새것',
+    Good: t('post.conditionGood') || '양호',
+    Fair: t('post.conditionFair') || '사용감 있음',
+  };
 
   const handlePostItem = async () => {
     if (isPosting) return;
@@ -122,23 +131,23 @@ export function AiListingScreen({ navigation, route }: Props) {
     const normalizedPrice = Number(price.replace(',', '.'));
 
     if (!normalizedTitle) {
-      Alert.alert('제목을 입력해 주세요.');
+      Alert.alert(t('post.enterTitle'));
       return;
     }
     if (!normalizedCategory) {
-      Alert.alert('카테고리를 선택해 주세요.');
+      Alert.alert(t('post.selectCategoryFirst'));
       return;
     }
     if (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0) {
-      Alert.alert('가격을 올바르게 입력해 주세요.');
+      Alert.alert(t('post.enterValidPrice'));
       return;
     }
     if (!normalizedDescription) {
-      Alert.alert('설명을 입력해 주세요.');
+      Alert.alert(t('post.enterDescription'));
       return;
     }
     if (photos.length === 0) {
-      Alert.alert('사진을 1장 이상 등록해 주세요.');
+      Alert.alert(t('post.addAtLeastOnePhoto'));
       return;
     }
 
@@ -170,20 +179,20 @@ export function AiListingScreen({ navigation, route }: Props) {
         currency: 'EUR',
         status: 'active',
         sellerId: sellerId,
-        // Optional fields can be added here
+        originLanguage: i18n.language, // Track original language for AliExpress-style auto-translation
       });
 
-      Alert.alert('등록 완료', '상품이 정상적으로 등록되었어요.', [
+      Alert.alert(t('post.postSuccess'), t('post.postSuccessMsg'), [
         {
-          text: '확인',
+          text: t('common.confirm'),
           onPress: () => resetToTab(navigation, getPostExitTab(), 'post'),
         },
       ]);
     } catch (error: any) {
       console.error('Post Item failed:', error);
       Alert.alert(
-        '등록 실패',
-        `글 등록 중 문제가 발생했어요: ${error?.message || '알 수 없는 에러'}`
+        t('post.postFailed'),
+        t('post.postFailedMsg', { error: error?.message || t('common.unknownError') })
       );
     } finally {
       setIsPosting(false);
@@ -192,7 +201,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   const pickImage = async () => {
     if (photos.length >= 10) {
-      Alert.alert('사진은 최대 10장까지 등록할 수 있어요.');
+      Alert.alert(t('post.maxPhotosAlert'));
       return;
     }
 
@@ -255,8 +264,8 @@ export function AiListingScreen({ navigation, route }: Props) {
       };
     }
 
-    addFeed('⚡️ Adon Vision Engine 초기화 완료');
-    addFeed('📤 사진 데이터 클라우드 업로드 중...');
+    addFeed(t('post.aiScannedMsg'));
+    addFeed(t('post.aiUploadingMsg'));
 
     try {
       // Optimize images before upload & analysis
@@ -274,7 +283,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
       Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
-      addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
+      addFeed(t('post.aiGearingUpMsg'));
       const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
 
       // Prepare all images for Gemini
@@ -305,10 +314,12 @@ export function AiListingScreen({ navigation, route }: Props) {
       2. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
       3. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
       4. 특히 에어팟 같은 소모품은 배터리 수명과 외관 스크래치가 가격에 치명적임을 반영하세요.
+      5. 제품의 카테고리를 다음 중 하나로 분류하세요: Fashion, Luxury, Electronics, Home & Living, Sports & Leisure, Other.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
         "itemName": "식별된 정확한 모델명",
+        "category": "상기 분류 중 하나",
         "conditionScore": 1~10 사이 점수 (흠집이 하나라도 보이면 7점 이하로 책정),
         "marketDemand": "유럽 내 수요 (High/Medium/Low)",
         "priceRange": { "min": 보수적 최소유로, "max": 현실적 최대유로 },
@@ -317,7 +328,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       }
       반드시 한국어로 작성하세요.`;
 
-      addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...');
+      addFeed(t('post.aiComparingMsg'));
       Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
 
       const result = await model.generateContent([prompt, ...imageParts]);
@@ -326,7 +337,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
       setAiStep('finalizing');
       Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
-      addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
+      addFeed(t('post.aiPackagingMsg'));
 
       try {
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -335,11 +346,14 @@ export function AiListingScreen({ navigation, route }: Props) {
         if (data) {
           setTitle(data.itemName || ''); // Notice: itemName used in prompt but title in form
           setAiPriceRange(data.priceRange || null);
-          setCategory(data.category || '');
+          // Only set category if AI return is meaningful
+          if (data.category) {
+            setCategory(data.category);
+          }
           setDescription(data.reasoning || data.description || '');
           setCondition('Good');
         } else {
-          setTitle('AI 분석 완료');
+          setTitle(t('post.aiAnalysisCompleted'));
           setDescription(responseText);
         }
 
@@ -352,8 +366,8 @@ export function AiListingScreen({ navigation, route }: Props) {
 
       } catch (e) {
         console.warn('Failed to parse AI JSON:', e);
-        setTitle('AI 분석 실패');
-        setDescription('AI가 정보를 읽어오는 데 실패했어요. 직접 작성해 보시겠어요?');
+        setTitle(t('post.aiAnalysisFailed'));
+        setDescription(t('post.aiAnalysisFailedMsg'));
       }
 
       setTimeout(() => {
@@ -366,9 +380,9 @@ export function AiListingScreen({ navigation, route }: Props) {
       setIsAiLoading(false);
       setAiStep(null);
 
-      const errorMessage = error?.message || '알 수 없는 에러가 발생했어요.';
-      Alert.alert('AI 분석 오류' + (errorMessage.includes('API_NOT_ENABLED') ? ' (API 미활성화)' : ''),
-        `AI가 분석 중에 문제가 생겼어요: ${errorMessage}\n\nFirebase 콘솔에서 AI API가 활성화되어 있는지 확인해 주세요! 💖`);
+      const errorMessage = error?.message || t('common.unknownError');
+      Alert.alert(t('post.aiAnalysisError') + (errorMessage.includes('API_NOT_ENABLED') ? t('post.apiNotEnabled') : ''),
+        `${t('post.aiAnalysisProblem')}: ${errorMessage}\n\n${t('post.checkFirebaseAIAPI')}`);
     }
   };
 
@@ -378,13 +392,13 @@ export function AiListingScreen({ navigation, route }: Props) {
     const getStepMessage = () => {
       switch (aiStep) {
         case 'uploading':
-          return '사진을 안전하게 클라우드로 전송 중이에요... 📤';
+          return t('post.aiStepUploading');
         case 'analyzing':
-          return 'Adon Vision AI가 상품을 정밀 분석하고 있어요... 🧠✨';
+          return t('post.aiStepAnalyzing');
         case 'finalizing':
-          return '멋진 제목과 설명을 거의 다 만들었어요! 😍';
+          return t('post.aiStepFinalizing');
         default:
-          return 'AI가 하은님의 상품을 분석 중이에요... 🌈';
+          return t('post.aiAnalyzing');
       }
     };
 
@@ -496,7 +510,7 @@ export function AiListingScreen({ navigation, route }: Props) {
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>New Listing</Text>
+          <Text style={styles.headerTitle}>{t('post.header')}</Text>
           <Pressable style={styles.closeBtn} onPress={handleClose}>
             <MaterialIcons name="close" size={24} color="#0f172a" />
           </Pressable>
@@ -511,8 +525,8 @@ export function AiListingScreen({ navigation, route }: Props) {
               <MaterialIcons name="auto-awesome" size={20} color="#fff" />
             </View>
             <View>
-              <Text style={styles.aiBannerTitle}>Try Adon AI Features</Text>
-              <Text style={styles.aiBannerSubtitle}>Auto-fill, Pricing & More</Text>
+              <Text style={styles.aiBannerTitle}>{t('post.aiBannerTitle')}</Text>
+              <Text style={styles.aiBannerSubtitle}>{t('post.aiBannerSubtitle')}</Text>
             </View>
           </View>
           <MaterialIcons name="chevron-right" size={24} color="#15803d" />
@@ -524,11 +538,11 @@ export function AiListingScreen({ navigation, route }: Props) {
         >
           {/* Photo Section */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Photos</Text>
+            <Text style={styles.sectionTitle}>{t('post.photos')}</Text>
             {isAiLoading && (
               <View style={styles.aiLoadingBadge}>
                 <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
-                <Text style={styles.aiLoadingText}>AI Analyzing...</Text>
+                <Text style={styles.aiLoadingText}>{t('post.aiAnalyzing')}</Text>
               </View>
             )}
           </View>
@@ -536,7 +550,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
             <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
               <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-              <Text style={styles.addPhotoText}>Add Photo ({photos.length}/10)</Text>
+              <Text style={styles.addPhotoText}>{t('post.addPhoto')} ({photos.length}/10)</Text>
             </Pressable>
             {photos.map((uri, index) => (
               <View key={index} style={styles.photoCard}>
@@ -553,11 +567,11 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Title Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Product Title</Text>
+            <Text style={styles.label}>{t('post.productName')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Nike Air Max 97"
-              placeholderTextColor="#94a3b8"
+              placeholder="예: Nike Air Max 97"
+              placeholderTextColor="#64748b"
               value={title}
               onChangeText={setTitle}
             />
@@ -565,10 +579,10 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Category Selector (Mock) */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Category</Text>
+            <Text style={styles.label}>{t('post.category')}</Text>
             <Pressable style={styles.selector} onPress={() => navigation.navigate('CategorySelect')}>
               <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                {category || 'Select Category'}
+                {category || t('post.selectCategory')}
               </Text>
               <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
             </Pressable>
@@ -577,20 +591,20 @@ export function AiListingScreen({ navigation, route }: Props) {
           {/* Price Input */}
           <View style={styles.inputGroup}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.label}>Price</Text>
+              <Text style={styles.label}>{t('post.price')}</Text>
               <Pressable
                 style={styles.aiPriceBtn}
                 onPress={() => {
                   if (photos.length > 0) {
                     navigation.navigate('AiPriceAssistant', { imageUris: photos, initialPrice: price });
                   } else {
-                    Alert.alert('사진을 먼저 등록해주세요!', '상품 사진이 있어야 AI가 정확한 시세를 분석할 수 있어요! 📸');
+                    Alert.alert(t('post.pleaseAddPhotoFirst'), t('post.addPhotoFirstMsg'));
                   }
                 }}
               >
                 <MaterialIcons name="auto-awesome" size={16} color="#30e86e" />
                 <Text style={styles.aiPriceBtnText}>
-                  {aiPriceRange ? `AI 시세: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 시세 분석'}
+                  {aiPriceRange ? t('post.aiPriceRange', { min: aiPriceRange.min, max: aiPriceRange.max }) : t('post.aiPriceBtn')}
                 </Text>
               </Pressable>
             </View>
@@ -599,7 +613,7 @@ export function AiListingScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.priceInput}
                 placeholder="0.00"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#64748b"
                 keyboardType="numeric"
                 value={price}
                 onChangeText={setPrice}
@@ -609,7 +623,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Condition Selector */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Condition</Text>
+            <Text style={styles.label}>{t('post.condition')}</Text>
             <View style={styles.conditionRow}>
               {conditions.map((c) => (
                 <Pressable
@@ -618,7 +632,7 @@ export function AiListingScreen({ navigation, route }: Props) {
                   onPress={() => setCondition(c)}
                 >
                   <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
-                    {c}
+                    {conditionLabelMap[c]}
                   </Text>
                 </Pressable>
               ))}
@@ -627,11 +641,11 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Description Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>{t('post.description')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Describe your item..."
-              placeholderTextColor="#94a3b8"
+              placeholder="상품 설명을 입력해 주세요."
+              placeholderTextColor="#64748b"
               multiline
               textAlignVertical="top"
               value={description}
@@ -648,7 +662,7 @@ export function AiListingScreen({ navigation, route }: Props) {
             onPress={handlePostItem}
             disabled={isPosting}
           >
-            <Text style={styles.ctaText}>{isPosting ? 'Posting...' : 'Post Item'}</Text>
+            <Text style={styles.ctaText}>{isPosting ? t('post.posting') : t('post.submit')}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

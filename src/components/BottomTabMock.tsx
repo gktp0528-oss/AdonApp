@@ -11,11 +11,11 @@ type Props = {
 };
 
 const tabs: Array<{ key: TabKey; label: string; icon: string }> = [
-  { key: 'home', label: 'Home', icon: 'home-filled' },
-  { key: 'search', label: 'Search', icon: 'search' },
-  { key: 'post', label: 'Post', icon: 'add-circle' },
-  { key: 'chat', label: 'Chat', icon: 'chat-bubble' },
-  { key: 'profile', label: 'Profile', icon: 'person' },
+  { key: 'home', label: '홈', icon: 'home-filled' },
+  { key: 'search', label: '검색', icon: 'search' },
+  { key: 'post', label: '등록', icon: 'add-circle' },
+  { key: 'chat', label: '채팅', icon: 'chat-bubble' },
+  { key: 'profile', label: '프로필', icon: 'person' },
 ];
 
 export function BottomTabMock({ active, onTabPress }: Props) {
@@ -26,7 +26,15 @@ export function BottomTabMock({ active, onTabPress }: Props) {
       {tabs.map((tab) => {
         const isActive = tab.key === active;
         return (
-          <Pressable key={tab.key} style={styles.tab} onPress={() => onTabPress?.(tab.key)}>
+          <Pressable
+            key={tab.key}
+            style={styles.tab}
+            onPress={() => onTabPress?.(tab.key)}
+            accessibilityRole="button"
+            accessibilityLabel={`${tab.label} 탭`}
+            accessibilityState={{ selected: isActive }}
+            hitSlop={6}
+          >
             <MaterialIcons size={21} name={tab.icon as any} color={isActive ? '#19e61b' : '#9ca3af'} />
             <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
           </Pressable>
@@ -53,7 +61,9 @@ const styles = StyleSheet.create({
   tab: {
     alignItems: 'center',
     gap: 3,
+    minHeight: 44,
     minWidth: 56,
+    justifyContent: 'center',
   },
   label: {
     color: '#9ca3af',

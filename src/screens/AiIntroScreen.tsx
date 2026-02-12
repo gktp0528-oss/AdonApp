@@ -12,35 +12,37 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiIntro'>;
 
 const { width } = Dimensions.get('window');
 
-const FEATURES = [
-    {
-        id: 'vision',
-        icon: 'center-focus-strong',
-        title: 'Vision AI Instant Listing',
-        description: 'Our neural engine identifies brand, model, and condition in milliseconds. Just snap and sell.',
-    },
-    {
-        id: 'price',
-        icon: 'candlestick-chart', // or query-stats
-        title: 'Real-time Market Value',
-        description: 'Maximize profit with live data. We analyze millions of sales to suggest the perfect price.',
-    },
-    {
-        id: 'studio',
-        icon: 'photo-camera-back',
-        title: 'Studio-Grade Photography',
-        description: 'Instant background removal transforms clutter into a professional showroom look.',
-    },
-];
-
 export function AiIntroScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+
+    const FEATURES = [
+        {
+            id: 'vision',
+            icon: 'center-focus-strong',
+            title: t('ai.visionTitle'),
+            description: t('ai.visionDesc'),
+        },
+        {
+            id: 'price',
+            icon: 'candlestick-chart', // or query-stats
+            title: t('ai.priceTitle'),
+            description: t('ai.priceDesc'),
+        },
+        {
+            id: 'studio',
+            icon: 'photo-camera-back',
+            title: t('ai.studioTitle'),
+            description: t('ai.studioDesc'),
+        },
+    ];
 
     // Animations
     const scanAnim = useRef(new Animated.Value(0)).current;
@@ -93,7 +95,7 @@ export function AiIntroScreen({ navigation }: Props) {
                 useNativeDriver: true,
             })
         ).start();
-    }, []);
+    }, [scanAnim, pulseAnim, shimmerAnim]);
 
     const handleStartTrial = () => {
         navigation.goBack();
@@ -120,10 +122,10 @@ export function AiIntroScreen({ navigation }: Props) {
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.titleContainer}>
                     <View style={styles.badge}>
-                        <Text style={styles.badgeText}>BETA</Text>
+                        <Text style={styles.badgeText}>{t('ai.beta')}</Text>
                     </View>
                     <Text style={styles.title}>Adon AI <Text style={{ color: '#16a34a' }}>Pro</Text></Text>
-                    <Text style={styles.subtitle}>Unlock the future of selling.</Text>
+                    <Text style={styles.subtitle}>{t('ai.helperSubtitle')}</Text>
                 </View>
 
                 <View style={styles.featuresList}>
@@ -180,23 +182,23 @@ export function AiIntroScreen({ navigation }: Props) {
 
                 <View style={styles.pricingContainer}>
                     <View style={styles.pricingBadge}>
-                        <Text style={styles.proText}>LIMITED OFFER</Text>
+                        <Text style={styles.proText}>{t('ai.limitedOffer')}</Text>
                     </View>
                     <Text style={styles.trialText}>
-                        Try <Text style={styles.boldText}>Adon Pro</Text> for free.
+                        <Text style={styles.boldText}>Adon Pro</Text>{t('ai.tryFree')}
                     </Text>
                     <Text style={styles.subtext}>
-                        7 days free, then $4.99/mo.
+                        {t('ai.trialPricing')}
                     </Text>
                 </View>
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
                 <Pressable style={styles.ctaBtn} onPress={handleStartTrial}>
-                    <Text style={styles.ctaText}>Start Free Trial</Text>
+                    <Text style={styles.ctaText}>{t('ai.startTrial')}</Text>
                     <MaterialIcons name="arrow-forward" size={20} color="#0f172a" />
                 </Pressable>
-                <Text style={styles.footerNote}>Cancel anytime in settings</Text>
+                <Text style={styles.footerNote}>{t('ai.cancelNote')}</Text>
             </View>
         </SafeAreaView>
     );

@@ -12,7 +12,11 @@ type Props = {
 export function PrimaryButton({ label, onPress, tone = 'primary', disabled }: Props) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={disabled ? undefined : onPress}
+      hitSlop={6}
       style={({ pressed }) => [
         styles.base,
         tone === 'primary' ? styles.primary : styles.ghost,
@@ -31,6 +35,7 @@ export function PrimaryButton({ label, onPress, tone = 'primary', disabled }: Pr
 
 const styles = StyleSheet.create({
   base: {
+    minHeight: 48,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,

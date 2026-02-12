@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View, TextInput } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { BottomTabMock } from '../components/BottomTabMock';
@@ -15,36 +17,6 @@ type HubCategory = {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
 };
 
-const euPopularCategories: HubCategory[] = [
-  { id: 'cycling', name: 'Cycling', icon: 'bike' },
-  { id: 'football', name: 'Football', icon: 'soccer' },
-  { id: 'running', name: 'Running', icon: 'run' },
-  { id: 'hiking', name: 'Hiking', icon: 'hiking' },
-  { id: 'skiing', name: 'Skiing', icon: 'ski' },
-  { id: 'tennis', name: 'Tennis', icon: 'tennis' },
-  { id: 'camping', name: 'Camping', icon: 'tent' },
-  { id: 'gaming', name: 'Gaming', icon: 'controller-classic-outline' },
-  { id: 'photography', name: 'Photography', icon: 'camera-outline' },
-  { id: 'vinyl', name: 'Vinyl', icon: 'album' },
-  { id: 'books', name: 'Books', icon: 'book-open-page-variant-outline' },
-  { id: 'board-games', name: 'Board Games', icon: 'puzzle-outline' },
-];
-
-const euPrelovedCategories: HubCategory[] = [
-  { id: 'women-fashion', name: 'Women Fashion', icon: 'human-female' },
-  { id: 'men-fashion', name: 'Men Fashion', icon: 'human-male' },
-  { id: 'sneakers', name: 'Sneakers', icon: 'shoe-sneaker' },
-  { id: 'bags-wallets', name: 'Bags & Wallets', icon: 'bag-personal-outline' },
-  { id: 'watches', name: 'Watches', icon: 'watch-variant' },
-  { id: 'jewelry', name: 'Jewelry', icon: 'diamond-stone' },
-  { id: 'home-decor', name: 'Home Decor', icon: 'sofa-outline' },
-  { id: 'electronics', name: 'Electronics', icon: 'laptop' },
-  { id: 'bicycles', name: 'Bicycles', icon: 'bicycle' },
-  { id: 'baby-kids', name: 'Baby & Kids', icon: 'baby-face-outline' },
-  { id: 'beauty', name: 'Beauty', icon: 'spray-bottle' },
-  { id: 'collectibles', name: 'Collectibles', icon: 'toy-brick-search-outline' },
-];
-
 function getCurrentClock() {
   const now = new Date();
   const h = `${now.getHours()}`.padStart(2, '0');
@@ -53,8 +25,10 @@ function getCurrentClock() {
 }
 
 export function SearchScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'search');
   const [clock, setClock] = useState(getCurrentClock());
+  const [activeSegment, setActiveSegment] = useState<'category' | 'brands' | 'services'>('category');
 
   useEffect(() => {
     const updateClock = () => setClock(getCurrentClock());
@@ -70,33 +44,83 @@ export function SearchScreen({ navigation }: Props) {
     resetToTab(navigation, 'home', 'search');
   };
 
-  return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.topRow}>
-          <Text style={styles.clock}>{clock}</Text>
-          <Pressable style={styles.closeBtn} onPress={handleClose}>
-            <MaterialCommunityIcons name="close" size={30} color="#171717" />
-          </Pressable>
-        </View>
+  const handlePressNonCategory = (name: string) => {
+    Alert.alert(t('common.comingSoon'), t('common.comingSoonMsg', { feature: name }));
+  };
 
-        <Text style={styles.pageTitle}>All Categories</Text>
+  const euPopularCategories: HubCategory[] = [
+    { id: 'cycling', name: 'Cycling', icon: 'bike' },
+    { id: 'football', name: 'Football', icon: 'soccer' },
+    { id: 'running', name: 'Running', icon: 'run' },
+    { id: 'hiking', name: 'Hiking', icon: 'hiking' },
+    { id: 'skiing', name: 'Skiing', icon: 'ski' },
+    { id: 'tennis', name: 'Tennis', icon: 'tennis' },
+    { id: 'camping', name: 'Camping', icon: 'tent' },
+    { id: 'gaming', name: 'Gaming', icon: 'controller-classic-outline' },
+    { id: 'photography', name: 'Photography', icon: 'camera-outline' },
+    { id: 'vinyl', name: 'Vinyl', icon: 'album' },
+    { id: 'books', name: 'Books', icon: 'book-open-page-variant-outline' },
+    { id: 'board-games', name: 'Board Games', icon: 'puzzle-outline' },
+  ];
 
-        <View style={styles.segmentRow}>
-          <View style={styles.segmentItem}>
-            <Text style={[styles.segmentText, styles.segmentTextActive]}>Category</Text>
-            <View style={styles.segmentUnderline} />
-          </View>
-          <View style={styles.segmentItem}>
-            <Text style={styles.segmentText}>Brands</Text>
-          </View>
-          <View style={styles.segmentItem}>
-            <Text style={styles.segmentText}>Services</Text>
-          </View>
-        </View>
+  const euPrelovedCategories: HubCategory[] = [
+    { id: 'women-fashion', name: t('post.fashion'), icon: 'human-female' },
+    { id: 'men-fashion', name: t('post.fashion'), icon: 'human-male' },
+    { id: 'sneakers', name: 'Sneakers', icon: 'shoe-sneaker' },
+    { id: 'bags-wallets', name: 'Bags & Wallets', icon: 'bag-personal-outline' },
+    { id: 'watches', name: t('post.luxury'), icon: 'watch-variant' },
+    { id: 'jewelry', name: t('post.luxury'), icon: 'diamond-stone' },
+    { id: 'home-decor', name: t('post.homeLiving'), icon: 'sofa-outline' },
+    { id: 'electronics', name: t('post.electronics'), icon: 'laptop' },
+    { id: 'bicycles', name: 'Bicycles', icon: 'bicycle' },
+    { id: 'baby-kids', name: 'Baby & Kids', icon: 'baby-face-outline' },
+    { id: 'beauty', name: 'Beauty', icon: 'spray-bottle' },
+    { id: 'collectibles', name: 'Collectibles', icon: 'toy-brick-search-outline' },
+  ];
 
+  const featuredBrands: HubCategory[] = [
+    { id: 'nike', name: 'Nike', icon: 'shoe-sneaker' },
+    { id: 'adidas', name: 'Adidas', icon: 'shoe-sneaker' },
+    { id: 'apple', name: 'Apple', icon: 'apple' },
+    { id: 'sony', name: 'Sony', icon: 'headphones' },
+    { id: 'ikea', name: 'IKEA', icon: 'sofa-outline' },
+    { id: 'lego', name: 'LEGO', icon: 'toy-brick' },
+  ];
+
+  const marketplaceServices: HubCategory[] = [
+    { id: 'auth-check', name: 'Authenticity Check', icon: 'shield-check-outline' },
+    { id: 'safe-pay', name: 'Safe Payment', icon: 'credit-card-check-outline' },
+    { id: 'pickup', name: 'Pickup Scheduler', icon: 'calendar-clock-outline' },
+    { id: 'delivery', name: 'Delivery Helper', icon: 'truck-fast-outline' },
+    { id: 'price-ai', name: 'Price Assistant', icon: 'chart-line' },
+    { id: 'photo-ai', name: 'Photo Studio', icon: 'image-filter-hdr' },
+  ];
+
+  const renderSegmentContent = () => {
+    if (activeSegment === 'brands') {
+      return (
         <CategorySection
-          title="Popular in Europe"
+          title={t('category.recommendedBrands')}
+          categories={featuredBrands}
+          onPressCategory={(item) => handlePressNonCategory(item.name)}
+        />
+      );
+    }
+
+    if (activeSegment === 'services') {
+      return (
+        <CategorySection
+          title={t('category.marketServices')}
+          categories={marketplaceServices}
+          onPressCategory={(item) => handlePressNonCategory(item.name)}
+        />
+      );
+    }
+
+    return (
+      <>
+        <CategorySection
+          title={t('category.popularEu')}
           categories={euPopularCategories}
           onPressCategory={(item) =>
             navigation.navigate('CategoryList', { categoryId: item.id, categoryName: item.name })
@@ -104,12 +128,53 @@ export function SearchScreen({ navigation }: Props) {
         />
 
         <CategorySection
-          title="Pre-Loved Essentials"
+          title={t('category.prelovedPopular')}
           categories={euPrelovedCategories}
           onPressCategory={(item) =>
             navigation.navigate('CategoryList', { categoryId: item.id, categoryName: item.name })
           }
         />
+      </>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.topRow}>
+          <Text style={styles.clock}>{clock}</Text>
+          <Pressable style={styles.closeBtn} onPress={handleClose} accessibilityRole="button">
+            <MaterialCommunityIcons name="close" size={30} color="#171717" />
+          </Pressable>
+        </View>
+
+        <Text style={styles.pageTitle}>{t('category.all')}</Text>
+
+        <View style={styles.searchWrap}>
+          <MaterialIcons name="search" size={20} color="#64748b" />
+          <TextInput
+            placeholder={t('home.searchPlaceholder')}
+            placeholderTextColor="#94a3b8"
+            style={styles.searchInput}
+          />
+        </View>
+
+        <View style={styles.segmentRow}>
+          <Pressable style={styles.segmentItem} onPress={() => setActiveSegment('category')} accessibilityRole="button">
+            <Text style={[styles.segmentText, activeSegment === 'category' && styles.segmentTextActive]}>{t('product.category')}</Text>
+            {activeSegment === 'category' ? <View style={styles.segmentUnderline} /> : null}
+          </Pressable>
+          <Pressable style={styles.segmentItem} onPress={() => setActiveSegment('brands')} accessibilityRole="button">
+            <Text style={[styles.segmentText, activeSegment === 'brands' && styles.segmentTextActive]}>{t('category.brands')}</Text>
+            {activeSegment === 'brands' ? <View style={styles.segmentUnderline} /> : null}
+          </Pressable>
+          <Pressable style={styles.segmentItem} onPress={() => setActiveSegment('services')} accessibilityRole="button">
+            <Text style={[styles.segmentText, activeSegment === 'services' && styles.segmentTextActive]}>{t('category.services')}</Text>
+            {activeSegment === 'services' ? <View style={styles.segmentUnderline} /> : null}
+          </Pressable>
+        </View>
+
+        {renderSegmentContent()}
       </ScrollView>
       <BottomTabMock active="search" onTabPress={handleTabPress} />
     </SafeAreaView>
@@ -134,6 +199,7 @@ function CategorySection({
             key={item.id}
             style={styles.categoryItem}
             onPress={() => onPressCategory(item)}
+            accessibilityRole="button"
           >
             <View style={styles.categoryIconCircle}>
               <MaterialCommunityIcons name={item.icon} size={29} color="#0f5f33" />
@@ -168,6 +234,23 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0b1324',
   },
+  searchWrap: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 15,
+    color: '#1e293b',
+  },
   segmentRow: {
     marginTop: 16,
     flexDirection: 'row',
@@ -183,7 +266,7 @@ const styles = StyleSheet.create({
   segmentTextActive: { color: '#171717' },
   segmentUnderline: {
     marginTop: 10,
-    width: 110,
+    width: '100%',
     height: 5,
     borderRadius: 999,
     backgroundColor: '#111827',

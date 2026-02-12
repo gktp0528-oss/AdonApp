@@ -59,31 +59,31 @@ export const CHATS = [
     {
         id: 'c1',
         sender: 'system',
-        text: 'Both users agreed on time and location through in-app chat.',
-        title: 'Verified Meetup Details',
+        text: '앱 내 채팅에서 시간과 장소 합의가 완료되었습니다.',
+        title: '직거래 정보 확인 완료',
     },
     {
         id: 'c2',
         sender: 'other',
-        text: 'Perfect, does 2:00 PM work for you?',
+        text: '좋아요, 오후 2시는 괜찮으세요?',
     },
     {
         id: 'c3',
         sender: 'me',
-        text: 'Yes, I will be there.',
+        text: '네, 그 시간에 갈게요.',
     },
     {
         id: 'c4',
         sender: 'other',
-        text: 'Great. I will bring the sneakers and original box.',
+        text: '좋습니다. 스니커즈와 정품 박스 같이 가져갈게요.',
     },
 ];
 
 export const CATEGORIES = [
-    { id: 'fashion', label: 'Fashion' },
-    { id: 'tech', label: 'Tech' },
-    { id: 'home', label: 'Home' },
-    { id: 'kids', label: 'Kids' },
+    { id: 'fashion', label: '패션' },
+    { id: 'tech', label: '테크' },
+    { id: 'home', label: '리빙' },
+    { id: 'kids', label: '키즈' },
 ];
 
 export const FRESH_FINDS = [
