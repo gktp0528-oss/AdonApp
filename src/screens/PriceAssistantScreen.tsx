@@ -70,19 +70,25 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 };
             }));
 
-            const prompt = `당신은 유럽 전역의 중고 마켓을 꿰뚫고 있는 시세 전문가입니다. 
-      어떤 종류의 제품이든(전자제품, 명품, 패션 등) 사진 속의 마커(단자, 각인, 로고, 재질 패턴 등)를 통해 정확한 이름과 가치를 뽑아내세요.
+            const prompt = `당신은 유럽(독일, 프랑스, 스페인 등)의 중고 마켓(eBay, Vinted, Wallapop) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
+      
+      [분석 지침]
+      1. 여러 장의 사진을 대조하여 제품의 정확한 모델명과 진위 여부를 확인하세요.
+      2. 사진마다 스크래치, 찍힘, 오염, 사용감 등 '현실적인 감가 요인'을 정밀하게 찾아내십시오. 
+      3. 가격 책정 시 매우 보수적이어야 합니다. 에어팟이나 가전제품에 미세한 스크래치라도 보인다면, 시장 평균가보다 훨씬 낮은 가격을 제시해야 합니다.
+      4. 사용자가 보고한 상태보다 사진에서 직접 확인되는 물리적 훼손에 더 큰 가중치를 두어 가격을 깎으세요.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
-        "itemName": "식별된 정확한 모델명 (예: Apple AirPods Pro 2nd Gen USB-C / Hermès Birkin 30 등)",
-        "conditionScore": 1~10 사이 점수,
+        "itemName": "식별된 정확한 모델명",
+        "conditionScore": 1~10 사이 점수 (물리적 손상이 보이면 엄격하게 감점),
         "marketDemand": "유럽 내 수요 (High/Medium/Low)",
-        "priceRange": { "min": 최소유로, "max": 최대유로 },
-        "insights": ["모델별 사양 차이", "상태 분석 결과", "유럽 주요 도시별 시세"],
-        "reasoning": "왜 이 모델로 판정했는지 사진 속의 시각적 근거를 바탕으로 한 상세 설명"
+        "priceRange": { "min": 보수적 최소유로, "max": 현실적 최대유로 },
+        "insights": ["구체적인 감가 요인 분석", "현지 마켓 실거래가와 비교 분석"],
+        "reasoning": "왜 이 가격으로 산출했는지 사진 속의 구체적인 하자를 근거로 설명"
       }
       반드시 한국어로 작성하세요.`;
+            bitumen
 
             const result = await model.generateContent([prompt, ...imageParts]);
             const text = result.response.text();
