@@ -5,6 +5,7 @@ export type MainTabKey = Exclude<TabKey, 'post'>;
 
 type TabResetNavigation = {
   reset: (state: { index: number; routes: Array<{ name: keyof RootStackParamList }> }) => void;
+  navigate: (name: keyof RootStackParamList) => void;
 };
 
 let lastMainTabBeforePost: MainTabKey = 'home';
@@ -31,10 +32,8 @@ export function resetToTab(
     return;
   }
 
-  navigation.reset({
-    index: 0,
-    routes: [{ name: TAB_ROUTE_MAP[tab] }],
-  });
+  // Use navigate instead of reset to allow for smooth transitions/animations
+  navigation.navigate(TAB_ROUTE_MAP[tab]);
 }
 
 export function getPostExitTab(): MainTabKey {

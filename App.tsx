@@ -30,22 +30,25 @@ export default function App() {
           initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
-            animation: 'none',
             gestureEnabled: true,
           }}
         >
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
+
+          {/* Main Tabs - Use Fade for smooth tab switching feel */}
+          <Stack.Screen name="Home" component={HomeScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="AiListing" component={AiListingScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="ChatList" component={ChatListScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Seller" component={SellerScreen} options={{ animation: 'fade' }} />
+
+          {/* Sub Screens - Default Slide Animation */}
           <Stack.Screen name="CategoryList" component={SneakersListScreen} />
-          <Stack.Screen name="ChatList" component={ChatListScreen} />
           <Stack.Screen name="Product" component={ProductScreen} />
-          <Stack.Screen name="Seller" component={SellerScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="AiListing" component={AiListingScreen} />
           <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
