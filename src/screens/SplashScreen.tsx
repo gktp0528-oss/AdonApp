@@ -3,7 +3,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { theme } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -11,8 +10,6 @@ import { PrimaryButton } from '../components/PrimaryButton';
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export function SplashScreen({ navigation }: Props) {
-  const { t } = useTranslation();
-
   return (
     <SafeAreaView style={styles.root}>
       <LinearGradient colors={['#ffffff', '#f3f4f6']} style={styles.card}>
@@ -32,12 +29,12 @@ export function SplashScreen({ navigation }: Props) {
           <View style={styles.progressTrack}>
             <View style={styles.progressBar} />
           </View>
-          <Text style={styles.loading}>{t('auth.preparingMarket')}</Text>
+          <Text style={styles.loading}>안전한 마켓플레이스를 준비하고 있어요...</Text>
         </View>
 
         <View style={styles.actions}>
-          <PrimaryButton label={t('auth.login')} onPress={() => navigation.navigate('Login')} />
-          <PrimaryButton label={t('auth.signup')} tone="ghost" onPress={() => navigation.navigate('Signup')} />
+          <PrimaryButton label="로그인" onPress={() => navigation.navigate('Login')} />
+          <PrimaryButton label="회원가입" tone="ghost" onPress={() => navigation.navigate('Signup')} />
         </View>
       </LinearGradient>
     </SafeAreaView>

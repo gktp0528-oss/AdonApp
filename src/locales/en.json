@@ -1,192 +1,355 @@
 {
-    "common": {
-        "justNow": "just now",
-        "minAgo": "{{count}}m ago",
-        "hourAgo": "{{count}}h ago",
-        "dayAgo": "{{count}}d ago",
-        "loading": "Loading...",
-        "error": "An error occurred",
-        "confirm": "Confirm",
-        "retry": "Retry",
-        "back": "Back",
-        "save": "Save",
-        "delete": "Delete",
-        "language": "Language",
-        "korean": "Korean",
-        "english": "English",
-        "unknownError": "An unknown error occurred.",
-        "translatedByAi": "Translated by AI",
-        "comingSoon": "Coming Soon",
-        "comingSoonMsg": "{{feature}} will be available soon.",
-        "required": "Required",
-        "cancel": "Cancel",
-        "online": "Online",
-        "offline": "Offline",
-        "today": "Today"
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "time": {
+      "justNow": "Just now",
+      "ago": {
+        "m": "{{count}}m ago",
+        "h": "{{count}}h ago",
+        "d": "{{count}}d ago"
+      }
     },
-    "home": {
-        "greet": "Good morning,",
-        "searchPlaceholder": "Search for fashion, living, tech...",
-        "newItems": "New Items",
-        "justPosted": "Just posted",
-        "noItems": "No items found. Be the first to post!",
-        "noItemsInCategory": "No items in this category yet.",
-        "refresh": "Refresh"
+    "tab": {
+      "home": "Home",
+      "search": "Search",
+      "post": "Post",
+      "chat": "Chat",
+      "profile": "Profile"
     },
-    "post": {
-        "header": "Post New Item",
-        "aiBannerTitle": "Try Adon AI features",
-        "aiBannerSubtitle": "Auto-fill, price analysis, etc.",
-        "photos": "Photos",
-        "addPhoto": "Add Photo",
-        "aiAnalyzing": "AI Analyzing...",
-        "productName": "Product Name",
-        "category": "Category",
-        "selectCategory": "Select Category",
-        "price": "Price",
-        "condition": "Condition",
-        "description": "Description",
-        "submit": "Post Item",
-        "posting": "Posting...",
-        "postSuccess": "Post Success",
-        "postSuccessMsg": "Your item has been posted successfully.",
-        "aiAnalysisFailed": "AI Analysis Failed",
-        "aiAnalysisFailedMsg": "AI failed to read product info. Would you like to enter it manually?",
-        "aiAnalysisError": "AI Analysis Error",
-        "apiNotEnabled": " (API Not Enabled)",
-        "aiAnalysisProblem": "A problem occurred during AI analysis",
-        "checkFirebaseAIAPI": "Please check if the AI API is enabled in your Firebase console! 💖",
-        "aiStepUploading": "Uploading photos safely to the cloud... 📤",
-        "aiStepAnalyzing": "Adon Vision AI is precisely analyzing your item... 🧠✨",
-        "aiStepFinalizing": "Almost finished crafting a great title and description! 😍",
-        "aiPriceBtn": "AI Price Analysis",
-        "aiPriceRange": "AI Price: €{{min}} ~ €{{max}}",
-        "pleaseAddPhotoFirst": "Please add a photo first!",
-        "addPhotoFirstMsg": "Product photos are needed for accurate AI price analysis! 📸",
-        "enterTitle": "Please enter a title.",
-        "selectCategoryFirst": "Please select a category.",
-        "enterValidPrice": "Please enter a valid price.",
-        "enterDescription": "Please enter a description.",
-        "addAtLeastOnePhoto": "Please add at least one photo.",
-        "postFailed": "Posting Failed",
-        "postFailedMsg": "A problem occurred while posting: {{error}}",
-        "maxPhotosAlert": "You can add up to 10 photos.",
-        "aiScannedMsg": "⚡️ Adon Vision Engine Initialized",
-        "aiUploadingMsg": "📤 Uploading photo data to cloud...",
-        "aiGearingUpMsg": "🧠 Adon Vision identification engine operating...",
-        "aiComparingMsg": "🌍 Comparing with European market trends DB...",
-        "aiPackagingMsg": "✨ Optimization of listing data complete!"
+    "accessibility": {
+      "back": "Go back",
+      "tab": "{{label}} tab"
     },
-    "category": {
-        "title": "Select Category",
-        "all": "All Categories",
-        "noSubcategories": "No subcategories found.",
-        "noSubcategoriesAvailable": "No subcategories available.",
-        "popularEu": "Popular in Europe",
-        "prelovedPopular": "Popular Preloved",
-        "recommendedBrands": "Recommended Brands",
-        "marketServices": "Marketplace Services",
-        "brands": "Brands",
-        "services": "Services"
-    },
-    "auth": {
-        "login": "Login",
-        "signup": "Sign Up",
+    "condition": {
+      "new": "New",
+      "likeNew": "Like New",
+      "good": "Good",
+      "fair": "Fair"
+    }
+  },
+  "screen": {
+    "login": {
+      "title": "Login",
+      "tag": "PREMIUM RESALE",
+      "or": "Or login with email",
+      "label": {
         "email": "Email Address",
         "password": "Password",
+        "name": "Name"
+      },
+      "placeholder": {
+        "email": "hello@adon.app",
+        "password": "••••••••",
+        "name": "John Doe"
+      },
+      "forgot": "Forgot password?",
+      "submit": "Login",
+      "signupText": "Don't have an account?",
+      "signupLink": "Sign Up",
+      "alert": {
+        "inputNeeded": "Input Needed",
+        "emailMissing": "Please enter your email.",
+        "passwordMissing": "Please enter your password.",
+        "emailInvalid": "Invalid Email",
+        "emailInvalidMsg": "Please enter a valid email address.",
+        "failed": "Login Failed",
+        "comingSoon": "Coming Soon",
+        "comingSoonMsg": "{{feature}} will be available soon."
+      }
+    },
+    "signup": {
+      "title": "ADON",
+      "subtitle": "Join the premium resale community",
+      "header": "Sign Up",
+      "label": {
         "name": "Name",
-        "forgotPassword": "Forgot Password?",
-        "noAccount": "Don't have an account?",
-        "hasAccount": "Already have an account?",
-        "signupHero": "Join the premium resale community",
-        "terms": "By signing up, you agree to our Terms and Privacy Policy.",
-        "loginWithEmail": "Or login with email",
-        "emailPlaceholder": "hello@adon.app",
-        "passwordPlaceholder": "••••••••",
-        "namePlaceholder": "John Doe",
-        "loginFailed": "Login Failed",
-        "loginFailedMsg": "Please check your email or password.",
-        "signupSuccess": "Signup Complete",
-        "signupSuccessMsg": "Your account has been created.",
-        "emailAlreadyInUse": "Email already in use.",
-        "signupFailed": "Signup failed.",
-        "emailRequired": "Please enter your email.",
-        "passwordRequired": "Please enter your password.",
-        "nameRequired": "Please enter your name.",
-        "emailInvalid": "Please enter a valid email.",
-        "passwordTooShort": "Password must be at least 6 characters.",
-        "preparingMarket": "Preparing a secure marketplace for you..."
+        "email": "Email Address",
+        "password": "Password"
+      },
+      "placeholder": {
+        "name": "John Doe",
+        "email": "hello@example.com",
+        "password": "••••••••"
+      },
+      "submit": "Join & Go Home",
+      "terms": "By joining, you agree to our Terms and Privacy Policy.",
+      "loginText": "Already have an account?",
+      "loginLink": "Login",
+      "alert": {
+        "inputNeeded": "Input Needed",
+        "nameMissing": "Please enter your name.",
+        "passwordError": "Password Error",
+        "passwordLength": "Password must be at least 6 characters.",
+        "success": "Welcome",
+        "successMsg": "Account created successfully.",
+        "failed": "Error",
+        "emailInUse": "Email already in use.",
+        "failedMsg": "Signup failed."
+      }
+    },
+    "home": {
+      "title": "Home",
+      "greet": "Good morning,",
+      "searchPlaceholder": "Search clothing, living, tech...",
+      "chip": {
+        "all": "All"
+      },
+      "section": {
+        "new": "New Items",
+        "justIn": "Just Listed"
+      },
+      "empty": {
+        "all": "No items yet. Be the first to list!",
+        "category": "No items in this category yet."
+      },
+      "refresh": "Refresh",
+      "category": {
+        "fashion": "Fashion",
+        "tech": "Tech",
+        "home": "Living",
+        "kids": "Kids"
+      },
+      "accessibility": {
+        "addToWishlist": "Add to wishlist"
+      }
     },
     "product": {
-        "notFound": "Product not found or deleted.",
-        "loadFailed": "Failed to load product.",
-        "noId": "Product ID is missing.",
-        "shareFailed": "Cannot share at the moment.",
-        "aiVerified": "AI Verified Authentic",
-        "safePay": "Safe Payment Guaranteed",
-        "noSellerInfo": "No seller information",
-        "positiveRate": "{{rate}}% Positive Rate",
-        "newSeller": "New Seller",
-        "salesCount": "{{count}} sales",
+      "title": "Product",
+      "error": {
+        "load": "Failed to load product.",
+        "idMissing": "Product ID missing.",
+        "notFound": "Product not found or deleted."
+      },
+      "auth": "AI Verified",
+      "premium": "PREMIUM",
+      "safePay": "Safe Payment Guaranteed",
+      "seller": {
+        "unknown": "No seller info",
+        "new": "New Seller",
+        "sales": "Sales {{count}}",
+        "positive": "Positive {{rate}}%",
         "follow": "Follow",
-        "following": "Following",
-        "unfollow": "Unfollow",
-        "responseTime": "Response Time",
-        "reliability": "Reliability",
+        "following": "Following"
+      },
+      "trust": {
+        "response": "Response",
+        "reliability": "Reliability"
+      },
+      "spec": {
         "category": "Category",
         "condition": "Condition",
         "brand": "Brand",
         "size": "Size",
         "color": "Color",
-        "date": "Posted Date",
-        "description": "Description",
-        "noDescription": "No description provided yet.",
-        "location": "Location",
-        "locationPrivate": "Location Private",
-        "buyNow": "Buy Now",
-        "chat": "Chat Now"
+        "date": "Listed Date"
+      },
+      "desc": {
+        "title": "Description",
+        "empty": "No description available."
+      },
+      "location": {
+        "title": "Location",
+        "private": "Location Private"
+      },
+      "action": {
+        "chat": "Chat",
+        "buy": "Buy Now",
+        "back": "Back"
+      },
+      "accessibility": {
+        "share": "Share product",
+        "like": "Like",
+        "unlike": "Unlike",
+        "follow": "Follow",
+        "unfollow": "Unfollow"
+      }
     },
-    "chat": {
-        "title": "Messages",
-        "searchPlaceholder": "Search conversations...",
-        "unreadOnly": "Unread only",
-        "allConversations": "All conversations",
-        "noConversations": "No conversations.",
-        "filterLabel": "Filter",
-        "meetupConfirmed": "Meetup Confirmed",
-        "changeSchedule": "Change Schedule",
-        "safetyTips": "Safety Tips"
+    "search": {
+      "title": "All Categories",
+      "segment": {
+        "category": "Category",
+        "brand": "Brands",
+        "service": "Services"
+      },
+      "section": {
+        "brands": "Recommended Brands",
+        "services": "Market Services",
+        "popular": "Popular Categories",
+        "preloved": "Preloved Items",
+        "browse": "Browse Categories",
+        "browseHint": "Find what you need by category."
+      },
+      "category": {
+        "cycling": "Cycling",
+        "football": "Football",
+        "running": "Running",
+        "hiking": "Hiking",
+        "skiing": "Skiing",
+        "tennis": "Tennis",
+        "camping": "Camping",
+        "gaming": "Gaming",
+        "photography": "Photography",
+        "vinyl": "Vinyl",
+        "books": "Books",
+        "boardGames": "Board Games",
+        "womenFashion": "Women Fashion",
+        "menFashion": "Men Fashion",
+        "sneakers": "Sneakers",
+        "bags": "Bags & Wallets",
+        "watches": "Watches",
+        "jewelry": "Jewelry",
+        "homeDecor": "Home Decor",
+        "electronics": "Electronics",
+        "bicycles": "Bicycles",
+        "babyKids": "Baby & Kids",
+        "beauty": "Beauty",
+        "collectibles": "Collectibles",
+        "nike": "Nike",
+        "adidas": "Adidas",
+        "apple": "Apple",
+        "sony": "Sony",
+        "ikea": "IKEA",
+        "lego": "LEGO",
+        "authCheck": "Authenticity Check",
+        "safePay": "Safe Payment",
+        "pickup": "Pickup Scheduler",
+        "delivery": "Delivery Helper",
+        "priceAi": "Price Assistant",
+        "photoAi": "Photo Studio"
+      },
+      "accessibility": {
+        "openCategory": "Open {{name}} category"
+      }
     },
-    "seller": {
-        "trust": "Trust",
+    "profile": {
+      "title": "Profile",
+      "loadError": "Failed to load seller info.",
+      "retry": "Retry",
+      "shareMessage": "Check out {{name}}'s profile on ADON.",
+      "shareErrorTitle": "Error",
+      "shareErrorMessage": "Cannot share profile right now.",
+      "locationDefault": "Europe",
+      "stats": {
+        "reliability": "Reliability",
         "sales": "Sales",
         "response": "Response",
-        "reliabilityIndicator": "Reliability Indicator",
-        "verifiedSellerMsg": "Verified Seller",
-        "sellingProducts": "Products for Sale",
-        "editProfile": "Edit Profile",
-        "shareProfile": "Share Profile",
-        "shareProfileMsg": "Check out {{name}}'s profile."
+        "responseValue": {
+          "fast": "Fast"
+        }
+      },
+      "reliabilityLabel": "ADON Reliability Index",
+      "reliabilityDefault": "Verified seller with trusted activity.",
+      "products": {
+        "title": "Selling Items",
+        "seeAll": "See All",
+        "empty": "No items listed.",
+        "emptyButton": "Start Selling"
+      },
+      "button": {
+        "edit": "Edit Profile",
+        "share": "Share Profile",
+        "chat": "Start Chat"
+      }
     },
-    "ai": {
-        "beta": "BETA",
-        "visionTitle": "Vision AI Instant Listing",
-        "visionDesc": "Upload photos to quickly analyze brand, model, and condition for a listing draft.",
-        "priceTitle": "Real-time Price Analysis",
-        "priceDesc": "Recommended price ranges based on market data.",
-        "studioTitle": "AI Photo Studio",
-        "studioDesc": "Enhance product photos by cleaning backgrounds and improving image quality.",
-        "helperSubtitle": "Your Fast & Accurate Selling Assistant",
-        "limitedOffer": "Limited Offer",
-        "tryFree": " for free.",
-        "trialPricing": "Monthly $4.99 after 7-day free trial",
-        "startTrial": "Start Free Trial",
-        "cancelNote": "Cancel anytime in settings",
-        "analyzingPrice": "Analyzing all photos... ✨\nOur AI team is checking market prices.",
-        "demand": "Demand",
-        "conditionScore": "Condition Score",
-        "predictionRange": "Adon Vision Price Prediction",
-        "marketReport": "Adon Vision Market Report",
-        "applyPrice": "Apply This Price"
+    "editProfile": {
+      "title": "Edit Profile",
+      "loadError": "Failed to load profile.",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveErrorTitle": "Error",
+      "saveErrorMessage": "Failed to save profile.",
+      "validationEmpty": "Name cannot be empty.",
+      "changeCover": "Change Cover",
+      "photoHint": "Profile Photo",
+      "label": {
+        "name": "Display Name",
+        "location": "Location",
+        "bio": "Bio",
+        "language": "App Language"
+      },
+      "placeholder": {
+        "name": "e.g. Haeun Kim",
+        "location": "e.g. Berlin, Germany",
+        "bio": "e.g. Vintage Collector"
+      },
+      "languageHint": "Selected language will be saved.",
+      "languageErrorTitle": "Error",
+      "languageErrorMessage": "Failed to change language.",
+      "validationTitle": "Validation",
+      "accessibility": {
+        "changeLanguage": "Change language to {{language}}"
+      }
+    },
+    "chat": {
+      "title": "Messages",
+      "filter": {
+        "all": "All",
+        "unread": "Unread"
+      },
+      "placeholder": "Search messages...",
+      "empty": "No messages yet.",
+      "inputPlaceholder": "Type a message...",
+      "send": "Send",
+      "meet": {
+        "title": "Meeting Confirmed",
+        "time": "Today 2:00 PM • in 45m",
+        "place": "Starbucks Coffee"
+      },
+      "day": {
+        "today": "Today"
+      },
+      "quick": {
+        "reschedule": "Reschedule",
+        "location": "Share Location",
+        "safety": "Safety Tips"
+      },
+      "status": {
+        "online": "Online now"
+      },
+      "accessibility": {
+        "toggleFilter": "Toggle unread filter",
+        "openThread": "Open chat with {{name}}"
+      },
+      "list": {
+        "item1": {
+          "message": "Is the vintage camera still available?"
+        },
+        "item2": {
+          "message": "I can meet you near the station at 5 PM today."
+        },
+        "item3": {
+          "message": "Would you accept €450 for the set?"
+        }
+      },
+      "messages": {
+        "c1": {
+          "title": "Meet-up details confirmed",
+          "text": "Time and place have been confirmed in in-app chat."
+        },
+        "c2": {
+          "text": "Sounds good. Is 2 PM okay for you?"
+        },
+        "c3": {
+          "text": "Yes, I will be there at that time."
+        },
+        "c4": {
+          "text": "Great. I will bring the sneakers and original box."
+        }
+      }
+    },
+    "categoryList": {
+      "itemsCount": "{{count}}+ items",
+      "sort": {
+        "latest": "Latest",
+        "priceLow": "Price: Low to High",
+        "nearby": "Nearby",
+        "rating": "Top Rated"
+      }
     }
+  }
 }

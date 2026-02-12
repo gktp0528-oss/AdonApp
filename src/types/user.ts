@@ -12,4 +12,6 @@ export interface User {
     reliabilityLabel?: string; // e.g. "Reliable Seller"
     joinedAt: Date | any; // Timestamp or Date
     isVerified?: boolean;
+    lastActive?: any; // Timestamp
+    isOnline?: boolean;
 }

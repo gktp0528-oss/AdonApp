@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, ScrollView, Image, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
-import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
+import i18n from 'i18next';
 
 import { RootStackParamList } from '../navigation/types';
 import { userService } from '../services/userService';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { User } from '../types/user';
+import { AppLanguage, changeAppLanguage } from '../i18n';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
@@ -27,6 +28,10 @@ export function EditProfileScreen({ navigation }: Props) {
     const [location, setLocation] = useState('');
     const [avatar, setAvatar] = useState('');
     const [coverImage, setCoverImage] = useState('');
+    const [languageChanging, setLanguageChanging] = useState(false);
+    const [selectedLanguage, setSelectedLanguage] = useState<AppLanguage>(
+        (i18n.language?.slice(0, 2) as AppLanguage) || 'en'
+    );
 
     useEffect(() => {
         loadUserProfile();
@@ -45,7 +50,7 @@ export function EditProfileScreen({ navigation }: Props) {
             }
         } catch (error) {
             console.error('Failed to load user', error);
-            setLoadError(t('common.error'));
+            setLoadError(t('screen.editProfile.loadError'));
         } finally {
             setLoading(false);
         }
@@ -79,7 +84,7 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const handleSave = async () => {
         if (!name.trim()) {
-            Alert.alert(t('common.error'), t('signup.emailPlaceholder'));
+            Alert.alert(t('screen.editProfile.validationTitle'), t('screen.editProfile.validationEmpty'));
             return;
         }
 
@@ -102,9 +107,26 @@ export function EditProfileScreen({ navigation }: Props) {
             navigation.goBack();
         } catch (error) {
             console.error('Failed to update profile', error);
-            Alert.alert(t('common.error'), t('product.shareError'));
+            Alert.alert(t('screen.editProfile.saveErrorTitle'), t('screen.editProfile.saveErrorMessage'));
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleLanguageChange = async (nextLanguage: AppLanguage) => {
+        if (nextLanguage === selectedLanguage || languageChanging) {
+            return;
+        }
+
+        try {
+            setLanguageChanging(true);
+            await changeAppLanguage(nextLanguage);
+            setSelectedLanguage(nextLanguage);
+        } catch (error) {
+            console.error('Failed to change language', error);
+            Alert.alert(t('screen.editProfile.languageErrorTitle'), t('screen.editProfile.languageErrorMessage'));
+        } finally {
+            setLanguageChanging(false);
         }
     };
 
@@ -119,10 +141,15 @@ export function EditProfileScreen({ navigation }: Props) {
     return (
         <View style={[styles.root, { paddingTop: insets.top }]}>
             <View style={styles.header}>
-                <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.accessibility.back')}
+                >
                     <MaterialIcons name="arrow-back" size={24} color="#1f2937" />
                 </Pressable>
-                <Text style={styles.headerTitle}>{t('seller.editProfile')}</Text>
+                <Text style={styles.headerTitle}>{t('screen.editProfile.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -131,7 +158,7 @@ export function EditProfileScreen({ navigation }: Props) {
                     <View style={styles.errorBanner}>
                         <Text style={styles.errorBannerText}>{loadError}</Text>
                         <Pressable style={styles.retryBtn} onPress={loadUserProfile}>
-                            <Text style={styles.retryBtnText}>{t('common.confirm')}</Text>
+                            <Text style={styles.retryBtnText}>{t('screen.profile.retry')}</Text>
                         </Pressable>
                     </View>
                 ) : null}
@@ -142,7 +169,7 @@ export function EditProfileScreen({ navigation }: Props) {
                     />
                     <Pressable style={styles.coverEditBtn} onPress={pickCoverImage}>
                         <MaterialIcons name="camera-alt" size={20} color="#fff" />
-                        <Text style={styles.coverEditBtnText}>{t('ai.studioTitle')}</Text>
+                        <Text style={styles.coverEditBtnText}>{t('screen.editProfile.changeCover')}</Text>
                     </Pressable>
                 </View>
 
@@ -156,69 +183,77 @@ export function EditProfileScreen({ navigation }: Props) {
                             <MaterialIcons name="edit" size={16} color="#fff" />
                         </View>
                     </Pressable>
-                    <Text style={styles.avatarHint}>{t('signup.profileImage')}</Text>
+                    <Text style={styles.avatarHint}>{t('screen.editProfile.photoHint')}</Text>
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>{t('signup.name')}</Text>
+                    <Text style={styles.label}>{t('screen.editProfile.label.name')}</Text>
                     <TextInput
                         style={styles.input}
                         value={name}
                         onChangeText={setName}
-                        placeholder="예: Haeun Kim"
+                        placeholder={t('screen.editProfile.placeholder.name')}
                         placeholderTextColor="#6b7280"
                     />
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>{t('common.online')}</Text>
+                    <Text style={styles.label}>{t('screen.editProfile.label.location')}</Text>
                     <TextInput
                         style={styles.input}
                         value={location}
                         onChangeText={setLocation}
-                        placeholder="예: Berlin, Germany"
+                        placeholder={t('screen.editProfile.placeholder.location')}
                         placeholderTextColor="#6b7280"
                     />
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>{t('seller.verifiedSellerMsg')}</Text>
+                    <Text style={styles.label}>{t('screen.editProfile.label.bio')}</Text>
                     <TextInput
                         style={styles.input}
                         value={bio}
                         onChangeText={setBio}
-                        placeholder="예: 빈티지 수집가, 패션 러버"
+                        placeholder={t('screen.editProfile.placeholder.bio')}
                         placeholderTextColor="#6b7280"
                     />
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>{t('common.language')}</Text>
-                    <View style={styles.langChips}>
-                        <Pressable
-                            style={[styles.langChip, i18n.language === 'ko' && styles.langChipActive]}
-                            onPress={() => i18n.changeLanguage('ko')}
-                        >
-                            <Text style={[styles.langChipText, i18n.language === 'ko' && styles.langChipActiveText]}>
-                                {t('common.korean')}
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            style={[styles.langChip, i18n.language === 'en' && styles.langChipActive]}
-                            onPress={() => i18n.changeLanguage('en')}
-                        >
-                            <Text style={[styles.langChipText, i18n.language === 'en' && styles.langChipActiveText]}>
-                                {t('common.english')}
-                            </Text>
-                        </Pressable>
+                    <Text style={styles.label}>{t('screen.editProfile.label.language')}</Text>
+                    <View style={styles.languageSelector}>
+                        {[
+                            { code: 'ko' as AppLanguage, label: '한국어' },
+                            { code: 'en' as AppLanguage, label: 'English' },
+                            { code: 'hu' as AppLanguage, label: 'Magyar' },
+                        ].map((option) => {
+                            const isActive = selectedLanguage === option.code;
+                            return (
+                                <Pressable
+                                    key={option.code}
+                                    style={[styles.languageChip, isActive && styles.languageChipActive]}
+                                    onPress={() => handleLanguageChange(option.code)}
+                                    disabled={languageChanging}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('screen.editProfile.accessibility.changeLanguage', { language: option.label })}
+                                >
+                                    <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
+                                        {option.label}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
                     </View>
+                    <Text style={styles.languageHint}>
+                        {t('screen.editProfile.languageHint')}
+                    </Text>
                 </View>
 
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
                 <PrimaryButton
-                    label={saving ? t('post.posting') : t('common.confirm')}
+                    label={saving ? t('screen.editProfile.saving') : t('screen.editProfile.save')}
                     onPress={handleSave}
                     disabled={saving}
                 />
@@ -323,22 +358,36 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#111827',
     },
-    langChips: { flexDirection: 'row', gap: 10 },
-    langChip: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 12,
+    languageSelector: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    languageChip: {
         borderWidth: 1,
-        borderColor: '#e5e7eb',
-        alignItems: 'center',
+        borderColor: '#d1d5db',
+        borderRadius: 999,
+        paddingHorizontal: 14,
+        paddingVertical: 9,
         backgroundColor: '#fff',
     },
-    langChipActive: {
+    languageChipActive: {
         borderColor: '#16a34a',
-        backgroundColor: '#f0fdf4',
+        backgroundColor: '#ecfdf3',
     },
-    langChipText: { fontSize: 14, fontWeight: '600', color: '#6b7280' },
-    langChipActiveText: { color: '#16a34a' },
+    languageChipText: {
+        color: '#374151',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    languageChipTextActive: {
+        color: '#166534',
+    },
+    languageHint: {
+        marginTop: 8,
+        color: '#6b7280',
+        fontSize: 12,
+        lineHeight: 18,
+    },
     footer: {
         padding: 16,
         borderTopWidth: 1,

@@ -12,37 +12,35 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiIntro'>;
 
 const { width } = Dimensions.get('window');
 
-export function AiIntroScreen({ navigation }: Props) {
-    const { t } = useTranslation();
-    const insets = useSafeAreaInsets();
+const FEATURES = [
+    {
+        id: 'vision',
+        icon: 'center-focus-strong',
+        title: '비전 AI 즉시 등록',
+        description: '사진만 올리면 브랜드, 모델, 상태를 빠르게 분석해 등록 초안을 만듭니다.',
+    },
+    {
+        id: 'price',
+        icon: 'candlestick-chart', // or query-stats
+        title: '실시간 시세 분석',
+        description: '거래 데이터를 기반으로 판매 가능한 가격 범위를 추천합니다.',
+    },
+    {
+        id: 'studio',
+        icon: 'photo-camera-back',
+        title: 'AI 사진 보정',
+        description: '배경 정리와 이미지 보정으로 상품 사진을 더 선명하게 개선합니다.',
+    },
+];
 
-    const FEATURES = [
-        {
-            id: 'vision',
-            icon: 'center-focus-strong',
-            title: t('ai.visionTitle'),
-            description: t('ai.visionDesc'),
-        },
-        {
-            id: 'price',
-            icon: 'candlestick-chart', // or query-stats
-            title: t('ai.priceTitle'),
-            description: t('ai.priceDesc'),
-        },
-        {
-            id: 'studio',
-            icon: 'photo-camera-back',
-            title: t('ai.studioTitle'),
-            description: t('ai.studioDesc'),
-        },
-    ];
+export function AiIntroScreen({ navigation }: Props) {
+    const insets = useSafeAreaInsets();
 
     // Animations
     const scanAnim = useRef(new Animated.Value(0)).current;
@@ -95,7 +93,7 @@ export function AiIntroScreen({ navigation }: Props) {
                 useNativeDriver: true,
             })
         ).start();
-    }, [scanAnim, pulseAnim, shimmerAnim]);
+    }, []);
 
     const handleStartTrial = () => {
         navigation.goBack();
@@ -122,10 +120,10 @@ export function AiIntroScreen({ navigation }: Props) {
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.titleContainer}>
                     <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{t('ai.beta')}</Text>
+                        <Text style={styles.badgeText}>베타</Text>
                     </View>
                     <Text style={styles.title}>Adon AI <Text style={{ color: '#16a34a' }}>Pro</Text></Text>
-                    <Text style={styles.subtitle}>{t('ai.helperSubtitle')}</Text>
+                    <Text style={styles.subtitle}>더 빠르고 정확한 판매 도우미</Text>
                 </View>
 
                 <View style={styles.featuresList}>
@@ -182,23 +180,23 @@ export function AiIntroScreen({ navigation }: Props) {
 
                 <View style={styles.pricingContainer}>
                     <View style={styles.pricingBadge}>
-                        <Text style={styles.proText}>{t('ai.limitedOffer')}</Text>
+                        <Text style={styles.proText}>한정 혜택</Text>
                     </View>
                     <Text style={styles.trialText}>
-                        <Text style={styles.boldText}>Adon Pro</Text>{t('ai.tryFree')}
+                        <Text style={styles.boldText}>Adon Pro</Text>를 무료로 체험해 보세요.
                     </Text>
                     <Text style={styles.subtext}>
-                        {t('ai.trialPricing')}
+                        7일 무료 체험 후 월 $4.99
                     </Text>
                 </View>
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
                 <Pressable style={styles.ctaBtn} onPress={handleStartTrial}>
-                    <Text style={styles.ctaText}>{t('ai.startTrial')}</Text>
+                    <Text style={styles.ctaText}>무료 체험 시작</Text>
                     <MaterialIcons name="arrow-forward" size={20} color="#0f172a" />
                 </Pressable>
-                <Text style={styles.footerNote}>{t('ai.cancelNote')}</Text>
+                <Text style={styles.footerNote}>설정에서 언제든 해지할 수 있어요</Text>
             </View>
         </SafeAreaView>
     );

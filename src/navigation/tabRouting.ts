@@ -1,6 +1,6 @@
 import { RootStackParamList } from './types';
 
-export type TabKey = 'home' | 'search' | 'post' | 'chat' | 'profile';
+export type TabKey = 'home' | 'category' | 'post' | 'chat' | 'profile' | 'search';
 export type MainTabKey = Exclude<TabKey, 'post'>;
 
 type TabResetNavigation = {
@@ -12,10 +12,11 @@ let lastMainTabBeforePost: MainTabKey = 'home';
 
 const TAB_ROUTE_MAP: Record<TabKey, keyof RootStackParamList> = {
   home: 'Home',
-  search: 'Search',
+  category: 'Category',
   post: 'AiListing',
   chat: 'ChatList',
   profile: 'Seller',
+  search: 'CategoryList',
 };
 
 export function resetToTab(

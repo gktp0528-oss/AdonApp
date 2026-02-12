@@ -3,7 +3,9 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Home: undefined;
-  Search: undefined;
+  Category: undefined;
+  QuerySearch: undefined;
+  Search: undefined; // Keeping for safety during refactor, can remove later if unused
   CategoryList: { categoryId: string; categoryName: string };
   ChatList: undefined;
   Product:
@@ -25,7 +27,7 @@ export type RootStackParamList = {
   | undefined;
   Seller: { sellerId: string } | undefined;
   EditProfile: undefined;
-  Chat: undefined;
+  Chat: { conversationId: string };
   AiListing: { selectedCategory?: string; selectedPrice?: string } | undefined;
   CategorySelect: { parentId?: string; currentPath?: string } | undefined;
   AiIntro: undefined;

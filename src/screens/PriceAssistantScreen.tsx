@@ -12,18 +12,30 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
-import { getGenerativeModel } from "firebase/ai";
+// import { getGenerativeModel } from "firebase/vertexai";
 import { aiBackend } from '../firebaseConfig';
 import * as ImageManipulator from 'expo-image-manipulator';
+
+// Temporary Mock
+const getGenerativeModel = (backend: any, config: any) => ({
+    generateContent: async (params: any) => ({
+        response: {
+            text: () => JSON.stringify({
+                itemName: "Service Unavailable",
+                priceRange: { min: 0, max: 0 },
+                insights: ["AI Disabled"],
+                reasoning: "Module missing"
+            })
+        }
+    })
+});
 
 const { width } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiPriceAssistant'>;
 
 export default function AiPriceAssistantScreen({ navigation, route }: Props) {
-    const { t } = useTranslation();
     const { imageUris, initialPrice } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [analysis, setAnalysis] = useState<any>(null);
@@ -129,7 +141,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
             return (
                 <View style={styles.center}>
                     <ActivityIndicator size="large" color="#30e86e" />
-                    <Text style={styles.loadingText}>{t('ai.analyzingPrice')}</Text>
+                    <Text style={styles.loadingText}>모든 상품 사진을 정밀 분석 중이에요... ✨{"\n"}전담 AI 팀이 시세를 확인하고 있어요.</Text>
                 </View>
             );
         }
@@ -137,12 +149,12 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         if (!analysis) {
             return (
                 <View style={styles.center}>
-                    <Text style={styles.errorText}>{t('common.error')}</Text>
+                    <Text style={styles.errorText}>분석 정보를 가져오지 못했어요.</Text>
                     <Pressable
                         style={styles.retryBtn}
                         onPress={() => imageUris && imageUris.length > 0 && runDeepAnalysis(imageUris)}
                     >
-                        <Text style={styles.retryBtnText}>{t('common.confirm')}</Text>
+                        <Text style={styles.retryBtnText}>다시 시도</Text>
                     </Pressable>
                 </View>
             );
@@ -160,16 +172,16 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                     <Text style={styles.itemName}>{analysis.itemName}</Text>
                     <View style={styles.badgeRow}>
                         <View style={styles.demandBadge}>
-                            <Text style={styles.demandText}>{t('ai.demand')}: {analysis.marketDemand}</Text>
+                            <Text style={styles.demandText}>수요: {analysis.marketDemand}</Text>
                         </View>
                         <View style={styles.conditionBadge}>
-                            <Text style={styles.conditionText}>{t('ai.conditionScore')}: {analysis.conditionScore}/10</Text>
+                            <Text style={styles.conditionText}>상태 점수: {analysis.conditionScore}/10</Text>
                         </View>
                     </View>
                 </View>
 
                 <View style={styles.priceCard}>
-                    <Text style={styles.cardTitle}>{t('ai.predictionRange')} 🎯</Text>
+                    <Text style={styles.cardTitle}>Adon Vision 시세 예측 범위 🎯</Text>
                     <Text style={styles.priceRange}>
                         €{analysis.priceRange.min} — €{analysis.priceRange.max}
                     </Text>
@@ -181,7 +193,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 </View>
 
                 <View style={styles.insightSection}>
-                    <Text style={styles.sectionTitle}>{t('ai.marketReport')} ✨</Text>
+                    <Text style={styles.sectionTitle}>Adon Vision 마켓 리포트 ✨</Text>
                     {analysis.insights.map((insight: string, idx: number) => (
                         <View key={idx} style={styles.insightRow}>
                             <MaterialIcons name="insights" size={16} color="#30e86e" />
@@ -192,7 +204,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
 
                 <View style={styles.actionRow}>
                     <Pressable style={styles.applyBtn} onPress={handleApplyPrice}>
-                        <Text style={styles.applyBtnText}>{t('ai.applyPrice')}</Text>
+                        <Text style={styles.applyBtnText}>이 가격으로 확정하기</Text>
                     </Pressable>
                 </View>
             </ScrollView>

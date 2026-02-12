@@ -1,5 +1,5 @@
 import React from 'react';
-import './src/i18n';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './src/navigation/types';
@@ -7,9 +7,10 @@ import { SplashScreen } from './src/screens/SplashScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
-import { SearchScreen } from './src/screens/SearchScreen';
+import { CategoryScreen } from './src/screens/CategoryScreen';
+import { QuerySearchScreen } from './src/screens/QuerySearchScreen';
 import { SneakersListScreen } from './src/screens/SneakersListScreen';
-import { ChatListScreen } from './src/screens/ChatListScreen';
+import ChatListScreen from './src/screens/ChatListScreen';
 import { ProductScreen } from './src/screens/ProductScreen';
 import { SellerScreen } from './src/screens/SellerScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
@@ -23,7 +24,52 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+import initI18n from './src/i18n';
+
 export default function App() {
+  const [isI18nReady, setIsI18nReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const setup = async () => {
+      await initI18n();
+      setIsI18nReady(true);
+    };
+    setup();
+    setup();
+  }, []);
+
+  // Presence Heartbeat
+  React.useEffect(() => {
+    import('./src/services/userService').then(({ userService }) => {
+      // Update immediately on mount/resume
+      const updatePresence = async () => {
+        const userId = userService.getCurrentUserId();
+        if (userId && userId !== 'temp_seller_123') {
+          try {
+            await userService.updateUser(userId, {
+              lastActive: new Date(),
+              isOnline: true
+            });
+          } catch (e) {
+            console.log('Presence update failed', e);
+          }
+        }
+      };
+
+      updatePresence();
+      const interval = setInterval(updatePresence, 60000); // 1 minute heartbeat
+      return () => clearInterval(interval);
+    });
+  }, []);
+
+  if (!isI18nReady) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: '#ffffff' }} />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -40,7 +86,7 @@ export default function App() {
 
           {/* Main Tabs - Use Fade for smooth tab switching feel */}
           <Stack.Screen name="Home" component={HomeScreen} options={{ animation: 'fade' }} />
-          <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Category" component={CategoryScreen} options={{ animation: 'fade' }} />
           <Stack.Screen name="AiListing" component={AiListingScreen} options={{ animation: 'fade' }} />
           <Stack.Screen name="ChatList" component={ChatListScreen} options={{ animation: 'fade' }} />
           <Stack.Screen name="Seller" component={SellerScreen} options={{ animation: 'fade' }} />
@@ -53,6 +99,7 @@ export default function App() {
           <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
+          <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

@@ -16,15 +16,24 @@ export function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     if (!email.trim()) {
-      Alert.alert(t('common.required'), t('auth.emailRequired'));
+      Alert.alert(
+        t('screen.login.alert.inputNeeded'),
+        t('screen.login.alert.emailMissing')
+      );
       return;
     }
     if (!email.includes('@')) {
-      Alert.alert(t('auth.emailInvalid'), t('auth.emailInvalid'));
+      Alert.alert(
+        t('screen.login.alert.emailInvalid'),
+        t('screen.login.alert.emailInvalidMsg')
+      );
       return;
     }
     if (!password) {
-      Alert.alert(t('common.required'), t('auth.passwordRequired'));
+      Alert.alert(
+        t('screen.login.alert.inputNeeded'),
+        t('screen.login.alert.passwordMissing')
+      );
       return;
     }
 
@@ -33,12 +42,18 @@ export function LoginScreen({ navigation }: Props) {
       // login successful, navigate to Home
       navigation.replace('Home');
     } catch (error: any) {
-      Alert.alert(t('auth.loginFailed'), error.message || t('auth.loginFailedMsg'));
+      Alert.alert(
+        t('screen.login.alert.failed'),
+        error.message || t('screen.login.alert.emailInvalidMsg') // Fallback message if needed
+      );
     }
   };
 
   const handleComingSoon = (feature: string) => {
-    Alert.alert(t('common.comingSoon'), t('common.comingSoonMsg', { feature }));
+    Alert.alert(
+      t('screen.login.alert.comingSoon'),
+      t('screen.login.alert.comingSoonMsg', { feature })
+    );
   };
 
   return (
@@ -46,28 +61,28 @@ export function LoginScreen({ navigation }: Props) {
       <View style={styles.brand}>
         <View style={styles.logo}><Text style={styles.logoText}>A</Text></View>
         <Text style={styles.title}>ADON</Text>
-        <Text style={styles.tag}>PREMIUM RESALE</Text>
+        <Text style={styles.tag}>{t('screen.login.tag')}</Text>
       </View>
 
       <View style={styles.socialRow}>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Apple ' + t('auth.login'))}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Apple Login')}>
           <Text style={styles.socialText}>Apple</Text>
         </Pressable>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Google ' + t('auth.login'))}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Google Login')}>
           <Text style={styles.socialText}>Google</Text>
         </Pressable>
-        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Meta ' + t('auth.login'))}>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Meta Login')}>
           <Text style={styles.socialText}>Meta</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.orText}>{t('auth.loginWithEmail')}</Text>
+      <Text style={styles.orText}>{t('screen.login.or')}</Text>
 
       <View style={styles.formCard}>
-        <Text style={styles.label}>{t('auth.email')}</Text>
+        <Text style={styles.label}>{t('screen.login.label.email')}</Text>
         <TextInput
           style={styles.input}
-          placeholder={t('auth.emailPlaceholder')}
+          placeholder={t('screen.login.placeholder.email')}
           placeholderTextColor="#6b7280"
           autoCapitalize="none"
           keyboardType="email-address"
@@ -75,24 +90,24 @@ export function LoginScreen({ navigation }: Props) {
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>{t('auth.password')}</Text>
+        <Text style={styles.label}>{t('screen.login.label.password')}</Text>
         <TextInput
           style={styles.input}
-          placeholder={t('auth.passwordPlaceholder')}
+          placeholder={t('screen.login.placeholder.password')}
           placeholderTextColor="#6b7280"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        <Pressable accessibilityRole="button" onPress={() => handleComingSoon(t('auth.forgotPassword'))}>
-          <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
+        <Pressable accessibilityRole="button" onPress={() => handleComingSoon('Password Reset')}>
+          <Text style={styles.forgot}>{t('screen.login.forgot')}</Text>
         </Pressable>
-        <PrimaryButton label={t('auth.login')} onPress={handleLogin} />
+        <PrimaryButton label={t('screen.login.submit')} onPress={handleLogin} />
 
         <Text style={styles.bottomText}>
-          {t('auth.noAccount')}
-          <Text style={styles.bottomLink} onPress={() => navigation.navigate('Signup')}> {t('auth.signup')}</Text>
+          {t('screen.login.signupText')}
+          <Text style={styles.bottomLink} onPress={() => navigation.navigate('Signup')}> {t('screen.login.signupLink')}</Text>
         </Text>
       </View>
     </SafeAreaView>

@@ -4,20 +4,40 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
-import { translationService } from '../services/translationService';
 import { RootStackParamList } from '../navigation/types';
 import { DetailBackButton } from '../components/DetailBackButton';
 import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
+import { chatService } from '../services/chatService';
 import { Listing } from '../types/listing';
 import { User } from '../types/user';
+import { formatCurrency, formatDate } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Product'>;
 
 export function ProductScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+
+  const toCategoryKey = (value?: string) => {
+    const v = (value || '').toLowerCase();
+    if (v.includes('fashion')) return 'fashion';
+    if (v.includes('tech') || v.includes('electronic')) return 'tech';
+    if (v.includes('home') || v.includes('living')) return 'home';
+    if (v.includes('kid') || v.includes('baby')) return 'kids';
+    return null;
+  };
+
+  const toConditionLabel = (condition: string) => {
+    const map: Record<string, string> = {
+      New: 'new',
+      'Like New': 'likeNew',
+      Good: 'good',
+      Fair: 'fair',
+    };
+    const key = map[condition];
+    return key ? t(`common.condition.${key}`) : condition;
+  };
 
   // Params
   const { listingId, productId, product: paramProduct } = route.params || {};
@@ -32,17 +52,10 @@ export function ProductScreen({ navigation, route }: Props) {
   const [following, setFollowing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Translation State
-  const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
-  const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
-  const [translatedCategory, setTranslatedCategory] = useState<string | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [isTranslated, setIsTranslated] = useState(false);
-
   useEffect(() => {
     if (!targetId) {
       setLoading(false);
-      setError(t('product.noId'));
+      setError(t('screen.product.error.idMissing'));
       return;
     }
 
@@ -52,7 +65,7 @@ export function ProductScreen({ navigation, route }: Props) {
       setLoading(false);
 
       if (!data) {
-        setError(t('product.notFound'));
+        setError(t('screen.product.error.notFound'));
       } else {
         setError(null);
       }
@@ -71,50 +84,6 @@ export function ProductScreen({ navigation, route }: Props) {
     }
   }, [listing?.sellerId]);
 
-  // Automatic Translation Effect (AliExpress/Airbnb style)
-  useEffect(() => {
-    const handleAutoTranslate = async () => {
-      // Legacy support: default to 'ko' if originLanguage is missing
-      if (!listing) return;
-      const originLang = listing.originLanguage || 'ko';
-
-      const currentLang = i18n.language;
-      if (originLang !== currentLang) {
-        setIsTranslating(true);
-        try {
-          // Translate title, description, and category
-          const [result, translatedCat] = await Promise.all([
-            translationService.translateListing(
-              listing.title,
-              listing.description,
-              originLang
-            ),
-            translationService.translate(listing.category, originLang, currentLang)
-          ]);
-
-          if (result.translated) {
-            setTranslatedTitle(result.title);
-            setTranslatedDesc(result.description);
-            setTranslatedCategory(translatedCat);
-            setIsTranslated(true);
-          }
-        } catch (error) {
-          console.warn('Auto-translation failed:', error);
-        } finally {
-          setIsTranslating(false);
-        }
-      } else {
-        // Reset if languages match
-        setTranslatedTitle(null);
-        setTranslatedDesc(null);
-        setTranslatedCategory(null);
-        setIsTranslated(false);
-      }
-    };
-
-    handleAutoTranslate();
-  }, [listing?.id, listing?.title, listing?.description, listing?.originLanguage, listing?.category, i18n.language]);
-
   // Loading State
   if (loading) {
     return (
@@ -129,13 +98,13 @@ export function ProductScreen({ navigation, route }: Props) {
     return (
       <View style={[styles.root, styles.center]}>
         <MaterialIcons name="error-outline" size={48} color="#94a3b8" />
-        <Text style={styles.errorText}>{error || t('product.loadFailed')}</Text>
+        <Text style={styles.errorText}>{error || t('screen.product.error.load')}</Text>
         <View style={styles.errorBtnRow}>
           <Pressable style={styles.retryBtn} onPress={() => setRetryCount((prev) => prev + 1)}>
             <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
           </Pressable>
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backBtnText}>{t('common.back')}</Text>
+            <Text style={styles.backBtnText}>{t('screen.product.action.back')}</Text>
           </Pressable>
         </View>
       </View>
@@ -144,7 +113,7 @@ export function ProductScreen({ navigation, route }: Props) {
 
   // Display Logic
   const heroImage = listing.photos?.[0] || 'https://via.placeholder.com/400';
-  const priceDisplay = listing.currency === 'USD' ? `$${listing.price}` : `€${listing.price}`;
+  const priceDisplay = formatCurrency(listing.price, listing.currency);
 
   const handleShareListing = async () => {
     try {
@@ -152,15 +121,47 @@ export function ProductScreen({ navigation, route }: Props) {
         message: `${listing.title} - ${priceDisplay}`,
       });
     } catch {
-      Alert.alert(t('common.error'), t('product.shareFailed'));
+      Alert.alert(t('common.error'), t('screen.profile.shareErrorMessage'));
     }
   };
 
-  // Formatting helper
-  const formatDate = (ts: any) => {
-    if (!ts) return '';
-    const date = ts.toDate ? ts.toDate() : new Date(ts);
-    return date.toLocaleDateString();
+  const listingDate = listing.createdAt?.toDate ? listing.createdAt.toDate() : new Date();
+
+  const handleStartChat = async () => {
+    const currentUserId = userService.getCurrentUserId();
+
+    // Check for anonymous/temp user - 'temp_seller_123' is hardcoded fallback in userService
+    if (!currentUserId || currentUserId === 'temp_seller_123') {
+      Alert.alert(
+        t('common.loginRequired') || 'Login Required',
+        t('screen.product.chat.loginPrompt') || 'Please login to start a chat.',
+        [
+          { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+          {
+            text: t('common.login') || 'Login',
+            onPress: () => navigation.navigate('Login' as any)
+          },
+        ]
+      );
+      return;
+    }
+
+    if (!listing.sellerId || currentUserId === listing.sellerId) return;
+    try {
+      const conversationId = await chatService.getOrCreateConversation(
+        currentUserId,
+        listing.sellerId,
+        {
+          id: listing.id,
+          title: listing.title,
+          photo: listing.photos?.[0] || '',
+        },
+      );
+      navigation.navigate('Chat', { conversationId });
+    } catch (error) {
+      console.error('Failed to start chat:', error);
+      Alert.alert(t('common.error'), t('screen.product.chat.error'));
+    }
   };
 
   return (
@@ -172,13 +173,19 @@ export function ProductScreen({ navigation, route }: Props) {
           <View style={[styles.topActions, { top: insets.top + 12 }]}>
             <DetailBackButton onPress={() => navigation.goBack()} />
             <View style={styles.rightActions}>
-              <Pressable style={styles.iconCircle} onPress={handleShareListing} accessibilityRole="button">
+              <Pressable
+                style={styles.iconCircle}
+                onPress={handleShareListing}
+                accessibilityRole="button"
+                accessibilityLabel={t('screen.product.accessibility.share')}
+              >
                 <MaterialIcons name="share" size={18} color="#0f172a" />
               </Pressable>
               <Pressable
                 style={styles.iconCircle}
                 onPress={() => setLiked((prev) => !prev)}
                 accessibilityRole="button"
+                accessibilityLabel={liked ? t('screen.product.accessibility.unlike') : t('screen.product.accessibility.like')}
               >
                 <MaterialIcons name={liked ? 'favorite' : 'favorite-border'} size={18} color={liked ? '#ef4444' : '#0f172a'} />
               </Pressable>
@@ -189,7 +196,7 @@ export function ProductScreen({ navigation, route }: Props) {
             <View style={styles.authWrap}>
               <View style={styles.authPill}>
                 <MaterialIcons name="verified" size={14} color="#22c55e" />
-                <Text style={styles.authText}>{t('product.aiVerified')}</Text>
+                <Text style={styles.authText}>{t('screen.product.auth')}</Text>
               </View>
             </View>
           )}
@@ -208,31 +215,18 @@ export function ProductScreen({ navigation, route }: Props) {
 
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>
-              {isTranslated ? translatedTitle : listing.title}
-            </Text>
-            {listing.isPremium && <Text style={styles.premium}>PREMIUM</Text>}
+            <Text style={styles.title}>{listing.title}</Text>
+            {listing.isPremium && <Text style={styles.premium}>{t('screen.product.premium')}</Text>}
           </View>
-
-          {isTranslated && (
-            <View style={styles.translationBadge}>
-              <MaterialIcons name="translate" size={12} color="#16a34a" />
-              <Text style={styles.translationBadgeText}>{t('common.translatedByAi')}</Text>
-            </View>
-          )}
-
-          {isTranslating && (
-            <ActivityIndicator size="small" color="#22c55e" style={{ alignSelf: 'flex-start', marginTop: 4 }} />
-          )}
 
           <View style={styles.priceRow}>
             <Text style={styles.price}>{priceDisplay}</Text>
-            {listing.oldPrice && <Text style={styles.oldPrice}>{listing.currency === 'USD' ? '$' : '€'}{listing.oldPrice}</Text>}
+            {listing.oldPrice && <Text style={styles.oldPrice}>{formatCurrency(listing.oldPrice, listing.currency)}</Text>}
           </View>
 
           <View style={styles.safeBox}>
             <MaterialIcons name="verified-user" size={16} color="#22c55e" />
-            <Text style={styles.safeText}>{t('product.safePay')}</Text>
+            <Text style={styles.safeText}>{t('screen.product.safePay')}</Text>
           </View>
 
           {/* Seller Card */}
@@ -244,11 +238,15 @@ export function ProductScreen({ navigation, route }: Props) {
                   style={styles.avatar}
                 />
                 <View style={styles.sellerTextWrap}>
-                  <Text style={styles.sellerName}>{seller?.name || t('product.noSellerInfo')}</Text>
+                  <Text style={styles.sellerName}>{seller?.name || t('screen.product.seller.unknown')}</Text>
                   <Text style={styles.sellerMeta}>
-                    {seller?.positiveRate ? t('product.positiveRate', { rate: seller.positiveRate }) : t('product.newSeller')}
+                    {seller?.positiveRate
+                      ? t('screen.product.seller.positive', { rate: seller.positiveRate })
+                      : t('screen.product.seller.new')}
                     {' · '}
-                    {seller?.sales ? t('product.salesCount', { count: seller.sales }) : t('product.salesCount', { count: 0 })}
+                    {seller?.sales
+                      ? t('screen.product.seller.sales', { count: seller.sales })
+                      : t('screen.product.seller.sales', { count: 0 })}
                   </Text>
                 </View>
               </View>
@@ -256,19 +254,20 @@ export function ProductScreen({ navigation, route }: Props) {
                 style={styles.followBtn}
                 onPress={() => setFollowing((prev) => !prev)}
                 accessibilityRole="button"
+                accessibilityLabel={following ? t('screen.product.accessibility.unfollow') : t('screen.product.accessibility.follow')}
               >
-                <Text style={styles.followText}>{following ? t('product.following') : t('product.follow')}</Text>
+                <Text style={styles.followText}>{following ? t('screen.product.seller.following') : t('screen.product.seller.follow')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.trustRow}>
               <View style={styles.trustCard}>
-                <Text style={styles.trustLabel}>{t('product.responseTime')}</Text>
-                <Text style={styles.trustValue}>{seller?.responseTime || t('common.unknownError')}</Text>
+                <Text style={styles.trustLabel}>{t('screen.product.trust.response')}</Text>
+                <Text style={styles.trustValue}>{seller?.responseTime || '-'}</Text>
               </View>
               <View style={styles.trustCard}>
-                <Text style={styles.trustLabel}>{t('product.reliability')}</Text>
-                <Text style={styles.trustValue}>{seller?.reliabilityLabel || t('common.unknownError')}</Text>
+                <Text style={styles.trustLabel}>{t('screen.product.trust.reliability')}</Text>
+                <Text style={styles.trustValue}>{seller?.reliabilityLabel || '-'}</Text>
               </View>
             </View>
           </View>
@@ -276,31 +275,35 @@ export function ProductScreen({ navigation, route }: Props) {
           {/* Specs */}
           <View style={styles.specGrid}>
             <View style={styles.specCol}>
-              <Text style={styles.specKey}>{t('product.category')}</Text>
-              <Text style={styles.specValue}>{isTranslated ? translatedCategory : listing.category}</Text>
+              <Text style={styles.specKey}>{t('screen.product.spec.category')}</Text>
+              <Text style={styles.specValue}>
+                {toCategoryKey(listing.category)
+                  ? t(`screen.home.category.${toCategoryKey(listing.category)}`)
+                  : listing.category}
+              </Text>
             </View>
             <View style={styles.specCol}>
-              <Text style={styles.specKey}>{t('product.condition')}</Text>
+              <Text style={styles.specKey}>{t('screen.product.spec.condition')}</Text>
               <View style={styles.inlineValue}>
-                <Text style={styles.specValue}>{listing.condition}</Text>
+                <Text style={styles.specValue}>{toConditionLabel(listing.condition)}</Text>
                 <View style={[styles.colorDot, { backgroundColor: '#22c55e' }]} />
               </View>
             </View>
             {listing.brand && (
               <View style={styles.specCol}>
-                <Text style={styles.specKey}>{t('product.brand')}</Text>
+                <Text style={styles.specKey}>{t('screen.product.spec.brand')}</Text>
                 <Text style={styles.specValue}>{listing.brand}</Text>
               </View>
             )}
             {listing.size && (
               <View style={styles.specCol}>
-                <Text style={styles.specKey}>{t('product.size')}</Text>
+                <Text style={styles.specKey}>{t('screen.product.spec.size')}</Text>
                 <Text style={styles.specValue}>{listing.size}</Text>
               </View>
             )}
             {listing.colorName && (
               <View style={styles.specCol}>
-                <Text style={styles.specKey}>{t('product.color')}</Text>
+                <Text style={styles.specKey}>{t('screen.product.spec.color')}</Text>
                 <View style={styles.inlineValue}>
                   <Text style={styles.specValue}>{listing.colorName}</Text>
                   {listing.colorHex && <View style={[styles.colorDot, { backgroundColor: listing.colorHex }]} />}
@@ -308,22 +311,22 @@ export function ProductScreen({ navigation, route }: Props) {
               </View>
             )}
             <View style={styles.specCol}>
-              <Text style={styles.specKey}>{t('product.date')}</Text>
-              <Text style={styles.specValue}>{formatDate(listing.createdAt)}</Text>
+              <Text style={styles.specKey}>{t('screen.product.spec.date')}</Text>
+              <Text style={styles.specValue}>{listingDate ? formatDate(listingDate) : ''}</Text>
             </View>
           </View>
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionTitle}>{t('product.description')}</Text>
+          <Text style={styles.sectionTitle}>{t('screen.product.desc.title')}</Text>
           <Text style={styles.desc}>
-            {isTranslated ? translatedDesc : (listing.description || t('product.noDescription'))}
+            {listing.description || t('screen.product.desc.empty')}
           </Text>
 
           {/* Shipping & Location (Static/Placeholder for now as per schema optional) */}
-          <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('product.location')}</Text>
+          <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('screen.product.location.title')}</Text>
           <View style={styles.locationHead}>
-            <Text style={styles.locationText}>{seller?.location || t('product.locationPrivate')}</Text>
+            <Text style={styles.locationText}>{seller?.location || t('screen.product.location.private')}</Text>
           </View>
 
           <View style={styles.mapCard}>
@@ -336,12 +339,22 @@ export function ProductScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable style={styles.chatBtn} onPress={() => navigation.navigate('Chat')} accessibilityRole="button">
+        <Pressable
+          style={styles.chatBtn}
+          onPress={handleStartChat}
+          accessibilityRole="button"
+          accessibilityLabel={t('screen.product.action.chat')}
+        >
           <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
         </Pressable>
-        <Pressable style={styles.buyBtn} onPress={() => navigation.navigate('Chat')} accessibilityRole="button">
+        <Pressable
+          style={styles.buyBtn}
+          onPress={handleStartChat}
+          accessibilityRole="button"
+          accessibilityLabel={t('screen.product.action.buy')}
+        >
           <MaterialIcons name="shopping-bag" size={18} color="#ffffff" />
-          <Text style={styles.buyText}>{t('product.buyNow')}</Text>
+          <Text style={styles.buyText}>{t('screen.product.action.buy')}</Text>
         </Pressable>
       </View>
     </View>
@@ -414,8 +427,6 @@ const styles = StyleSheet.create({
   },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   title: { flex: 1, fontSize: 44 / 2, fontWeight: '900', color: '#0f172a', lineHeight: 31 },
-  translationBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4, opacity: 0.8 },
-  translationBadgeText: { fontSize: 12, color: '#16a34a', fontWeight: '600' },
   premium: {
     marginTop: 4,
     color: '#22c55e',

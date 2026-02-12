@@ -1,0 +1,80 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import * as Localization from 'expo-localization';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'intl-pluralrules';
+
+import ko from '../locales/ko.json';
+import en from '../locales/en.json';
+import hu from '../locales/hu.json';
+
+const resources = {
+    ko: { translation: ko },
+    en: { translation: en },
+    hu: { translation: hu },
+};
+
+const formatMissingKey = (key: string) => {
+    const leaf = key.split('.').pop() || key;
+    return leaf
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/[_-]/g, ' ')
+        .trim()
+        .replace(/^./, (c) => c.toUpperCase());
+};
+
+export const SUPPORTED_LANGUAGES = ['ko', 'en', 'hu'] as const;
+export type AppLanguage = typeof SUPPORTED_LANGUAGES[number];
+const LANGUAGE_STORAGE_KEY = 'adon.appLanguage';
+
+const isSupportedLanguage = (value: string | null | undefined): value is AppLanguage => {
+    return Boolean(value && SUPPORTED_LANGUAGES.includes(value as AppLanguage));
+};
+
+const initI18n = async () => {
+    if (i18n.isInitialized) {
+        // Keep resource bundles in sync during hot reload/dev updates.
+        i18n.addResourceBundle('ko', 'translation', ko, true, true);
+        i18n.addResourceBundle('en', 'translation', en, true, true);
+        i18n.addResourceBundle('hu', 'translation', hu, true, true);
+        return;
+    }
+
+    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    let language = savedLanguage;
+
+    if (!isSupportedLanguage(language)) {
+        language = Localization.getLocales()[0].languageCode;
+    }
+
+    // Fallback to English if language is not supported
+    if (!isSupportedLanguage(language)) {
+        language = 'en';
+    }
+
+    await i18n.use(initReactI18next).init({
+        resources,
+        lng: language,
+        fallbackLng: 'en',
+        returnNull: false,
+        returnEmptyString: false,
+        parseMissingKeyHandler: (key) => formatMissingKey(key),
+        interpolation: {
+            escapeValue: false, // react already safes from xss
+        },
+        compatibilityJSON: 'v4', // for android
+    });
+};
+
+export const changeAppLanguage = async (language: AppLanguage) => {
+    if (!isSupportedLanguage(language)) {
+        return;
+    }
+    i18n.addResourceBundle('ko', 'translation', ko, true, true);
+    i18n.addResourceBundle('en', 'translation', en, true, true);
+    i18n.addResourceBundle('hu', 'translation', hu, true, true);
+    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    await i18n.changeLanguage(language);
+};
+
+export default initI18n;

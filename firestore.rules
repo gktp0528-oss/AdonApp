@@ -67,6 +67,33 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
     
+    // CONVERSATIONS RULES
+    match /conversations/{conversationId} {
+      // Only participants can read
+      allow read: if isAuthenticated()
+        && request.auth.uid in resource.data.participants;
+
+      // Authenticated users can create conversations they participate in
+      allow create: if isAuthenticated()
+        && request.auth.uid in request.resource.data.participants;
+
+      // Only participants can update (for lastMessage, unreadCount, etc.)
+      allow update: if isAuthenticated()
+        && request.auth.uid in resource.data.participants;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Participants of the parent conversation can read messages
+        allow read: if isAuthenticated()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+
+        // Participants can create messages with their own senderId
+        allow create: if isAuthenticated()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+          && request.resource.data.senderId == request.auth.uid;
+      }
+    }
+
     // AI LOGS
     match /ai_processing_logs/{logId} {
       allow create: if true; // Allow logging from client for now

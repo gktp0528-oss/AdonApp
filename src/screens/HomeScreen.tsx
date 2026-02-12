@@ -1,29 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { DocumentSnapshot } from 'firebase/firestore';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { BottomTabMock } from '../components/BottomTabMock';
 import { CATEGORIES, USERS } from '../data/mockData'; // Keeping basic mocks for static UI parts
 import { listingService } from '../services/listingService';
 import { Listing } from '../types/listing';
+import { formatCurrency } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop';
-
-function toRelativeTime(date?: any, t?: any): string {
-  if (!date) return t('common.justNow');
-  const d = date.toDate ? date.toDate() : new Date(date);
-  const diffMin = Math.max(1, Math.floor((Date.now() - d.getTime()) / 60000));
-  if (diffMin < 60) return t('common.minAgo', { count: diffMin });
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return t('common.hourAgo', { count: diffHour });
-  return t('common.dayAgo', { count: Math.floor(diffHour / 24) });
-}
 
 export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -31,51 +24,127 @@ export function HomeScreen({ navigation }: Props) {
   const [activeListings, setActiveListings] = useState<Listing[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null);
+
+  const toCategoryKey = (value?: string) => {
+    const v = (value || '').toLowerCase();
+    if (v.includes('fashion')) return 'fashion';
+    if (v.includes('tech') || v.includes('electronic')) return 'tech';
+    if (v.includes('home') || v.includes('living')) return 'home';
+    if (v.includes('kid') || v.includes('baby')) return 'kids';
+    return null;
+  };
 
   useEffect(() => {
-    const unsubscribe = listingService.watchLatestListings((listings) => {
-      setActiveListings(listings);
-    });
-    return () => unsubscribe();
+    void loadInitialListings();
   }, []);
+
+  const loadInitialListings = async () => {
+    try {
+      setInitialLoading(true);
+      const { listings, lastDoc: nextLastDoc } = await listingService.getLatestListings();
+      setActiveListings(listings);
+      setLastDoc(nextLastDoc);
+      setHasMore(Boolean(nextLastDoc) && listings.length >= 20);
+    } catch (error) {
+      console.error('Failed to load listings:', error);
+      setActiveListings([]);
+      setLastDoc(null);
+      setHasMore(false);
+    } finally {
+      setInitialLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const loadMoreListings = async () => {
+    if (loadingMore || !hasMore || !lastDoc || initialLoading) {
+      return;
+    }
+
+    try {
+      setLoadingMore(true);
+      const { listings, lastDoc: nextLastDoc } = await listingService.getLatestListings(lastDoc);
+      if (listings.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setActiveListings((prev) => {
+        const existing = new Set(prev.map((item) => item.id));
+        const appended = listings.filter((item) => !existing.has(item.id));
+        return [...prev, ...appended];
+      });
+      setLastDoc(nextLastDoc);
+      setHasMore(Boolean(nextLastDoc) && listings.length >= 20);
+    } catch (error) {
+      console.error('Failed to load more listings:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // watchLatestListings is real-time, but we can simulate a pull-to-refresh feel 
-    // or re-establish connection if needed. For now just timeout.
-    setTimeout(() => setRefreshing(false), 1000);
+    await loadInitialListings();
+  };
+
+  const toRelativeTime = (date?: any): string => {
+    if (!date) return t('common.time.justNow');
+    const d = date.toDate ? date.toDate() : new Date(date);
+    const diffMin = Math.max(1, Math.floor((Date.now() - d.getTime()) / 60000));
+    if (diffMin < 60) return t('common.time.ago.m', { count: diffMin });
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return t('common.time.ago.h', { count: diffHour });
+    return t('common.time.ago.d', { count: Math.floor(diffHour / 24) });
   };
 
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'home');
-  const chips = [{ id: 'all', label: '전체' }, ...CATEGORIES];
-  const selectedLabel = chips.find((chip) => chip.id === selectedCategory)?.label?.toLowerCase() || '';
+  const chips = [
+    { id: 'all', label: t('screen.home.chip.all') },
+    ...CATEGORIES.map((cat) => ({
+      ...cat,
+      label: t(`screen.home.category.${cat.id}`, cat.label),
+    })),
+  ];
+
   const filteredListings = selectedCategory === 'all'
     ? activeListings
-    : activeListings.filter((item) => (item.category || '').toLowerCase().includes(selectedLabel));
+    : activeListings.filter((item) => {
+      // Simple fallback: check if category string includes the chip label or ID
+      const cat = (item.category || '').toLowerCase();
+      const label = chips.find(c => c.id === selectedCategory)?.label.toLowerCase() || '';
+      return cat.includes(label) || cat.includes(selectedCategory);
+    });
 
   const renderHeader = () => (
     <View>
       <View style={styles.header}>
-        <View style={styles.profileRow}>
-          <Image source={{ uri: me.avatar }} style={styles.avatar} />
-          <View>
-            <Text style={styles.greet}>{t('home.greet')}</Text>
-            <Text style={styles.name}>{me.name}</Text>
-          </View>
-          <View style={styles.notifyWrap}>
-            <MaterialIcons name="notifications" size={20} color="#4b5563" />
+        {/* Left side: Adon Text Logo */}
+        <Text style={styles.headerLogoText}>Adon</Text>
+
+        {/* Right side: Search & Notification */}
+        <View style={styles.headerIcons}>
+          <Pressable
+            onPress={() => {
+              console.log('Navigating to QuerySearch');
+              navigation.navigate('QuerySearch');
+            }}
+            style={styles.iconButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('screen.home.searchPlaceholder')}
+          >
+            <MaterialIcons name="search" size={26} color="#111827" />
+          </Pressable>
+
+          <View style={styles.iconButton}>
+            <MaterialIcons name="notifications" size={26} color="#111827" />
             <View style={styles.notify} />
           </View>
         </View>
-
-        <Pressable
-          style={styles.searchWrap}
-          onPress={() => navigation.navigate('Search')}
-        >
-          <MaterialIcons name="search" size={20} color="#9ca3af" />
-          <Text style={styles.searchTextPlaceholder}>{t('home.searchPlaceholder')}</Text>
-          <MaterialIcons name="tune" size={20} color="#6b7280" />
-        </Pressable>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -85,7 +154,7 @@ export function HomeScreen({ navigation }: Props) {
             style={[styles.chip, selectedCategory === cat.id && styles.chipActive]}
             onPress={() => setSelectedCategory(cat.id)}
             accessibilityRole="button"
-            accessibilityLabel={`${cat.label} 카테고리`}
+            accessibilityLabel={`${cat.label}`}
           >
             <Text style={selectedCategory === cat.id ? styles.chipActiveText : styles.chipText}>{cat.label}</Text>
           </Pressable>
@@ -94,14 +163,15 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* "Picked for you" Section - Currently hidden until personalized algo is ready, or shows subset of random items */}
       <View style={styles.sectionHead}>
-        <Text style={styles.sectionTitle}>{t('home.newItems')}</Text>
-        <Text style={styles.sectionTag}>{t('home.justPosted')}</Text>
+        <Text style={styles.sectionTitle}>{t('screen.home.section.new')}</Text>
+        <Text style={styles.sectionTag}>{t('screen.home.section.justIn')}</Text>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <FlatList
         data={filteredListings}
         keyExtractor={item => item.id}
@@ -111,17 +181,32 @@ export function HomeScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        onEndReached={loadMoreListings}
+        onEndReachedThreshold={0.6}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.loadingMoreWrap}>
+              <ActivityIndicator size="small" color="#16a34a" />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {selectedCategory === 'all'
-                ? t('home.noItems')
-                : t('home.noItemsInCategory')}
-            </Text>
-            <Pressable style={styles.emptyBtn} onPress={onRefresh}>
-              <Text style={styles.emptyBtnText}>{t('home.refresh')}</Text>
-            </Pressable>
-          </View>
+          initialLoading ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size="small" color="#16a34a" />
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {selectedCategory === 'all'
+                  ? t('screen.home.empty.all')
+                  : t('screen.home.empty.category')}
+              </Text>
+              <Pressable style={styles.emptyBtn} onPress={onRefresh}>
+                <Text style={styles.emptyBtnText}>{t('screen.home.refresh')}</Text>
+              </Pressable>
+            </View>
+          )
         }
         renderItem={({ item }) => (
           <Pressable
@@ -134,19 +219,27 @@ export function HomeScreen({ navigation }: Props) {
                 source={{ uri: item.photos?.[0] || FALLBACK_IMAGE }}
                 style={styles.freshImage}
               />
-              <Pressable style={styles.wishBtn} accessibilityRole="button" accessibilityLabel="관심 상품에 추가">
+              <Pressable
+                style={styles.wishBtn}
+                accessibilityRole="button"
+                accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
+              >
                 <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
               </Pressable>
             </View>
             <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
             <View style={styles.freshMetaRow}>
               <Text style={styles.freshPrice}>
-                {item.currency === 'USD' ? '$' : '€'}{item.price}
+                {formatCurrency(item.price, item.currency)}
               </Text>
-              <Text style={styles.freshTime}>{toRelativeTime(item.createdAt, t)}</Text>
+              <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
             </View>
             <View style={styles.categoryTag}>
-              <Text style={styles.categoryText}>{item.category}</Text>
+              <Text style={styles.categoryText}>
+                {toCategoryKey(item.category)
+                  ? t(`screen.home.category.${toCategoryKey(item.category)}`)
+                  : item.category}
+              </Text>
             </View>
           </Pressable>
         )}
@@ -157,32 +250,47 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f6f8f6' },
-  content: { paddingBottom: 110 },
+  root: { flex: 1, backgroundColor: '#ffffff' }, // Changed to white for Status Bar match
+  content: { paddingBottom: 110, backgroundColor: '#f6f8f6' }, // Moved gray background here
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eef2ef',
-  },
-  profileRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  greet: { fontSize: 12, color: '#6b7280', fontWeight: '600' },
-  name: { fontSize: 18, color: '#111827', fontWeight: '800' },
-  notifyWrap: { marginLeft: 'auto' },
-  notify: { position: 'absolute', right: 1, top: 2, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444' },
-  searchWrap: {
-    backgroundColor: '#f2f5f2',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
-  searchTextPlaceholder: { flex: 1, fontSize: 14, color: '#9ca3af' },
+  headerLogoText: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#064e3b', // Brand dark green from LoginScreen
+    letterSpacing: -0.5,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  iconButton: {
+    position: 'relative',
+    padding: 4,
+  },
+  // profileRow, avatar, greet, name, notifyWrap - Removed
+  notify: {
+    position: 'absolute',
+    right: 4,
+    top: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+    borderWidth: 1,
+    borderColor: '#fff'
+  },
+  // searchWrap, searchTextPlaceholder - Removed
   chips: { paddingHorizontal: 16, paddingTop: 16, gap: 8, paddingBottom: 8 },
   chip: { backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' },
   chipActive: { backgroundColor: '#19e61b', borderColor: '#19e61b' },
@@ -217,6 +325,7 @@ const styles = StyleSheet.create({
   categoryText: { fontSize: 10, color: '#6b7280', fontWeight: '600' },
   emptyContainer: { padding: 40, alignItems: 'center' },
   emptyText: { color: '#94a3b8', fontSize: 16 },
+  loadingMoreWrap: { paddingVertical: 16 },
   emptyBtn: {
     marginTop: 12,
     backgroundColor: '#ffffff',

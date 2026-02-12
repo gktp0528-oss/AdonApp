@@ -1,35 +1,138 @@
-import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, Pressable, ActivityIndicator, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { CHATS, USERS } from '../data/mockData';
+import { chatService } from '../services/chatService';
+import { userService } from '../services/userService';
+import { Message, Conversation } from '../types/chat';
+import { User } from '../types/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
-export function ChatScreen({ navigation }: Props) {
+export function ChatScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const otherUser = USERS.chatUser;
-  const [messages, setMessages] = useState(CHATS);
-  const [draft, setDraft] = useState('');
+  const { conversationId } = route.params;
+  const currentUserId = userService.getCurrentUserId();
+  const scrollRef = useRef<ScrollView>(null);
 
-  const handleSend = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [otherUser, setOtherUser] = useState<User | null>(null);
+  const [draft, setDraft] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [limit, setLimit] = useState(20);
+  const [loadMore, setLoadMore] = useState(false);
+
+  // Watch conversation metadata (single document)
+  useEffect(() => {
+    const unsub = chatService.watchConversationById(conversationId, (conv) => {
+      setConversation(conv);
+    });
+    return () => unsub();
+  }, [conversationId]);
+
+  // Load other user's profile
+  useEffect(() => {
+    if (!conversation) return;
+    const otherUserId = conversation.participants.find((p) => p !== currentUserId);
+    if (!otherUserId) return;
+
+    const unsub = userService.watchUserById(otherUserId, (user) => {
+      setOtherUser(user);
+    });
+    return () => unsub();
+  }, [conversation, currentUserId]);
+
+  // Watch messages in real-time
+  useEffect(() => {
+    const unsub = chatService.watchMessages(conversationId, (msgs) => {
+      setMessages(msgs);
+      setLoading(false);
+      // Optional: Logic to maintain scroll position when loading more could go here
+    }, limit);
+    return () => unsub();
+  }, [conversationId, limit]);
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    // If we're at the top (offsetY <= 0) and we have enough messages to suspect there are more
+    if (offsetY <= 0 && messages.length >= limit && !loading) {
+      setLoadMore(true);
+      setLimit(prev => prev + 20);
+    }
+  };
+
+  // Mark as read when entering
+  useEffect(() => {
+    chatService.markAsRead(conversationId, currentUserId);
+  }, [conversationId, currentUserId]);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [messages.length]);
+
+  const handleSend = async () => {
     const text = draft.trim();
     if (!text) return;
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `local-${Date.now()}`,
-        sender: 'me',
-        text,
-      },
-    ]);
     setDraft('');
+    try {
+      await chatService.sendMessage(conversationId, currentUserId, text);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setLoading(true);
+        const uploadUrl = await uploadImage(result.assets[0].uri);
+        await chatService.sendMessage(conversationId, currentUserId, '', uploadUrl);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Image selection failed', error);
+      setLoading(false);
+      Alert.alert(t('common.error'), t('screen.chat.error.image'));
+    }
+  };
+
+  const uploadImage = async (uri: string): Promise<string> => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const filename = `chat/${conversationId}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+    const storageRef = ref(storage, filename);
+    await uploadBytes(storageRef, blob);
+    return await getDownloadURL(storageRef);
+  };
+
+  const formatTime = (timestamp: any) => {
+    if (!timestamp?.toDate) return '';
+    const date = timestamp.toDate();
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]} edges={['top', 'bottom']}>
+        <ActivityIndicator size="large" color="#22c55e" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -41,58 +144,72 @@ export function ChatScreen({ navigation }: Props) {
         <View style={styles.header}>
           <View style={styles.userRow}>
             <DetailBackButton onPress={() => navigation.goBack()} />
-            <Image source={{ uri: otherUser.avatar }} style={styles.avatar} />
-            <View>
-              <Text style={styles.user}>{otherUser.name}</Text>
-              <Text style={styles.online}>{otherUser.online === 'Online' ? t('common.online') : t('common.offline')}</Text>
+            <Image
+              source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
+              style={styles.avatar}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.user}>{otherUser?.name || t('screen.chat.status.loading')}</Text>
+              {otherUser?.isVerified && (
+                <Text style={styles.online}>{t('screen.chat.status.online')}</Text>
+              )}
             </View>
-            <MaterialIcons name="verified-user" size={20} color="#16a34a" style={{ marginLeft: 'auto' }} />
+            {otherUser?.isVerified && (
+              <MaterialIcons name="verified-user" size={20} color="#16a34a" />
+            )}
           </View>
         </View>
 
-        <View style={styles.meetCard}>
-          <Text style={styles.meetTitle}>{t('chat.meetupConfirmed')}</Text>
-          <Text style={styles.meetPlace}>Starbucks Coffee</Text>
-          <Text style={styles.meetMeta}>{t('common.today')} 오후 2:00 • {t('common.minAgo', { count: 45 })}</Text>
-        </View>
+        {/* Listing context card */}
+        {conversation && (
+          <View style={styles.meetCard}>
+            <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
+            <Text style={styles.meetPlace}>{conversation.listingTitle}</Text>
+          </View>
+        )}
 
-        <ScrollView style={styles.chatArea} contentContainerStyle={styles.chatContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.day}>{t('common.today')}</Text>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.chatArea}
+          contentContainerStyle={styles.chatContent}
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
+          {messages.length === 0 && (
+            <Text style={styles.day}>{t('screen.chat.empty', 'Start your conversation!')}</Text>
+          )}
 
-          {messages.map((chat) => {
-            if (chat.sender === 'system') {
-              return (
-                <View key={chat.id} style={[styles.bubble, styles.bubbleSystem]}>
-                  {chat.title && <Text style={styles.systemTitle}>{chat.title}</Text>}
-                  <Text style={styles.systemText}>{chat.text}</Text>
-                </View>
-              );
-            }
-            const isMe = chat.sender === 'me';
+          {messages.map((msg) => {
+            const isMe = msg.senderId === currentUserId;
             return (
-              <View key={chat.id} style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
-                <Text style={isMe ? styles.msgMine : styles.msg}>{chat.text}</Text>
+              <View key={msg.id} style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
+                {msg.imageUrl ? (
+                  <Image source={{ uri: msg.imageUrl }} style={styles.msgImage} resizeMode="cover" />
+                ) : null}
+                {msg.text ? <Text style={isMe ? styles.msgMine : styles.msg}>{msg.text}</Text> : null}
+                <Text style={[styles.timestamp, isMe && styles.timestampMine]}>
+                  {formatTime(msg.createdAt)}
+                </Text>
               </View>
             );
           })}
         </ScrollView>
 
-        <View style={styles.quickActions}>
-          <Text style={styles.quickChip}>{t('chat.changeSchedule')}</Text>
-          <Text style={styles.quickChip}>{t('chat.changeSchedule')}</Text>
-          <Text style={styles.quickChip}>{t('chat.shareLocation')}</Text>
-          <Text style={[styles.quickChip, styles.quickChipWarn]}>{t('chat.safetyTips')}</Text>
-        </View>
-
         <View style={styles.composer}>
+          <Pressable onPress={pickImage} style={styles.iconBtn}>
+            <MaterialIcons name="add-photo-alternate" size={24} color="#6b7280" />
+          </Pressable>
           <TextInput
             style={styles.input}
-            placeholder={t('chat.searchPlaceholder')}
+            placeholder={t('screen.chat.inputPlaceholder')}
             placeholderTextColor="#6b7280"
             value={draft}
             onChangeText={setDraft}
+            onSubmitEditing={handleSend}
+            returnKeyType="send"
           />
-          <Pressable style={styles.send} onPress={handleSend} accessibilityRole="button" accessibilityLabel={t('chat.title')}>
+          <Pressable style={styles.send} onPress={handleSend} accessibilityRole="button" accessibilityLabel={t('screen.chat.send')}>
             <MaterialIcons name="send" size={18} color="#05250f" />
           </Pressable>
         </View>
@@ -117,22 +234,19 @@ const styles = StyleSheet.create({
   meetCard: { backgroundColor: '#fff', margin: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', padding: 12 },
   meetTitle: { color: '#16a34a', fontWeight: '800', fontSize: 12, textTransform: 'uppercase' },
   meetPlace: { marginTop: 4, fontWeight: '700', color: '#111827' },
-  meetMeta: { marginTop: 2, color: '#6b7280', fontSize: 12 },
   chatArea: { flex: 1 },
   chatContent: { paddingHorizontal: 12, paddingBottom: 12, gap: 10 },
   day: { alignSelf: 'center', marginVertical: 8, fontSize: 10, color: '#6b7280', fontWeight: '700' },
   bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16 },
-  bubbleSystem: { alignSelf: 'center', backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', maxWidth: '90%' },
-  systemTitle: { color: '#166534', fontWeight: '800', fontSize: 12 },
-  systemText: { marginTop: 4, color: '#166534', fontSize: 12, lineHeight: 17 },
   bubbleLeft: { alignSelf: 'flex-start', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderBottomLeftRadius: 4 },
   bubbleRight: { alignSelf: 'flex-end', backgroundColor: '#19e61b', borderBottomRightRadius: 4 },
   msg: { color: '#1f2937', lineHeight: 20, fontSize: 15 },
   msgMine: { color: '#05250f', lineHeight: 20, fontWeight: '600', fontSize: 15 },
-  quickActions: { flexDirection: 'row', paddingHorizontal: 12, gap: 8, marginBottom: 8 },
-  quickChip: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, fontSize: 12, color: '#4b5563', fontWeight: '600' },
-  quickChipWarn: { color: '#b91c1c', borderColor: '#fecaca', backgroundColor: '#fef2f2' },
+  timestamp: { fontSize: 10, color: '#9ca3af', marginTop: 4 },
+  timestampMine: { color: '#065f13' },
   composer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e5e7eb', padding: 12, gap: 10 },
   input: { flex: 1, backgroundColor: '#f3f4f6', borderRadius: 24, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, color: '#111827' },
   send: { backgroundColor: '#19e61b', borderRadius: 999, padding: 12 },
+  iconBtn: { padding: 4 },
+  msgImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
 });

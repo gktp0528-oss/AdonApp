@@ -17,28 +17,47 @@ export function SignupScreen({ navigation }: Props) {
 
   const handleSignup = async () => {
     if (!name.trim()) {
-      Alert.alert(t('common.required'), t('auth.nameRequired'));
+      Alert.alert(
+        t('screen.signup.alert.inputNeeded'),
+        t('screen.signup.alert.nameMissing')
+      );
       return;
     }
     if (!email.trim() || !email.includes('@')) {
-      Alert.alert(t('auth.emailInvalid'), t('auth.emailInvalid'));
+      Alert.alert(
+        t('screen.login.alert.emailInvalid'),
+        t('screen.login.alert.emailInvalidMsg')
+      );
       return;
     }
     if (!password || password.length < 6) {
-      Alert.alert(t('common.error'), t('auth.passwordTooShort'));
+      Alert.alert(
+        t('screen.signup.alert.passwordError'),
+        t('screen.signup.alert.passwordLength')
+      );
       return;
     }
 
     try {
       await authService.signUp(email, password, name);
-      Alert.alert(t('auth.signupSuccess'), t('auth.signupSuccessMsg'), [
-        { text: t('common.confirm'), onPress: () => navigation.replace('Home') }
-      ]);
+      Alert.alert(
+        t('screen.signup.alert.success'),
+        t('screen.signup.alert.successMsg'),
+        [
+          { text: t('common.confirm'), onPress: () => navigation.replace('Home') }
+        ]
+      );
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
-        Alert.alert(t('common.error'), t('auth.emailAlreadyInUse'));
+        Alert.alert(
+          t('screen.signup.alert.failed'),
+          t('screen.signup.alert.emailInUse')
+        );
       } else {
-        Alert.alert(t('common.error'), error.message || t('auth.signupFailed'));
+        Alert.alert(
+          t('screen.signup.alert.failed'),
+          error.message || t('screen.signup.alert.failedMsg')
+        );
       }
     }
   };
@@ -50,25 +69,25 @@ export function SignupScreen({ navigation }: Props) {
           <Text style={styles.logoA}>A</Text>
         </View>
         <Text style={styles.title}>ADON</Text>
-        <Text style={styles.subtitle}>{t('auth.signupHero')}</Text>
+        <Text style={styles.subtitle}>{t('screen.signup.subtitle')}</Text>
       </View>
 
       <View style={styles.formCard}>
-        <Text style={styles.formTitle}>{t('auth.signup')}</Text>
+        <Text style={styles.formTitle}>{t('screen.signup.header')}</Text>
 
-        <Text style={styles.label}>{t('auth.name')}</Text>
+        <Text style={styles.label}>{t('screen.signup.label.name')}</Text>
         <TextInput
           style={styles.input}
-          placeholder={t('auth.namePlaceholder')}
+          placeholder={t('screen.signup.placeholder.name')}
           placeholderTextColor="#6b7280"
           value={name}
           onChangeText={setName}
         />
 
-        <Text style={styles.label}>{t('auth.email')}</Text>
+        <Text style={styles.label}>{t('screen.signup.label.email')}</Text>
         <TextInput
           style={styles.input}
-          placeholder={t('auth.emailPlaceholder')}
+          placeholder={t('screen.signup.placeholder.email')}
           placeholderTextColor="#6b7280"
           autoCapitalize="none"
           keyboardType="email-address"
@@ -76,24 +95,24 @@ export function SignupScreen({ navigation }: Props) {
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>{t('auth.password')}</Text>
+        <Text style={styles.label}>{t('screen.signup.label.password')}</Text>
         <TextInput
           style={styles.input}
-          placeholder={t('auth.passwordPlaceholder')}
+          placeholder={t('screen.signup.placeholder.password')}
           placeholderTextColor="#6b7280"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        <PrimaryButton label={t('auth.signup')} onPress={handleSignup} />
+        <PrimaryButton label={t('screen.signup.submit')} onPress={handleSignup} />
 
-        <Text style={styles.terms}>{t('auth.terms')}</Text>
+        <Text style={styles.terms}>{t('screen.signup.terms')}</Text>
       </View>
 
       <Text style={styles.switchText}>
-        {t('auth.hasAccount')}
-        <Text style={styles.switchLink} onPress={() => navigation.navigate('Login')}> {t('auth.login')}</Text>
+        {t('screen.signup.loginText')}
+        <Text style={styles.switchLink} onPress={() => navigation.navigate('Login')}> {t('screen.signup.loginLink')}</Text>
       </Text>
     </SafeAreaView>
   );

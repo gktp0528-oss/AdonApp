@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -37,7 +37,7 @@ export function SellerScreen({ navigation, route }: Props) {
       setSeller(userData);
       setLoading(false);
       if (!userData) {
-        setLoadError(t('common.error'));
+        setLoadError(t('screen.profile.loadError'));
       }
     });
     const unsubscribeListings = listingService.watchListingsBySeller(sellerId, (userListings) => {
@@ -48,7 +48,7 @@ export function SellerScreen({ navigation, route }: Props) {
       unsubscribeUser();
       unsubscribeListings();
     };
-  }, [sellerId, retryCount, t]);
+  }, [sellerId, retryCount]);
 
   if (loading) {
     return (
@@ -61,9 +61,9 @@ export function SellerScreen({ navigation, route }: Props) {
   if (!seller) {
     return (
       <View style={[styles.root, styles.center]}>
-        <Text style={styles.errorTitle}>{loadError || t('common.error')}</Text>
+        <Text style={styles.errorTitle}>{loadError || t('screen.profile.loadError')}</Text>
         <Pressable style={styles.retryBtn} onPress={() => setRetryCount((prev) => prev + 1)}>
-          <Text style={styles.retryText}>{t('common.confirm')}</Text>
+          <Text style={styles.retryText}>{t('screen.profile.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -72,10 +72,10 @@ export function SellerScreen({ navigation, route }: Props) {
   const handleShareProfile = async () => {
     try {
       await Share.share({
-        message: t('seller.shareProfileMsg', { name: seller.name }),
+        message: t('screen.profile.shareMessage', { name: seller.name }),
       });
     } catch {
-      Alert.alert(t('common.error'), t('product.shareError'));
+      Alert.alert(t('screen.profile.shareErrorTitle'), t('screen.profile.shareErrorMessage'));
     }
   };
 
@@ -119,47 +119,54 @@ export function SellerScreen({ navigation, route }: Props) {
         <View style={styles.profileInfo}>
           <View style={styles.nameSection}>
             <Text style={styles.name}>{seller.name}</Text>
-            <Text style={styles.location}>{seller.location || t('common.online')}</Text>
+            <Text style={styles.location}>{seller.location || t('screen.profile.locationDefault')}</Text>
             {seller.bio ? <Text style={styles.bio}>{seller.bio}</Text> : null}
           </View>
 
           <View style={styles.statRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{seller.positiveRate ? `${seller.positiveRate}%` : '100%'}</Text>
-              <Text style={styles.statLabel}>{t('seller.trust')}</Text>
+              <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{seller.sales || 0}</Text>
-              <Text style={styles.statLabel}>{t('seller.sales')}</Text>
+              <Text style={styles.statLabel}>{t('screen.profile.stats.sales')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{seller.responseTime || t('seller.responseTime')}</Text>
-              <Text style={styles.statLabel}>{t('seller.response')}</Text>
+              <Text style={styles.statValue}>{seller.responseTime || t('screen.profile.stats.responseValue.fast')}</Text>
+              <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
             </View>
           </View>
 
           <View style={styles.reliabilityCard}>
-            <Text style={styles.cardTitle}>{t('seller.reliabilityIndicator')}</Text>
+            <Text style={styles.cardTitle}>{t('screen.profile.reliabilityLabel')}</Text>
             <View style={styles.reliabilityContent}>
               <MaterialIcons name="security" size={20} color="#16a34a" />
               <Text style={styles.reliabilityText}>
-                {seller.reliabilityLabel || t('seller.verifiedSellerMsg')}
+                {seller.reliabilityLabel || t('screen.profile.reliabilityDefault')}
               </Text>
             </View>
           </View>
 
           <View style={styles.productsSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('seller.sellingProducts')}</Text>
+              <Text style={styles.sectionTitle}>{t('screen.profile.products.title')}</Text>
               <Pressable>
-                <Text style={styles.seeAllText}>{t('category.all')} ({listings.length})</Text>
+                <Text style={styles.seeAllText}>{t('screen.profile.products.seeAll')} ({listings.length})</Text>
               </Pressable>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
               {listings.length === 0 ? (
-                <Text style={styles.emptyText}>{t('chat.noConversations')}</Text>
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>{t('screen.profile.products.empty')}</Text>
+                  {sellerId === userService.getCurrentUserId() && (
+                    <Pressable style={styles.startSellingBtn} onPress={() => handleTabPress('post')}>
+                      <Text style={styles.startSellingText}>{t('screen.profile.products.emptyButton')}</Text>
+                    </Pressable>
+                  )}
+                </View>
               ) : (
                 listings.map(item => (
                   <Pressable
@@ -187,11 +194,11 @@ export function SellerScreen({ navigation, route }: Props) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
         {sellerId === userService.getCurrentUserId() ? (
-          <PrimaryButton label={t('seller.editProfile')} onPress={() => navigation.navigate('EditProfile')} />
+          <PrimaryButton label={t('screen.profile.button.edit')} onPress={() => navigation.navigate('EditProfile')} />
         ) : (
           <>
-            <PrimaryButton label={t('seller.shareProfile')} onPress={handleShareProfile} />
-            <PrimaryButton label={t('chat.title')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
+            <PrimaryButton label={t('screen.profile.button.share')} onPress={handleShareProfile} />
+            <PrimaryButton label={t('screen.profile.button.chat')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
           </>
         )}
       </View>
@@ -408,10 +415,26 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     marginTop: 4,
   },
+  emptyContainer: {
+    marginLeft: 4,
+    justifyContent: 'center',
+  },
   emptyText: {
     color: '#94a3b8',
     fontStyle: 'italic',
-    paddingLeft: 4,
+    marginBottom: 12,
+  },
+  startSellingBtn: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  startSellingText: {
+    color: '#2563eb',
+    fontWeight: '700',
+    fontSize: 13,
   },
   footer: {
     position: 'absolute',

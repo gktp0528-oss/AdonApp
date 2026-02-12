@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -154,7 +154,7 @@ export function SneakersListScreen({ navigation, route }: Props) {
         <DetailBackButton onPress={() => navigation.goBack()} />
         <View style={styles.headerText}>
           <Text style={styles.title}>{categoryName}</Text>
-          <Text style={styles.subtitle}>{t('category.itemsCount', { count: items.length * 23 })}</Text>
+          <Text style={styles.subtitle}>{t('screen.categoryList.itemsCount', { count: items.length * 23 })}</Text>
         </View>
         <Pressable style={styles.filterBtn}>
           <MaterialIcons name="tune" size={20} color="#0f172a" />
@@ -163,21 +163,21 @@ export function SneakersListScreen({ navigation, route }: Props) {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         <View style={[styles.chip, styles.chipActive]}>
-          <Text style={styles.chipActiveText}>{t('category.newest')}</Text>
+          <Text style={styles.chipActiveText}>{t('screen.categoryList.sort.latest')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('category.priceLow')}</Text>
+          <Text style={styles.chipText}>{t('screen.categoryList.sort.priceLow')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('category.nearby')}</Text>
+          <Text style={styles.chipText}>{t('screen.categoryList.sort.nearby')}</Text>
         </View>
         <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('category.rating')}</Text>
+          <Text style={styles.chipText}>{t('screen.categoryList.sort.rating')}</Text>
         </View>
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-        {items.map((item: ListItem) => (
+        {items.map((item) => (
           <Pressable
             key={item.id}
             style={styles.card}

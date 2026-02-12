@@ -1,0 +1,355 @@
+{
+  "common": {
+    "loading": "Betöltés...",
+    "error": "Hiba történt.",
+    "retry": "Újra",
+    "save": "Mentés",
+    "cancel": "Mégse",
+    "confirm": "Megerősítés",
+    "time": {
+      "justNow": "Épp most",
+      "ago": {
+        "m": "{{count}} perce",
+        "h": "{{count}} órája",
+        "d": "{{count}} napja"
+      }
+    },
+    "tab": {
+      "home": "Kezdőlap",
+      "search": "Keresés",
+      "post": "Feltöltés",
+      "chat": "Csevegés",
+      "profile": "Profil"
+    },
+    "accessibility": {
+      "back": "Vissza",
+      "tab": "{{label}} lap"
+    },
+    "condition": {
+      "new": "Új",
+      "likeNew": "Szinte új",
+      "good": "Jó",
+      "fair": "Megfelelő"
+    }
+  },
+  "screen": {
+    "login": {
+      "title": "Bejelentkezés",
+      "tag": "PRÉMIUM VISZONTELADÁS",
+      "or": "Vagy jelentkezzen be e-mailben",
+      "label": {
+        "email": "E-mail cím",
+        "password": "Jelszó",
+        "name": "Név"
+      },
+      "placeholder": {
+        "email": "hello@adon.app",
+        "password": "••••••••",
+        "name": "Kovács János"
+      },
+      "forgot": "Elfelejtette a jelszavát?",
+      "submit": "Bejelentkezés",
+      "signupText": "Nincs még fiókja?",
+      "signupLink": "Regisztráció",
+      "alert": {
+        "inputNeeded": "Adatok szükségesek",
+        "emailMissing": "Kérjük, adja meg az e-mail címét.",
+        "passwordMissing": "Kérjük, adja meg a jelszavát.",
+        "emailInvalid": "Érvénytelen e-mail",
+        "emailInvalidMsg": "Kérjük, adjon meg egy érvényes e-mail címet.",
+        "failed": "Sikertelen bejelentkezés",
+        "comingSoon": "Hamarosan",
+        "comingSoonMsg": "A(z) {{feature}} funkció hamarosan elérhető lesz."
+      }
+    },
+    "signup": {
+      "title": "ADON",
+      "subtitle": "Csatlakozzon a prémium viszonteladói közösséghez",
+      "header": "Regisztráció",
+      "label": {
+        "name": "Név",
+        "email": "E-mail cím",
+        "password": "Jelszó"
+      },
+      "placeholder": {
+        "name": "Kovács János",
+        "email": "hello@example.com",
+        "password": "••••••••"
+      },
+      "submit": "Csatlakozás és Kezdés",
+      "terms": "A csatlakozással elfogadja a Felhasználási Feltételeket és az Adatvédelmi Irányelveket.",
+      "loginText": "Már van fiókja?",
+      "loginLink": "Bejelentkezés",
+      "alert": {
+        "inputNeeded": "Adatok szükségesek",
+        "nameMissing": "Kérjük, adja meg a nevét.",
+        "passwordError": "Jelszó hiba",
+        "passwordLength": "A jelszónak legalább 6 karakter hosszúnak kell lennie.",
+        "success": "Üdvözöljük",
+        "successMsg": "A fiók sikeresen létrehozva.",
+        "failed": "Hiba",
+        "emailInUse": "Az e-mail cím már használatban van.",
+        "failedMsg": "A regisztráció sikertelen."
+      }
+    },
+    "home": {
+      "title": "Kezdőlap",
+      "greet": "Jó reggelt,",
+      "searchPlaceholder": "Keressen ruhákat, otthoni eszközöket...",
+      "chip": {
+        "all": "Összes"
+      },
+      "section": {
+        "new": "Új termékek",
+        "justIn": "Épp most feltöltve"
+      },
+      "empty": {
+        "all": "Még nincs feltöltött termék.",
+        "category": "Ebben a kategóriában még nincs termék."
+      },
+      "refresh": "Frissítés",
+      "category": {
+        "fashion": "Divat",
+        "tech": "Tech",
+        "home": "Otthon",
+        "kids": "Gyerek"
+      },
+      "accessibility": {
+        "addToWishlist": "Hozzáadás a kívánságlistához"
+      }
+    },
+    "product": {
+      "title": "Termék részletei",
+      "error": {
+        "load": "Nem sikerült betölteni a terméket.",
+        "idMissing": "Hiányzó termékazonosító.",
+        "notFound": "A termék nem található vagy törölve lett."
+      },
+      "auth": "AI Eredetiségell.",
+      "premium": "PRÉMIUM",
+      "safePay": "Biztonságos fizetés",
+      "seller": {
+        "unknown": "Nincs eladói info",
+        "new": "Új eladó",
+        "sales": "{{count}} eladás",
+        "positive": "Pozitív {{rate}}%",
+        "follow": "Követés",
+        "following": "Követve"
+      },
+      "trust": {
+        "response": "Válaszidő",
+        "reliability": "Megbízhatóság"
+      },
+      "spec": {
+        "category": "Kategória",
+        "condition": "Állapot",
+        "brand": "Márka",
+        "size": "Méret",
+        "color": "Szín",
+        "date": "Feltöltve"
+      },
+      "desc": {
+        "title": "Leírás",
+        "empty": "Nincs leírás."
+      },
+      "location": {
+        "title": "Helyszín",
+        "private": "Helyszín privát"
+      },
+      "action": {
+        "chat": "Csevegés",
+        "buy": "Vásárlás",
+        "back": "Vissza"
+      },
+      "accessibility": {
+        "share": "Termék megosztása",
+        "like": "Kedvelés",
+        "unlike": "Kedvelés visszavonása",
+        "follow": "Követés",
+        "unfollow": "Követés leállítása"
+      }
+    },
+    "search": {
+      "title": "Összes kategória",
+      "segment": {
+        "category": "Kategória",
+        "brand": "Márkák",
+        "service": "Szolgáltatások"
+      },
+      "section": {
+        "brands": "Ajánlott márkák",
+        "services": "Piactéri szolgáltatások",
+        "popular": "Népszerű kategóriák",
+        "preloved": "Használt kedvencek",
+        "browse": "Kategóriák böngészése",
+        "browseHint": "Találd meg, amit keresel kategóriák szerint."
+      },
+      "category": {
+        "cycling": "Kerékpározás",
+        "football": "Labdarúgás",
+        "running": "Futás",
+        "hiking": "Túrázás",
+        "skiing": "Síelés",
+        "tennis": "Tenisz",
+        "camping": "Kemping",
+        "gaming": "Játékok",
+        "photography": "Fotózás",
+        "vinyl": "Bakelit",
+        "books": "Könyvek",
+        "boardGames": "Társasjátékok",
+        "womenFashion": "Női Divat",
+        "menFashion": "Férfi Divat",
+        "sneakers": "Edzőcipők",
+        "bags": "Táskák",
+        "watches": "Órák",
+        "jewelry": "Ékszerek",
+        "homeDecor": "Lakberendezés",
+        "electronics": "Elektronika",
+        "bicycles": "Kerékpárok",
+        "babyKids": "Baba és Gyerek",
+        "beauty": "Szépségápolás",
+        "collectibles": "Gyűjtemények",
+        "nike": "Nike",
+        "adidas": "Adidas",
+        "apple": "Apple",
+        "sony": "Sony",
+        "ikea": "IKEA",
+        "lego": "LEGO",
+        "authCheck": "Eredetiségvizsgálat",
+        "safePay": "Biztonságos Fizetés",
+        "pickup": "Átvétel Ütemezése",
+        "delivery": "Szállítási Segéd",
+        "priceAi": "Árasszisztens",
+        "photoAi": "Fotóstúdió"
+      },
+      "accessibility": {
+        "openCategory": "{{name}} kategória megnyitása"
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "loadError": "Nem sikerült betölteni az eladó adatait.",
+      "retry": "Újra",
+      "shareMessage": "Nézd meg {{name}} profilját az ADON-on.",
+      "shareErrorTitle": "Hiba",
+      "shareErrorMessage": "Jelenleg nem lehet megosztani a profilt.",
+      "locationDefault": "Európa",
+      "stats": {
+        "reliability": "Megbízhatóság",
+        "sales": "Eladások",
+        "response": "Válaszadás",
+        "responseValue": {
+          "fast": "Gyors"
+        }
+      },
+      "reliabilityLabel": "ADON Megbízhatósági Index",
+      "reliabilityDefault": "Ellenőrzött eladó megbízható tevékenységgel.",
+      "products": {
+        "title": "Eladó termékek",
+        "seeAll": "Összes",
+        "empty": "Nincsenek listázott termékek.",
+        "emptyButton": "Értékesítés indítása"
+      },
+      "button": {
+        "edit": "Profil szerkesztése",
+        "share": "Profil megosztása",
+        "chat": "Csevegés indítása"
+      }
+    },
+    "editProfile": {
+      "title": "Profil szerkesztése",
+      "loadError": "Nem sikerült betölteni a profilt.",
+      "save": "Mentés",
+      "saving": "Mentés...",
+      "saveErrorTitle": "Hiba",
+      "saveErrorMessage": "Nem sikerült menteni a profilt.",
+      "validationEmpty": "A név nem lehet üres.",
+      "changeCover": "Borítókép módosítása",
+      "photoHint": "Profilkép",
+      "label": {
+        "name": "Megjelenítési név",
+        "location": "Hely",
+        "bio": "Bemutatkozás",
+        "language": "Alkalmazás nyelve"
+      },
+      "placeholder": {
+        "name": "pl. Kim Haeun",
+        "location": "pl. Berlin, Németország",
+        "bio": "pl. Vintage gyűjtő"
+      },
+      "languageHint": "A kiválasztott nyelv mentésre kerül.",
+      "languageErrorTitle": "Hiba",
+      "languageErrorMessage": "Nem sikerült nyelvet váltani.",
+      "validationTitle": "Ellenőrzés",
+      "accessibility": {
+        "changeLanguage": "Nyelv váltása erre: {{language}}"
+      }
+    },
+    "chat": {
+      "title": "Üzenetek",
+      "filter": {
+        "all": "Összes",
+        "unread": "Olvasatlan"
+      },
+      "placeholder": "Keresés...",
+      "empty": "Nincs üzenet.",
+      "inputPlaceholder": "Írjon üzenetet...",
+      "send": "Küldés",
+      "meet": {
+        "title": "Találkozó Megerősítve",
+        "time": "Ma 14:00 • 45 perc múlva",
+        "place": "Starbucks"
+      },
+      "day": {
+        "today": "Ma"
+      },
+      "quick": {
+        "reschedule": "Átütemezés",
+        "location": "Helyzetmegosztás",
+        "safety": "Biztonsági Tippek"
+      },
+      "status": {
+        "online": "Online"
+      },
+      "accessibility": {
+        "toggleFilter": "Olvasatlan szűrő váltása",
+        "openThread": "Csevegés megnyitása: {{name}}"
+      },
+      "list": {
+        "item1": {
+          "message": "Elérhető még a vintage fényképezőgép?"
+        },
+        "item2": {
+          "message": "Ma 17:00-kor tudok találkozni az állomásnál."
+        },
+        "item3": {
+          "message": "Elfogadnál 450 eurót a szettért?"
+        }
+      },
+      "messages": {
+        "c1": {
+          "title": "Találkozó adatai megerősítve",
+          "text": "Az alkalmazáson belüli chatben az időpont és helyszín egyeztetve."
+        },
+        "c2": {
+          "text": "Rendben, jó neked a 14:00?"
+        },
+        "c3": {
+          "text": "Igen, akkor ott leszek."
+        },
+        "c4": {
+          "text": "Szuper. Hozom a sneakert és az eredeti dobozt."
+        }
+      }
+    },
+    "categoryList": {
+      "itemsCount": "{{count}}+ termék",
+      "sort": {
+        "latest": "Legújabb",
+        "priceLow": "Ár szerint növekvő",
+        "nearby": "Közelben",
+        "rating": "Legjobb értékelés"
+      }
+    }
+  }
+}

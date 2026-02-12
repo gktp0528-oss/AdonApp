@@ -1,19 +1,22 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   onPress: () => void;
 };
 
 export function DetailBackButton({ onPress }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Pressable
       style={styles.button}
       onPress={onPress}
       hitSlop={8}
       accessibilityRole="button"
-      accessibilityLabel="뒤로 가기"
+      accessibilityLabel={t('common.accessibility.back')}
     >
       <MaterialIcons name="arrow-back-ios-new" size={16} color="#0f172a" />
     </Pressable>

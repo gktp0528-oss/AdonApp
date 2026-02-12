@@ -1,324 +1,257 @@
-import React, { useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { BottomTabMock } from '../components/BottomTabMock';
+import { chatService } from '../services/chatService';
+import { userService } from '../services/userService';
+import { Conversation } from '../types/chat';
+import { User } from '../types/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChatList'>;
 
-interface ChatPreview {
-  id: string;
-  userName: string;
-  lastMessage: string;
-  time: string;
-  avatar: string;
-  unreadCount: number;
-  productImage?: string;
-  status?: 'online' | 'offline' | 'away';
-}
+export default function ChatListScreen({ navigation }: Props) {
+    const { t } = useTranslation();
+    const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'chat');
+    const currentUserId = userService.getCurrentUserId();
 
-const mockChats: ChatPreview[] = [
-  {
-    id: '1',
-    userName: 'Elena Schmidt',
-    lastMessage: 'Is the price negotiable?',
-    time: '2m',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-    unreadCount: 2,
-    productImage: 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?w=100',
-    status: 'online',
-  },
-  {
-    id: '2',
-    userName: 'Marcus Weber',
-    lastMessage: 'I would like to pick it up tomorrow.',
-    time: '1h',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    unreadCount: 0,
-    productImage: 'https://images.unsplash.com/photo-1611186871348-b1ec696e52c9?w=100',
-    status: 'away',
-  },
-  {
-    id: '3',
-    userName: 'Sophie Martin',
-    lastMessage: 'Thanks! The item is great.',
-    time: '3h',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-    unreadCount: 0,
-    status: 'offline',
-  },
-];
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [userCache, setUserCache] = useState<Record<string, User>>({});
+    const [loading, setLoading] = useState(true);
+    const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+    const [keyword, setKeyword] = useState('');
 
-export function ChatListScreen({ navigation }: Props) {
-  const { t } = useTranslation();
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+    // Watch conversations
+    useEffect(() => {
+        const unsub = chatService.watchConversations(currentUserId, (convs) => {
+            setConversations(convs);
+            setLoading(false);
+        });
+        return () => unsub();
+    }, [currentUserId]);
 
-  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'chat');
+    // Watch user profiles for the other participant in each conversation
+    useEffect(() => {
+        const otherUserIds = conversations
+            .map((c) => c.participants.find((p) => p !== currentUserId))
+            .filter((id): id is string => !!id);
 
-  const filteredChats = mockChats.filter((chat) => {
-    const matchesFilter = filter === 'all' || chat.unreadCount > 0;
-    const matchesSearch = chat.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+        const uniqueIds = [...new Set(otherUserIds)];
 
-  const renderItem = ({ item }: { item: ChatPreview }) => (
-    <Pressable
-      style={styles.chatCard}
-      onPress={() => navigation.navigate('Chat')}
-      accessibilityRole="button"
-    >
-      <View style={styles.avatarWrap}>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        {item.status === 'online' && <View style={styles.statusDot} />}
-      </View>
+        const unsubs = uniqueIds.map((uid) => {
+            // If we already have a watcher or data, asking again is fine as it returns a new unsub
+            // but for performance, we might want to optimize. 
+            // For now, simple map is okay for typical list size.
+            return userService.watchUserById(uid, (user) => {
+                if (user) {
+                    setUserCache((prev) => ({ ...prev, [uid]: user }));
+                }
+            });
+        });
 
-      <View style={styles.chatInfo}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.userName}>{item.userName}</Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-        <View style={styles.chatFooter}>
-          <Text style={[styles.lastMsg, item.unreadCount > 0 && styles.lastMsgUnread]} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unreadCount}</Text>
+        return () => {
+            unsubs.forEach(unsub => unsub());
+        };
+    }, [conversations, currentUserId]);
+
+    const toRelativeTime = (timestamp: any): string => {
+        if (!timestamp?.toDate) return '';
+        const diff = Date.now() - timestamp.toDate().getTime();
+        const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return t('common.time.justNow');
+        if (minutes < 60) return t('common.time.ago.m', { count: minutes });
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return t('common.time.ago.h', { count: hours });
+        return t('common.time.ago.d', { count: Math.floor(hours / 24) });
+    };
+
+    const filteredConversations = useMemo(() => {
+        const q = keyword.trim().toLowerCase();
+        return conversations.filter((conv) => {
+            const unreadCount = conv.unreadCount?.[currentUserId] || 0;
+            if (showUnreadOnly && unreadCount === 0) return false;
+            if (!q) return true;
+
+            const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
+            const otherUser = userCache[otherUserId];
+            const name = otherUser?.name || '';
+            return (
+                name.toLowerCase().includes(q) ||
+                conv.lastMessage.toLowerCase().includes(q) ||
+                conv.listingTitle.toLowerCase().includes(q)
+            );
+        });
+    }, [showUnreadOnly, keyword, conversations, currentUserId, userCache]);
+
+    return (
+        <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+            <View style={styles.header}>
+                <Text style={styles.title}>{t('screen.chat.title')}</Text>
+                <Pressable
+                    style={[styles.filterButton, showUnreadOnly && styles.filterButtonActive]}
+                    onPress={() => setShowUnreadOnly((prev) => !prev)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('screen.chat.accessibility.toggleFilter')}
+                >
+                    <MaterialIcons name="tune" size={20} color="#19e61b" />
+                </Pressable>
             </View>
-          )}
-        </View>
-      </View>
 
-      {item.productImage && (
-        <Image source={{ uri: item.productImage }} style={styles.productThumb} />
-      )}
-    </Pressable>
-  );
+            <View style={styles.searchWrap}>
+                <MaterialIcons name="search" size={18} color="#9ca3af" />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder={t('screen.chat.placeholder')}
+                    placeholderTextColor="#6b7280"
+                    value={keyword}
+                    onChangeText={setKeyword}
+                />
+            </View>
+            <Text style={styles.filterHint}>{showUnreadOnly ? t('screen.chat.filter.unread') : t('screen.chat.filter.all')}</Text>
 
-  return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{t('chat.title')}</Text>
-          <Pressable style={styles.iconBtn}>
-            <MaterialIcons name="settings" size={24} color="#1f2937" />
-          </Pressable>
-        </View>
+            {loading ? (
+                <View style={styles.emptyWrap}>
+                    <ActivityIndicator size="large" color="#22c55e" />
+                </View>
+            ) : (
+                <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+                    {filteredConversations.map((conv) => {
+                        const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
+                        const otherUser = userCache[otherUserId];
+                        const unreadCount = conv.unreadCount?.[currentUserId] || 0;
+                        const hasUnread = unreadCount > 0;
+                        const isOnline = otherUser?.isOnline;
 
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color="#64748b" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('chat.searchPlaceholder')}
-            placeholderTextColor="#94a3b8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        <View style={styles.filterRow}>
-          <Pressable
-            style={[styles.filterChip, filter === 'all' && styles.filterChipActive]}
-            onPress={() => setFilter('all')}
-          >
-            <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
-              {t('chat.allConversations')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.filterChip, filter === 'unread' && styles.filterChipActive]}
-            onPress={() => setFilter('unread')}
-          >
-            {mockChats.some(c => c.unreadCount > 0) && <View style={styles.unreadDot} />}
-            <Text style={[styles.filterText, filter === 'unread' && styles.filterTextActive]}>
-              {t('chat.unreadOnly')}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <FlatList
-        data={filteredChats}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyWrap}>
-            <MaterialIcons name="chat-bubble-outline" size={48} color="#cbd5e1" />
-            <Text style={styles.emptyText}>{t('chat.noConversations')}</Text>
-          </View>
-        }
-      />
-
-      <BottomTabMock active="chat" onTabPress={handleTabPress} />
-    </SafeAreaView>
-  );
+                        return (
+                            <Pressable
+                                key={conv.id}
+                                style={styles.row}
+                                onPress={() => navigation.navigate('Chat', { conversationId: conv.id })}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('screen.chat.accessibility.openThread', { name: otherUser?.name || '' })}
+                            >
+                                <View>
+                                    <Image
+                                        source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
+                                        style={styles.avatar}
+                                    />
+                                    {isOnline ? <View style={styles.onlineDot} /> : null}
+                                </View>
+                                <View style={styles.textWrap}>
+                                    <View style={styles.rowTop}>
+                                        <Text style={styles.name}>{otherUser?.name || '...'}</Text>
+                                        <Text style={styles.time}>{toRelativeTime(conv.lastMessageAt)}</Text>
+                                    </View>
+                                    <Text numberOfLines={1} style={[styles.message, hasUnread && styles.messageUnread]}>
+                                        {conv.lastMessage || conv.listingTitle}
+                                    </Text>
+                                </View>
+                                {hasUnread ? <View style={styles.unreadDot} /> : null}
+                            </Pressable>
+                        );
+                    })}
+                    {filteredConversations.length === 0 && !loading ? (
+                        <View style={styles.emptyWrap}>
+                            <Text style={styles.emptyText}>{t('screen.chat.empty')}</Text>
+                        </View>
+                    ) : null}
+                </ScrollView>
+            )}
+            <BottomTabMock active="chat" onTabPress={handleTabPress} />
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: { fontSize: 24, fontWeight: '800', color: '#111827' },
-  iconBtn: { padding: 4 },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-    marginBottom: 16,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 15,
-    color: '#111827',
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  filterChipActive: {
-    backgroundColor: '#111827',
-  },
-  filterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4b5563',
-  },
-  filterTextActive: {
-    color: '#fff',
-  },
-  unreadDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#ef4444',
-    marginRight: 6,
-  },
-  listContent: {
-    paddingVertical: 8,
-  },
-  chatCard: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  avatarWrap: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#f3f4f6',
-  },
-  statusDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#22c55e',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  chatInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  time: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  chatFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  lastMsg: {
-    fontSize: 14,
-    color: '#6b7280',
-    flex: 1,
-  },
-  lastMsgUnread: {
-    color: '#111827',
-    fontWeight: '600',
-  },
-  unreadBadge: {
-    backgroundColor: '#111827',
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-    marginLeft: 8,
-  },
-  unreadText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  productThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-  },
-  emptyWrap: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: 32,
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#94a3b8',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
+    root: { flex: 1, backgroundColor: '#f6f8f6' },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingTop: 8,
+        paddingBottom: 12,
+    },
+    title: { fontSize: 32, fontWeight: '800', color: '#064e3b' },
+    filterButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    filterButtonActive: {
+        borderColor: '#86efac',
+        backgroundColor: '#f0fdf4',
+    },
+    searchWrap: {
+        marginHorizontal: 16,
+        marginBottom: 10,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 12,
+        height: 46,
+    },
+    searchInput: { flex: 1, fontSize: 14 },
+    filterHint: {
+        paddingHorizontal: 16,
+        marginBottom: 4,
+        color: '#6b7280',
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    list: { paddingHorizontal: 16, paddingBottom: 120 },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#edf2ed',
+        paddingVertical: 14,
+    },
+    avatar: { width: 56, height: 56, borderRadius: 28 },
+    onlineDot: {
+        position: 'absolute',
+        right: 2,
+        bottom: 1,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#19e61b',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    textWrap: { flex: 1 },
+    rowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4, gap: 8 },
+    name: { fontSize: 15, fontWeight: '700', color: '#111827', flex: 1 },
+    time: { fontSize: 11, color: '#9ca3af', fontWeight: '600' },
+    message: { fontSize: 13, color: '#6b7280' },
+    messageUnread: { color: '#111827', fontWeight: '600' },
+    unreadDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#19e61b',
+    },
+    emptyWrap: {
+        paddingVertical: 48,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '600',
+    },
 });
