@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore";
-import { getVertexAI } from "firebase/vertexai";
+import { getAI, VertexAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA1cqQPP2y2-4dMfYN-HRoHZG44N4EXv7I",
@@ -18,7 +18,8 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const db = getFirestore(app);
-// Using standard Vertex AI SDK
-export const aiBackend = getVertexAI(app);
-// export const aiBackend = null; // Temporarily disabled due to missing module
+// Using standard Firebase AI SDK (replaces vertexai in v12+)
+export const aiBackend = getAI(app, {
+    backend: new VertexAIBackend({ location: 'europe-west3' })
+});
 export default app;
