@@ -88,7 +88,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         "reasoning": "왜 이 가격으로 산출했는지 사진 속의 구체적인 하자를 근거로 설명"
       }
       반드시 한국어로 작성하세요.`;
-            bitumen
+
 
             const result = await model.generateContent([prompt, ...imageParts]);
             const text = result.response.text();
