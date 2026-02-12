@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StyleSheet, Text, TextInput, View, Alert } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -35,6 +35,10 @@ export function LoginScreen({ navigation }: Props) {
     }
   };
 
+  const handleComingSoon = (feature: string) => {
+    Alert.alert('Coming Soon', `${feature} is not available yet.`);
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.brand}>
@@ -44,9 +48,15 @@ export function LoginScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.socialRow}>
-        <View style={styles.socialBtn}><Text style={styles.socialText}>Apple</Text></View>
-        <View style={styles.socialBtn}><Text style={styles.socialText}>Google</Text></View>
-        <View style={styles.socialBtn}><Text style={styles.socialText}>Meta</Text></View>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Apple login')}>
+          <Text style={styles.socialText}>Apple</Text>
+        </Pressable>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Google login')}>
+          <Text style={styles.socialText}>Google</Text>
+        </Pressable>
+        <Pressable style={styles.socialBtn} onPress={() => handleComingSoon('Meta login')}>
+          <Text style={styles.socialText}>Meta</Text>
+        </Pressable>
       </View>
 
       <Text style={styles.orText}>Or log in with email</Text>
@@ -71,7 +81,7 @@ export function LoginScreen({ navigation }: Props) {
           onChangeText={setPassword}
         />
 
-        <Text style={styles.forgot}>Forgot Password?</Text>
+        <Text style={styles.forgot} onPress={() => handleComingSoon('Password reset')}>Forgot Password?</Text>
         <PrimaryButton label="로그인" onPress={handleLogin} />
 
         <Text style={styles.bottomText}>

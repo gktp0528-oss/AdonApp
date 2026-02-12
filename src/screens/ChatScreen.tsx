@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,6 +14,23 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 export function ChatScreen({ navigation }: Props) {
   const otherUser = USERS.chatUser;
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'chat');
+  const [messages, setMessages] = useState(CHATS);
+  const [draft, setDraft] = useState('');
+
+  const handleSend = () => {
+    const text = draft.trim();
+    if (!text) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `local-${Date.now()}`,
+        sender: 'me',
+        text,
+      },
+    ]);
+    setDraft('');
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -43,7 +60,7 @@ export function ChatScreen({ navigation }: Props) {
         <ScrollView style={styles.chatArea} contentContainerStyle={styles.chatContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.day}>TODAY</Text>
 
-          {CHATS.map((chat) => {
+          {messages.map((chat) => {
             if (chat.sender === 'system') {
               return (
                 <View key={chat.id} style={[styles.bubble, styles.bubbleSystem]}>
@@ -68,8 +85,16 @@ export function ChatScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.composer}>
-          <TextInput style={styles.input} placeholder="Type a message..." placeholderTextColor="#9ca3af" />
-          <View style={styles.send}><MaterialIcons name="send" size={18} color="#05250f" /></View>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message..."
+            placeholderTextColor="#9ca3af"
+            value={draft}
+            onChangeText={setDraft}
+          />
+          <Pressable style={styles.send} onPress={handleSend}>
+            <MaterialIcons name="send" size={18} color="#05250f" />
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
       <BottomTabMock active="chat" onTabPress={handleTabPress} />

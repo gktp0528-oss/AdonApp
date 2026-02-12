@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -45,8 +45,23 @@ const euPrelovedCategories: HubCategory[] = [
   { id: 'collectibles', name: 'Collectibles', icon: 'toy-brick-search-outline' },
 ];
 
+function getCurrentClock() {
+  const now = new Date();
+  const h = `${now.getHours()}`.padStart(2, '0');
+  const m = `${now.getMinutes()}`.padStart(2, '0');
+  return `${h}:${m}`;
+}
+
 export function SearchScreen({ navigation }: Props) {
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'search');
+  const [clock, setClock] = useState(getCurrentClock());
+
+  useEffect(() => {
+    const updateClock = () => setClock(getCurrentClock());
+    const timer = setInterval(updateClock, 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleClose = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -59,7 +74,7 @@ export function SearchScreen({ navigation }: Props) {
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
-          <Text style={styles.clock}>15:23</Text>
+          <Text style={styles.clock}>{clock}</Text>
           <Pressable style={styles.closeBtn} onPress={handleClose}>
             <MaterialCommunityIcons name="close" size={30} color="#171717" />
           </Pressable>

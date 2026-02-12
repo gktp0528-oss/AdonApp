@@ -46,6 +46,12 @@ export function AiListingScreen({ navigation, route }: Props) {
     }
   }, [route.params?.selectedCategory]);
 
+  useEffect(() => {
+    if (route.params?.selectedPrice) {
+      setPrice(route.params.selectedPrice);
+    }
+  }, [route.params?.selectedPrice]);
+
   const handleClose = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();

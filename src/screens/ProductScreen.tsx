@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Share, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +24,8 @@ export function ProductScreen({ navigation, route }: Props) {
   const [seller, setSeller] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [following, setFollowing] = useState(false);
 
   useEffect(() => {
     if (!targetId) {
@@ -81,6 +83,16 @@ export function ProductScreen({ navigation, route }: Props) {
   const heroImage = listing.photos?.[0] || 'https://via.placeholder.com/400';
   const priceDisplay = listing.currency === 'USD' ? `$${listing.price}` : `€${listing.price}`;
 
+  const handleShareListing = async () => {
+    try {
+      await Share.share({
+        message: `${listing.title} - ${priceDisplay}`,
+      });
+    } catch {
+      Alert.alert('Error', 'Unable to share right now.');
+    }
+  };
+
   // Formatting helper
   const formatDate = (ts: any) => {
     if (!ts) return '';
@@ -97,12 +109,12 @@ export function ProductScreen({ navigation, route }: Props) {
           <View style={[styles.topActions, { top: insets.top + 12 }]}>
             <DetailBackButton onPress={() => navigation.goBack()} />
             <View style={styles.rightActions}>
-              <View style={styles.iconCircle}>
+              <Pressable style={styles.iconCircle} onPress={handleShareListing}>
                 <MaterialIcons name="share" size={18} color="#0f172a" />
-              </View>
-              <View style={styles.iconCircle}>
-                <MaterialIcons name="favorite-border" size={18} color="#0f172a" />
-              </View>
+              </Pressable>
+              <Pressable style={styles.iconCircle} onPress={() => setLiked((prev) => !prev)}>
+                <MaterialIcons name={liked ? 'favorite' : 'favorite-border'} size={18} color={liked ? '#ef4444' : '#0f172a'} />
+              </Pressable>
             </View>
           </View>
 
@@ -160,8 +172,8 @@ export function ProductScreen({ navigation, route }: Props) {
                   </Text>
                 </View>
               </View>
-              <Pressable style={styles.followBtn}>
-                <Text style={styles.followText}>Follow</Text>
+              <Pressable style={styles.followBtn} onPress={() => setFollowing((prev) => !prev)}>
+                <Text style={styles.followText}>{following ? 'Following' : 'Follow'}</Text>
               </Pressable>
             </View>
 

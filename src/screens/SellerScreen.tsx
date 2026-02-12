@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +57,16 @@ export function SellerScreen({ navigation, route }: Props) {
       </View>
     );
   }
+
+  const handleShareProfile = async () => {
+    try {
+      await Share.share({
+        message: `${seller.name}님의 ADON 프로필을 확인해보세요.`,
+      });
+    } catch {
+      Alert.alert('Error', 'Unable to share profile right now.');
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -165,10 +175,10 @@ export function SellerScreen({ navigation, route }: Props) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
         {sellerId === userService.getCurrentUserId() ? (
-          <PrimaryButton label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
+            <PrimaryButton label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
         ) : (
           <>
-            <PrimaryButton label="Share Profile" onPress={() => { }} />
+            <PrimaryButton label="Share Profile" onPress={handleShareProfile} />
             <PrimaryButton label="Start Chat" tone="ghost" onPress={() => navigation.navigate('ChatList')} />
           </>
         )}

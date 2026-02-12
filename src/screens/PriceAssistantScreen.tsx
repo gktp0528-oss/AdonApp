@@ -26,6 +26,25 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
     const [loading, setLoading] = useState(true);
     const [analysis, setAnalysis] = useState<any>(null);
 
+    const getRecommendedPrice = (): string | null => {
+        const min = Number(analysis?.priceRange?.min);
+        const max = Number(analysis?.priceRange?.max);
+        if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) {
+            return null;
+        }
+        return String(Math.round((min + max) / 2));
+    };
+
+    const handleApplyPrice = () => {
+        const recommendedPrice = getRecommendedPrice();
+        if (!recommendedPrice) {
+            navigation.goBack();
+            return;
+        }
+
+        navigation.navigate('AiListing', { selectedPrice: recommendedPrice });
+    };
+
     useEffect(() => {
         if (imageUris && imageUris.length > 0) {
             runDeepAnalysis(imageUris);
@@ -164,7 +183,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 </View>
 
                 <View style={styles.actionRow}>
-                    <Pressable style={styles.applyBtn} onPress={() => navigation.goBack()}>
+                    <Pressable style={styles.applyBtn} onPress={handleApplyPrice}>
                         <Text style={styles.applyBtnText}>이 가격으로 확정하기</Text>
                     </Pressable>
                 </View>
