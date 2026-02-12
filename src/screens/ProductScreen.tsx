@@ -35,6 +35,7 @@ export function ProductScreen({ navigation, route }: Props) {
   // Translation State
   const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
   const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
+  const [translatedCategory, setTranslatedCategory] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
 
@@ -73,20 +74,28 @@ export function ProductScreen({ navigation, route }: Props) {
   // Automatic Translation Effect (AliExpress/Airbnb style)
   useEffect(() => {
     const handleAutoTranslate = async () => {
-      if (!listing || !listing.originLanguage) return;
+      // Legacy support: default to 'ko' if originLanguage is missing
+      if (!listing) return;
+      const originLang = listing.originLanguage || 'ko';
 
       const currentLang = i18n.language;
-      if (listing.originLanguage !== currentLang) {
+      if (originLang !== currentLang) {
         setIsTranslating(true);
         try {
-          const result = await translationService.translateListing(
-            listing.title,
-            listing.description,
-            listing.originLanguage
-          );
+          // Translate title, description, and category
+          const [result, translatedCat] = await Promise.all([
+            translationService.translateListing(
+              listing.title,
+              listing.description,
+              originLang
+            ),
+            translationService.translate(listing.category, originLang, currentLang)
+          ]);
+
           if (result.translated) {
             setTranslatedTitle(result.title);
             setTranslatedDesc(result.description);
+            setTranslatedCategory(translatedCat);
             setIsTranslated(true);
           }
         } catch (error) {
@@ -95,15 +104,16 @@ export function ProductScreen({ navigation, route }: Props) {
           setIsTranslating(false);
         }
       } else {
-        // Reset if languages match (e.g. language changed back)
+        // Reset if languages match
         setTranslatedTitle(null);
         setTranslatedDesc(null);
+        setTranslatedCategory(null);
         setIsTranslated(false);
       }
     };
 
     handleAutoTranslate();
-  }, [listing?.id, listing?.title, listing?.description, listing?.originLanguage, i18n.language]);
+  }, [listing?.id, listing?.title, listing?.description, listing?.originLanguage, listing?.category, i18n.language]);
 
   // Loading State
   if (loading) {
@@ -267,7 +277,7 @@ export function ProductScreen({ navigation, route }: Props) {
           <View style={styles.specGrid}>
             <View style={styles.specCol}>
               <Text style={styles.specKey}>{t('product.category')}</Text>
-              <Text style={styles.specValue}>{listing.category}</Text>
+              <Text style={styles.specValue}>{isTranslated ? translatedCategory : listing.category}</Text>
             </View>
             <View style={styles.specCol}>
               <Text style={styles.specKey}>{t('product.condition')}</Text>
