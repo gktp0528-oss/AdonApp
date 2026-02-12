@@ -269,7 +269,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
       addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
-      const model = getGenerativeModel(aiBackend, { model: "gemini-3-flash-preview" });
+      const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
 
       // Prepare all images for Gemini
       const imageParts = await Promise.all(uris.map(async (uri, idx) => {

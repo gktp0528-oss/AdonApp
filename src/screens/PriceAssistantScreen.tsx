@@ -15,6 +15,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { getGenerativeModel } from "firebase/ai";
 import { aiBackend } from '../firebaseConfig';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const { width } = Dimensions.get('window');
 
@@ -33,9 +34,25 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         }
     }, [imageUris]);
 
-    const runDeepAnalysis = async (uris: string[]) => {
+    const processImage = async (uri: string) => {
         try {
-            const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash" });
+            const manipulResult = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 512 } }],
+                { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+            );
+            return manipulResult.uri;
+        } catch (error) {
+            return uri;
+        }
+    };
+
+    const runDeepAnalysis = async (originalUris: string[]) => {
+        try {
+            const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
+
+            // Image optimization
+            const uris = await Promise.all(originalUris.map(uri => processImage(uri)));
 
             const imageParts = await Promise.all(uris.map(async (uri) => {
                 const response = await fetch(uri);
@@ -85,7 +102,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
             return (
                 <View style={styles.center}>
                     <ActivityIndicator size="large" color="#30e86e" />
-                    <Text style={styles.loadingText}>모든 상품 사진을 정밀 분석 중이에요... ✨</Text>
+                    <Text style={styles.loadingText}>모든 상품 사진을 정밀 분석 중이에요... ✨{"\n"}전담 AI 팀이 시세를 확인하고 있어요.</Text>
                 </View>
             );
         }
@@ -119,7 +136,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 </View>
 
                 <View style={styles.priceCard}>
-                    <Text style={styles.cardTitle}>추천 거래 범위 (Multi-Photo Analyzed)</Text>
+                    <Text style={styles.cardTitle}>Adon Vision 시세 예측 범위 🎯</Text>
                     <Text style={styles.priceRange}>
                         €{analysis.priceRange.min} — €{analysis.priceRange.max}
                     </Text>
@@ -131,7 +148,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 </View>
 
                 <View style={styles.insightSection}>
-                    <Text style={styles.sectionTitle}>전문가 인사이트 ✨</Text>
+                    <Text style={styles.sectionTitle}>Adon Vision 마켓 리포트 ✨</Text>
                     {analysis.insights.map((insight: string, idx: number) => (
                         <View key={idx} style={styles.insightRow}>
                             <MaterialIcons name="insights" size={16} color="#30e86e" />
@@ -152,11 +169,11 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Pressable onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back" size={24} color="#fff" />
+                <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <MaterialIcons name="arrow-back" size={24} color="#1e293b" />
                 </Pressable>
-                <Text style={styles.headerTitle}>AI Multi-Price Assistant</Text>
-                <View style={{ width: 24 }} />
+                <Text style={styles.headerTitle}>Adon Vision AI</Text>
+                <View style={{ width: 44 }} />
             </View>
             {renderContent()}
         </SafeAreaView>
@@ -164,40 +181,51 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f172a' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
     },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    backBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#f1f5f9',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitle: { color: '#1e293b', fontSize: 18, fontWeight: '800' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-    loadingText: { color: '#94a3b8', marginTop: 16, textAlign: 'center', lineHeight: 24 },
+    loadingText: { color: '#64748b', marginTop: 24, textAlign: 'center', lineHeight: 24, fontSize: 16, fontWeight: '500' },
     errorText: { color: '#ef4444', textAlign: 'center' },
     scrollContent: { padding: 20 },
-    photoList: { flexDirection: 'row', marginBottom: 24, gap: 12 },
-    listImage: { width: 140, height: 140, borderRadius: 16 },
-    itemInfo: { marginBottom: 24 },
-    itemName: { color: '#fff', fontSize: 24, fontWeight: '700', marginBottom: 12 },
+    photoList: { flexDirection: 'row', marginBottom: 24 },
+    listImage: { width: 140, height: 140, borderRadius: 20, marginRight: 12 },
+    itemInfo: { marginBottom: 24, paddingHorizontal: 4 },
+    itemName: { color: '#1e293b', fontSize: 26, fontWeight: '800', marginBottom: 12 },
     badgeRow: { flexDirection: 'row', gap: 8 },
-    demandBadge: { backgroundColor: '#1e293b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-    demandText: { color: '#30e86e', fontSize: 13, fontWeight: '600' },
-    conditionBadge: { backgroundColor: '#1e293b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-    conditionText: { color: '#94a3b8', fontSize: 13 },
-    priceCard: { backgroundColor: '#1e293b', borderRadius: 28, padding: 28, marginBottom: 24 },
-    cardTitle: { color: '#94a3b8', fontSize: 14, marginBottom: 12 },
-    priceRange: { color: '#30e86e', fontSize: 36, fontWeight: '800', marginBottom: 20 },
-    graphContainer: { height: 10, backgroundColor: '#334155', borderRadius: 5, marginBottom: 24, position: 'relative' },
-    graphBar: { position: 'absolute', left: '20%', right: '20%', height: '100%', backgroundColor: '#30e86e', borderRadius: 5, opacity: 0.3 },
-    graphIndicator: { position: 'absolute', width: 4, height: 20, backgroundColor: '#30e86e', borderRadius: 2, top: -5 },
-    reasoning: { color: '#cbd5e1', fontSize: 15, lineHeight: 24 },
-    insightSection: { marginBottom: 32 },
-    sectionTitle: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 20 },
-    insightRow: { flexDirection: 'row', gap: 14, marginBottom: 14, alignItems: 'flex-start' },
-    insightText: { color: '#94a3b8', fontSize: 15, flex: 1, lineHeight: 22 },
+    demandBadge: { backgroundColor: '#30e86e20', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+    demandText: { color: '#059669', fontSize: 13, fontWeight: '700' },
+    conditionBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+    conditionText: { color: '#64748b', fontSize: 13, fontWeight: '600' },
+    priceCard: { backgroundColor: '#fff', borderRadius: 32, padding: 28, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 20, elevation: 5, borderWidth: 1, borderColor: '#f1f5f9' },
+    cardTitle: { color: '#64748b', fontSize: 14, fontWeight: '600', marginBottom: 12 },
+    priceRange: { color: '#30e86e', fontSize: 38, fontWeight: '900', marginBottom: 20, letterSpacing: -1 },
+    graphContainer: { height: 12, backgroundColor: '#f1f5f9', borderRadius: 6, marginBottom: 24, position: 'relative', overflow: 'hidden' },
+    graphBar: { position: 'absolute', left: '20%', right: '20%', height: '100%', backgroundColor: '#30e86e', opacity: 0.2 },
+    graphIndicator: { position: 'absolute', width: 6, height: 12, backgroundColor: '#30e86e', borderRadius: 3 },
+    reasoning: { color: '#475569', fontSize: 15, lineHeight: 26, fontWeight: '400' },
+    insightSection: { marginBottom: 32, paddingHorizontal: 4 },
+    sectionTitle: { color: '#1e293b', fontSize: 20, fontWeight: '800', marginBottom: 20 },
+    insightRow: { flexDirection: 'row', gap: 14, marginBottom: 16, alignItems: 'flex-start' },
+    insightText: { color: '#64748b', fontSize: 15, flex: 1, lineHeight: 24 },
     actionRow: { marginTop: 16 },
-    applyBtn: { backgroundColor: '#30e86e', height: 60, borderRadius: 18, justifyContent: 'center', alignItems: 'center', shadowColor: '#30e86e', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
-    applyBtnText: { color: '#0f172a', fontSize: 18, fontWeight: '800' },
+    applyBtn: { backgroundColor: '#30e86e', height: 65, borderRadius: 20, justifyContent: 'center', alignItems: 'center', shadowColor: '#30e86e', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 10 },
+    applyBtnText: { color: '#fff', fontSize: 19, fontWeight: '900' },
 });
