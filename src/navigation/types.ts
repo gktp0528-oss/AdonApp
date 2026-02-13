@@ -28,7 +28,8 @@ export type RootStackParamList = {
   Seller: { sellerId: string } | undefined;
   EditProfile: undefined;
   Chat: { conversationId: string };
-  AiListing: { selectedCategory?: string; selectedPrice?: string } | undefined;
+  AiListing: { selectedCategory?: string; selectedPrice?: string; appliedReport?: any } | undefined;
+  AiAnalysisResult: { report: any; imageUri: string };
   CategorySelect: { parentId?: string; currentPath?: string } | undefined;
   AiIntro: undefined;
   AiPriceAssistant: { imageUris?: string[]; initialPrice?: string } | undefined;

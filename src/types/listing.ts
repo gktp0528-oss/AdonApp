@@ -32,5 +32,15 @@ export interface Listing {
         address: string;
     };
     views?: number;
+    views?: number;
     likes?: number;
 }
+
+export type UnifiedAiReport = {
+    itemName: string;
+    marketDemand: string;
+    conditionScore: number | null;
+    priceRange: { min: number; max: number } | null;
+    insights: string[];
+    reasoning: string;
+};

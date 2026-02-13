@@ -63,6 +63,24 @@ export function AiListingScreen({ navigation, route }: Props) {
     }
   }, [route.params?.selectedPrice]);
 
+  useEffect(() => {
+    if (route.params?.appliedReport) {
+      const data = route.params.appliedReport;
+      if (data.itemName) setTitle(data.itemName);
+      if (data.priceRange) {
+        setAiPriceRange(data.priceRange);
+        const suggested = getRecommendedPriceFromRange(data.priceRange);
+        if (suggested) setPrice(suggested);
+      }
+      if (data.conditionScore) {
+        setCondition(inferConditionFromScore(data.conditionScore));
+      }
+      if (data.reasoning) setDescription(data.reasoning);
+
+      setAiReport(data);
+    }
+  }, [route.params?.appliedReport]);
+
   const handleClose = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -409,34 +427,28 @@ export function AiListingScreen({ navigation, route }: Props) {
             setDescription(desc.trim());
           }
 
-          setCondition(inferConditionFromScore(normalizedScore));
-          setAiReport({
+          const report: UnifiedAiReport = {
             itemName: typeof data.itemName === 'string' && data.itemName.trim() ? data.itemName.trim() : '분석 상품',
             marketDemand: typeof data.marketDemand === 'string' && data.marketDemand.trim() ? data.marketDemand.trim() : 'N/A',
             conditionScore: normalizedScore,
             priceRange: normalizedPriceRange,
             insights: normalizedInsights,
             reasoning: typeof desc === 'string' && desc.trim() ? desc.trim() : '리포트 설명이 제공되지 않았습니다.',
+          };
+
+          setIsAiLoading(false);
+          setAiStep(null);
+
+          navigation.navigate('AiAnalysisResult', {
+            report,
+            imageUri: photos[0]
           });
 
-          if (!price.trim() && normalizedPriceRange) {
-            const suggestedPrice = getRecommendedPriceFromRange(normalizedPriceRange);
-            if (suggestedPrice) {
-              setPrice(suggestedPrice);
-            }
-          }
         } else {
-          setTitle('AI 분석 완료');
-          setDescription(responseText);
-          setAiPriceRange(null);
-          setAiReport({
-            itemName: '분석 상품',
-            marketDemand: 'N/A',
-            conditionScore: null,
-            priceRange: null,
-            insights: [],
-            reasoning: responseText,
-          });
+          // Fallback for failed JSON parse
+          Alert.alert('Analysis Failed', 'Could not structure the data.');
+          setIsAiLoading(false);
+          setAiStep(null);
         }
 
         await addDoc(collection(db, 'ai_processing_logs'), {
@@ -466,6 +478,20 @@ export function AiListingScreen({ navigation, route }: Props) {
         `AI가 분석 중에 문제가 생겼어요: ${errorMessage}\n\nFirebase 콘솔에서 AI API가 활성화되어 있는지 확인해 주세요! 💖`);
     }
   };
+
+  if (isAiLoading) {
+    return (
+      <View style={styles.loadingOverlay}>
+        <View style={styles.scanningWrap}>
+          <View style={styles.aiPulseContainer}>
+            <View style={styles.aiPulse} />
+          </View>
+          <Text style={styles.aiLiveTitle}>ADON VISION ENGINE</Text>
+          <Text style={styles.percentageText}>{aiStep === 'uploading' ? 'UPLOADING...' : 'ANALYZING...'}</Text>
+        </View>
+      </View>
+    );
+  }
 
   const renderAiLoadingOverlay = () => {
     if (!isAiLoading) return null;
@@ -652,9 +678,9 @@ export function AiListingScreen({ navigation, route }: Props) {
               onPress={handleRunAiAnalysis}
               disabled={isAiLoading || photos.length === 0}
             >
-              <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#16a34a'} />
+              <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
               <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
-                {isAiLoading ? 'AI 분석 진행 중...' : 'AI 분석 시작'}
+                {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
               </Text>
             </Pressable>
             <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
@@ -685,18 +711,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           {/* Price Input */}
           <View style={styles.inputGroup}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.label}>가격</Text>
-              <Pressable
-                style={styles.aiPriceBtn}
-                onPress={handleRunAiAnalysis}
-              >
-                <MaterialIcons name="auto-awesome" size={16} color="#30e86e" />
-                <Text style={styles.aiPriceBtnText}>
-                  {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
-                </Text>
-              </Pressable>
-            </View>
+            <Text style={styles.label}>가격</Text>
             <View style={styles.priceContainer}>
               <Text style={styles.currencySymbol}>€</Text>
               <TextInput
