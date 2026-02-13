@@ -116,7 +116,7 @@ export default function PaymentScreen({ navigation, route }: Props) {
 
         setIsSubmitting(true);
         try {
-            await transactionService.createTransaction({
+            const transactionId = await transactionService.createTransaction({
                 listingId,
                 buyerId: currentUserId,
                 sellerId,

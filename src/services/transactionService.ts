@@ -84,4 +84,16 @@ export const transactionService = {
         }
         return false;
     },
+
+    /**
+     * Retrieves a single transaction by ID.
+     */
+    async getTransaction(transactionId: string): Promise<Transaction | null> {
+        const transactionRef = doc(db, 'transactions', transactionId);
+        const snap = await getDoc(transactionRef);
+        if (snap.exists()) {
+            return { id: snap.id, ...snap.data() } as Transaction;
+        }
+        return null;
+    },
 };

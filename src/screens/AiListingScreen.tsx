@@ -1182,6 +1182,28 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     opacity: 1,
   },
+  toast: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    zIndex: 1500,
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  toastSuccess: {
+    backgroundColor: '#166534',
+  },
+  toastError: {
+    backgroundColor: '#b91c1c',
+  },
+  toastText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   aiPriceBtn: {
     flexDirection: 'row',
     alignItems: 'center',

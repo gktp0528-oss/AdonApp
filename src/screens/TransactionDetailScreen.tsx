@@ -28,14 +28,15 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
     const [pinInput, setPinInput] = useState('');
 
     useEffect(() => {
-        // In a real app, use onSnapshot for real-time updates
         const fetchTransaction = async () => {
             try {
-                // We need a getTransaction method in the service
-                // For now, let's assume it exists or we use direct firestore for this demo
-                setLoading(false);
+                const data = await transactionService.getTransaction(transactionId);
+                if (data) {
+                    setTransaction(data);
+                }
             } catch (error) {
                 console.error('Error fetching transaction:', error);
+            } finally {
                 setLoading(false);
             }
         };

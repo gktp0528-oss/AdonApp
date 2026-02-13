@@ -30,7 +30,9 @@
       "likeNew": "Like New",
       "good": "Good",
       "fair": "Fair"
-    }
+    },
+    "success": "Success",
+    "verify": "Verify"
   },
   "screen": {
     "login": {
@@ -238,22 +240,22 @@
         "reliability": "Reliability",
         "sales": "Sales",
         "response": "Response",
+        "reliabilityLabel": "ADON Reliability Index",
+        "reliabilityDefault": "Verified seller with trusted activity.",
+        "products": {
+          "title": "Selling Items",
+          "seeAll": "See All",
+          "empty": "No items listed.",
+          "emptyButton": "Start Selling"
+        },
+        "button": {
+          "edit": "Edit Profile",
+          "share": "Share Profile",
+          "chat": "Start Chat"
+        },
         "responseValue": {
           "fast": "Fast"
         }
-      },
-      "reliabilityLabel": "ADON Reliability Index",
-      "reliabilityDefault": "Verified seller with trusted activity.",
-      "products": {
-        "title": "Selling Items",
-        "seeAll": "See All",
-        "empty": "No items listed.",
-        "emptyButton": "Start Selling"
-      },
-      "button": {
-        "edit": "Edit Profile",
-        "share": "Share Profile",
-        "chat": "Start Chat"
       }
     },
     "editProfile": {
@@ -407,6 +409,15 @@
         "fieldsRequired": "Please fill in all required fields.",
         "providerRequired": "Please select a shipping provider."
       }
+    },
+    "transaction": {
+      "title": "Transaction Details",
+      "status": "Trade Status",
+      "safetyCode": "Safety PIN",
+      "safetyCodeDesc": "Share this 4-digit PIN with the seller ONLY when you have received the item during the meetup.",
+      "verifyBuyer": "Verify Buyer",
+      "pinVerified": "PIN verified successfully! Transaction status updated.",
+      "pinInvalid": "Invalid PIN. Please try again."
     }
   }
 }
