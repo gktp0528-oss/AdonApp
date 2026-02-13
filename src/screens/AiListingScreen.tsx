@@ -103,9 +103,6 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
   const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
 
-  const addFeed = (msg: string) => {
-    // Placeholder for future logging if needed
-  };
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
   const conditionLabelMap: Record<ListingCondition, string> = {
@@ -459,893 +456,779 @@ export function AiListingScreen({ navigation, route }: Props) {
     );
   }
 
-  const renderAiLoadingOverlay = () => {
-    if (!isAiLoading) return null;
-
-    const getStepMessage = () => {
-      switch (aiStep) {
-        case 'uploading':
-          return '1단계: 사진 업로드 및 정보 스캔 중';
-        case 'analyzing':
-          return '1단계: 사진 업로드 및 정보 스캔 중';
-        case 'finalizing':
-          return '2단계: 시세 계산과 등록 문구 정리 중';
-        default:
-          return 'AI 분석 준비 중';
-      }
-    };
-
-    return (
-      <View style={styles.loadingOverlay}>
-        <View style={styles.scanningWrap}>
-          {photos.length > 0 && (
-            <View style={styles.scanningPreviewBox}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={{ width: '100%', height: '100%' }}
-                contentContainerStyle={{ alignItems: 'center' }}
-              >
-                {photos.map((p, i) => (
-                  <View key={i} style={{ width: 280, height: 220, marginRight: 0 }}>
-                    <Image source={{ uri: p }} style={styles.scanningPreviewImg} resizeMode="cover" />
-                  </View>
-                ))}
-              </ScrollView>
-
-              <Animated.View
-                style={[
-                  styles.scannerLine,
-                  {
-                    transform: [{
-                      translateY: scannerAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 220],
-                      })
-                    }]
-                  }
-                ]}
-              />
-              <View style={styles.scanningOverlayTint} />
-
-              {/* Slide Indicators */}
-              <View style={{ position: 'absolute', bottom: 10, flexDirection: 'row', gap: 6, alignSelf: 'center' }}>
-                {photos.map((_, i) => (
-                  <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#30e86e', opacity: 0.8 }} />
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.aiLiveContent}>
-            <View style={styles.aiHeaderRow}>
-              <View style={styles.aiPulseContainer}>
-                <View style={styles.aiPulse} />
-              </View>
-              <Text style={styles.aiLiveTitle}>ADON VISION ENGINE</Text>
-              <View style={styles.percentageBadge}>
-                <Text style={styles.percentageText}>{displayProgress}%</Text>
-              </View>
-            </View>
-
-            <View style={styles.liveFeedContainer}>
-              <View style={styles.feedScroll}>
-                {aiLiveFeed.map((msg, i) => (
-                  <View key={i} style={styles.feedRow}>
-                    <Text style={styles.feedArrow}>{'>'}</Text>
-                    <Text style={[styles.feedItem, i === aiLiveFeed.length - 1 && styles.feedItemActive]}>
-                      {msg}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.progressSection}>
-              <View style={styles.progressBarBg}>
-                <Animated.View
-                  style={[
-                    styles.progressBarFill,
-                    {
-                      width: progressAnim.interpolate({
-                        inputRange: [0, 100],
-                        outputRange: ['0%', '100%'],
-                      })
-                    }
-                  ]}
-                />
-                <Animated.View
-                  style={[
-                    styles.progressGlow,
-                    {
-                      left: progressAnim.interpolate({
-                        inputRange: [0, 100],
-                        outputRange: ['0%', '100%'],
-                      })
-                    }
-                  ]}
-                />
-              </View>
-            </View>
-            <Text style={styles.overlayStepMessage}>{getStepMessage().toUpperCase()}</Text>
-          </View>
-        </View>
-      </View>
-    );
-    return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>새 상품 등록</Text>
-            <Pressable style={styles.closeBtn} onPress={handleClose}>
-              <MaterialIcons name="close" size={24} color="#0f172a" />
-            </Pressable>
-          </View>
-
-          <Pressable
-            style={styles.aiBanner}
-            onPress={() => navigation.navigate('AiIntro')}
-          >
-            <View style={styles.aiBannerContent}>
-              <View style={styles.aiIconBadge}>
-                <MaterialIcons name="auto-awesome" size={20} color="#fff" />
-              </View>
-              <View>
-                <Text style={styles.aiBannerTitle}>Adon AI 기능 사용해보기</Text>
-                <Text style={styles.aiBannerSubtitle}>자동 입력, 시세 분석 등</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color="#15803d" />
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>새 상품 등록</Text>
+          <Pressable style={styles.closeBtn} onPress={handleClose}>
+            <MaterialIcons name="close" size={24} color="#0f172a" />
           </Pressable>
+        </View>
 
-          <ScrollView
-            contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Photo Section */}
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>사진</Text>
-              {isAiLoading && (
-                <View style={styles.aiLoadingBadge}>
-                  <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
-                  <Text style={styles.aiLoadingText}>AI 분석 중...</Text>
-                </View>
-              )}
+        <Pressable
+          style={styles.aiBanner}
+          onPress={() => navigation.navigate('AiIntro')}
+        >
+          <View style={styles.aiBannerContent}>
+            <View style={styles.aiIconBadge}>
+              <MaterialIcons name="auto-awesome" size={20} color="#fff" />
             </View>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
-              <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
-                <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-                <Text style={styles.addPhotoText}>사진 추가 ({photos.length}/10)</Text>
-              </Pressable>
-              {photos.map((uri, index) => (
-                <View key={index} style={styles.photoCard}>
-                  <Image source={{ uri }} style={styles.photoImage} />
-                  <Pressable
-                    style={styles.removePhotoBtn}
-                    onPress={() => setPhotos(photos.filter((_, i) => i !== index))}
-                  >
-                    <MaterialIcons name="close" size={12} color="#fff" />
-                  </Pressable>
-                </View>
-              ))}
-            </ScrollView>
-
-            <View style={styles.aiActionRow}>
-              <Pressable
-                style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
-                onPress={handleRunAiAnalysis}
-                disabled={isAiLoading || photos.length === 0}
-              >
-                <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
-                <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
-                  {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
-                </Text>
-              </Pressable>
-              <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
+            <View>
+              <Text style={styles.aiBannerTitle}>Adon AI 기능 사용해보기</Text>
+              <Text style={styles.aiBannerSubtitle}>자동 입력, 시세 분석 등</Text>
             </View>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color="#15803d" />
+        </Pressable>
 
-            {/* Title Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>상품명</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="예: Nike Air Max 97"
-                placeholderTextColor="#64748b"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-            {/* Category Selector (Mock) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>카테고리</Text>
-              <Pressable style={styles.selector} onPress={() => navigation.navigate('CategorySelect')}>
-                <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                  {category || '카테고리 선택'}
-                </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
-              </Pressable>
-            </View>
-
-            {/* Price Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>가격</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.currencySymbol}>€</Text>
-                <TextInput
-                  style={styles.priceInput}
-                  placeholder="0.00"
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  value={price}
-                  onChangeText={setPrice}
-                />
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Photo Section */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>사진</Text>
+            {isAiLoading && (
+              <View style={styles.aiLoadingBadge}>
+                <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
+                <Text style={styles.aiLoadingText}>AI 분석 중...</Text>
               </View>
-            </View>
+            )}
+          </View>
 
-            {aiReport ? (
-              <View style={styles.reportCard}>
-                <View style={styles.reportHeader}>
-                  <Text style={styles.reportTitle}>Adon AI 통합 리포트</Text>
-                  <Text style={styles.reportSubtitle}>상품 분석 + 가격 제안 + 판매 문구를 한 번에 정리했어요</Text>
-                </View>
-
-                <View style={styles.reportStatRow}>
-                  <View style={styles.reportPill}>
-                    <Text style={styles.reportPillLabel}>모델</Text>
-                    <Text style={styles.reportPillValue}>{aiReport.itemName}</Text>
-                  </View>
-                  <View style={styles.reportPill}>
-                    <Text style={styles.reportPillLabel}>수요</Text>
-                    <Text style={styles.reportPillValue}>{aiReport.marketDemand}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.reportStatRow}>
-                  <View style={styles.reportPill}>
-                    <Text style={styles.reportPillLabel}>상태 점수</Text>
-                    <Text style={styles.reportPillValue}>
-                      {aiReport.conditionScore !== null ? `${aiReport.conditionScore}/10` : 'N/A'}
-                    </Text>
-                  </View>
-                  <View style={styles.reportPill}>
-                    <Text style={styles.reportPillLabel}>권장 가격</Text>
-                    <Text style={styles.reportPillValue}>
-                      {aiReport.priceRange ? `€${aiReport.priceRange.min} ~ €${aiReport.priceRange.max}` : 'N/A'}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.reportBody}>
-                  <Text style={styles.reportSectionTitle}>판매 근거 요약</Text>
-                  <Text style={styles.reportReasoning}>{aiReport.reasoning}</Text>
-                </View>
-
-                {aiReport.insights.length > 0 ? (
-                  <View style={styles.reportBody}>
-                    <Text style={styles.reportSectionTitle}>핵심 인사이트</Text>
-                    {aiReport.insights.map((insight, idx) => (
-                      <View key={`${insight}-${idx}`} style={styles.reportInsightRow}>
-                        <MaterialIcons name="check-circle" size={14} color="#16a34a" />
-                        <Text style={styles.reportInsightText}>{insight}</Text>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+            <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
+              <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
+              <Text style={styles.addPhotoText}>사진 추가 ({photos.length}/10)</Text>
+            </Pressable>
+            {photos.map((uri, index) => (
+              <View key={index} style={styles.photoCard}>
+                <Image source={{ uri }} style={styles.photoImage} />
                 <Pressable
-                  style={[styles.reportApplyBtn, !aiPriceRange && styles.reportApplyBtnDisabled]}
-                  onPress={handleApplyRecommendedPrice}
-                  disabled={!aiPriceRange}
+                  style={styles.removePhotoBtn}
+                  onPress={() => setPhotos(photos.filter((_, i) => i !== index))}
                 >
-                  <Text style={styles.reportApplyBtnText}>추천 가격 입력하기</Text>
+                  <MaterialIcons name="close" size={12} color="#fff" />
                 </Pressable>
               </View>
-            ) : null}
-
-            {/* Condition Selector */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>상태</Text>
-              <View style={styles.conditionRow}>
-                {conditions.map((c) => (
-                  <Pressable
-                    key={c}
-                    style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
-                    onPress={() => setCondition(c)}
-                  >
-                    <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
-                      {conditionLabelMap[c]}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            {/* Description Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>설명</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="상품 설명을 입력해 주세요."
-                placeholderTextColor="#64748b"
-                multiline
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
-
+            ))}
           </ScrollView>
 
-          {/* Footer / CTA */}
-          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+          <View style={styles.aiActionRow}>
             <Pressable
-              style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-              onPress={handlePostItem}
-              disabled={isPosting}
+              style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
+              onPress={handleRunAiAnalysis}
+              disabled={isAiLoading || photos.length === 0}
             >
-              <Text style={styles.ctaText}>{isPosting ? '등록 중...' : '상품 등록하기'}</Text>
+              <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
+              <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
+                {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
+              </Text>
+            </Pressable>
+            <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
+          </View>
+
+          {/* Title Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>상품명</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="예: Nike Air Max 97"
+              placeholderTextColor="#64748b"
+              value={title}
+              onChangeText={setTitle}
+            />
+          </View>
+
+          {/* Category Selector (Mock) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>카테고리</Text>
+            <Pressable style={styles.selector} onPress={() => navigation.navigate('CategorySelect')}>
+              <Text style={[styles.selectorText, !category && styles.placeholderText]}>
+                {category || '카테고리 선택'}
+              </Text>
+              <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
             </Pressable>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
 
-  const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#f6f8f6' },
-    header: {
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f6f8f6',
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: '#0f172a',
-    },
-    closeBtn: {
-      position: 'absolute',
-      right: 20,
-      padding: 4,
-    },
-    content: {
-      paddingHorizontal: 20,
-      paddingTop: 10,
-    },
-    sectionHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-    },
-    aiLoadingBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#dbfde4',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 999,
-      gap: 4,
-    },
-    aiLoadingText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: '#16a34a',
-    },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#0f172a',
-    },
-    photoScroll: {
-      flexDirection: 'row',
-      marginBottom: 24,
-      overflow: 'visible',
-    },
-    addPhotoBtn: {
-      width: 100,
-      height: 100,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: '#19e61b',
-      borderStyle: 'dashed',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f0fdf4',
-      marginRight: 12,
-    },
-    addPhotoText: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: '#19e61b',
-      marginTop: 6,
-      textAlign: 'center',
-      paddingHorizontal: 4,
-    },
-    photoCard: {
-      width: 100,
-      height: 100,
-      borderRadius: 12,
-      overflow: 'hidden',
-      marginRight: 12,
-      backgroundColor: '#e2e8f0',
-    },
-    photoImage: {
-      width: '100%',
-      height: '100%',
-    },
-    aiActionRow: {
-      marginTop: -10,
-      marginBottom: 18,
-    },
-    aiAnalyzeBtn: {
-      height: 44,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: '#bbf7d0',
-      backgroundColor: '#f0fdf4',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 6,
-    },
-    aiAnalyzeBtnDisabled: {
-      borderColor: '#e2e8f0',
-      backgroundColor: '#f8fafc',
-    },
-    aiAnalyzeBtnText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#166534',
-    },
-    aiAnalyzeBtnTextDisabled: {
-      color: '#94a3b8',
-    },
-    aiStepHint: {
-      marginTop: 8,
-      fontSize: 12,
-      color: '#64748b',
-      fontWeight: '500',
-    },
-    removePhotoBtn: {
-      position: 'absolute',
-      top: 4,
-      right: 4,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      borderRadius: 10,
-      padding: 4,
-    },
-    inputGroup: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#0f172a',
-      marginBottom: 8,
-    },
-    input: {
-      backgroundColor: '#ffffff',
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: '#0f172a',
-    },
-    selector: {
-      backgroundColor: '#ffffff',
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    selectorText: {
-      fontSize: 16,
-      color: '#0f172a',
-    },
-    placeholderText: {
-      color: '#94a3b8',
-    },
-    priceContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#ffffff',
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 12,
-      paddingHorizontal: 16,
-    },
-    currencySymbol: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: '#64748b',
-      marginRight: 8,
-    },
-    priceInput: {
-      flex: 1,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: '#0f172a',
-    },
-    conditionRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-    },
-    conditionChip: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 999,
-      backgroundColor: '#ffffff',
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-    },
-    conditionChipActive: {
-      backgroundColor: '#f0fdf4',
-      borderColor: '#19e61b',
-    },
-    conditionText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#64748b',
-    },
-    conditionTextActive: {
-      color: '#16a34a',
-    },
-    textArea: {
-      height: 120,
-      paddingTop: 14,
-    },
-    footer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: '#f6f8f6',
-      borderTopWidth: 1,
-      borderTopColor: '#e2e8f0',
-      paddingTop: 16,
-      paddingHorizontal: 20,
-    },
-    ctaBtn: {
-      backgroundColor: '#19e61b',
-      borderRadius: 16,
-      height: 56,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#19e61b',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    ctaBtnDisabled: {
-      opacity: 0.65,
-    },
-    ctaText: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: '#0f172a',
-    },
-    aiBanner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: '#dcfce7',
-      marginHorizontal: 20,
-      marginTop: 10,
-      padding: 16,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: '#bbf7d0',
-    },
-    aiBannerContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    aiIconBadge: {
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      backgroundColor: '#16a34a',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    aiBannerTitle: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#14532d',
-    },
-    aiBannerSubtitle: {
-      fontSize: 14,
-      color: '#fff',
-      opacity: 0.9,
-      marginTop: 4,
-    },
-    loadingOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(255, 255, 255, 0.95)', // Bright background
-      zIndex: 1000,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    scanningWrap: {
-      width: '85%',
-      alignItems: 'center',
-    },
-    scanningPreviewBox: {
-      width: 280,
-      height: 220,
-      borderRadius: 24,
-      overflow: 'hidden',
-      marginBottom: 30,
-      borderWidth: 2,
-      borderColor: '#30e86e',
-      backgroundColor: '#fff',
-      shadowColor: '#30e86e',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.3,
-      shadowRadius: 20,
-      elevation: 20,
-    },
-    scanningPreviewImg: {
-      width: 280,
-      height: 220,
-    },
-    scannerLine: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 4,
-      backgroundColor: '#30e86e',
-      shadowColor: '#30e86e',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 10,
-      elevation: 10,
-      zIndex: 10,
-    },
-    scanningOverlayTint: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(48, 232, 110, 0.1)', // Light green tint
-    },
-    aiLiveContent: {
-      width: '100%',
-      backgroundColor: '#fff',
-      borderRadius: 32,
-      padding: 24,
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.1,
-      shadowRadius: 20,
-      elevation: 10,
-    },
-    aiHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 20,
-      justifyContent: 'space-between',
-    },
-    aiPulseContainer: {
-      width: 12,
-      height: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    aiPulse: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: '#30e86e',
-    },
-    aiLiveTitle: {
-      fontSize: 14,
-      fontWeight: '900',
-      color: '#0f172a', // Dark text for contrast
-      letterSpacing: 1,
-      flex: 1,
-      marginLeft: 12,
-    },
-    percentageBadge: {
-      backgroundColor: '#f0fdf4',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: '#30e86e',
-    },
-    percentageText: {
-      fontSize: 14,
-      fontWeight: '800',
-      color: '#16a34a',
-      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    },
-    liveFeedContainer: {
-      height: 130,
-      backgroundColor: '#f8fafc',
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 24,
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-    },
-    feedScroll: {
-      flex: 1,
-    },
-    feedRow: {
-      flexDirection: 'row',
-      marginBottom: 8,
-      alignItems: 'flex-start',
-    },
-    feedArrow: {
-      fontSize: 12,
-      color: '#30e86e',
-      marginRight: 8,
-      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    },
-    feedItem: {
-      fontSize: 12,
-      color: '#64748b',
-      lineHeight: 18,
-      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    },
-    feedItemActive: {
-      color: '#0f172a',
-      fontWeight: '700',
-    },
-    progressSection: {
-      marginBottom: 16,
-    },
-    progressBarBg: {
-      width: '100%',
-      height: 8,
-      backgroundColor: '#f1f5f9',
-      borderRadius: 4,
-      overflow: 'hidden',
-      position: 'relative',
-    },
-    progressBarFill: {
-      height: '100%',
-      backgroundColor: '#30e86e',
-      borderRadius: 4,
-    },
-    progressGlow: {
-      position: 'absolute',
-      top: 0,
-      width: 40,
-      height: '100%',
-      backgroundColor: 'rgba(255,255,255,0.8)',
-      shadowColor: '#fff',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 5,
-    },
-    overlayStepMessage: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: '#30e86e',
-      textAlign: 'center',
-      letterSpacing: 1,
-      opacity: 1,
-    },
-    reportCard: {
-      backgroundColor: '#ffffff',
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: '#dcfce7',
-      padding: 16,
-      marginBottom: 20,
-    },
-    reportHeader: {
-      marginBottom: 12,
-    },
-    reportTitle: {
-      fontSize: 16,
-      fontWeight: '800',
-      color: '#14532d',
-    },
-    reportSubtitle: {
-      marginTop: 4,
-      fontSize: 12,
-      color: '#64748b',
-      lineHeight: 18,
-    },
-    reportStatRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: 8,
-    },
-    reportPill: {
-      flex: 1,
-      backgroundColor: '#f0fdf4',
-      borderRadius: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-    },
-    reportPillLabel: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: '#16a34a',
-      marginBottom: 2,
-    },
-    reportPillValue: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: '#0f172a',
-    },
-    reportBody: {
-      marginTop: 8,
-    },
-    reportSectionTitle: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: '#334155',
-      marginBottom: 6,
-    },
-    reportReasoning: {
-      fontSize: 13,
-      color: '#475569',
-      lineHeight: 20,
-    },
-    reportInsightRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 6,
-      marginBottom: 6,
-    },
-    reportInsightText: {
-      flex: 1,
-      fontSize: 13,
-      color: '#334155',
-      lineHeight: 19,
-    },
-    reportApplyBtn: {
-      marginTop: 12,
-      height: 42,
-      borderRadius: 10,
-      backgroundColor: '#16a34a',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    reportApplyBtnDisabled: {
-      backgroundColor: '#94a3b8',
-    },
-    reportApplyBtnText: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: '#ffffff',
-    },
-    aiPriceBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      backgroundColor: '#1e293b',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-    },
-    aiPriceBtnText: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: '#30e86e',
-    },
-  });
+          {/* Price Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>가격</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.currencySymbol}>€</Text>
+              <TextInput
+                style={styles.priceInput}
+                placeholder="0.00"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+                value={price}
+                onChangeText={setPrice}
+              />
+            </View>
+          </View>
+
+          {aiReport ? (
+            <View style={styles.reportCard}>
+              <View style={styles.reportHeader}>
+                <Text style={styles.reportTitle}>Adon AI 통합 리포트</Text>
+                <Text style={styles.reportSubtitle}>상품 분석 + 가격 제안 + 판매 문구를 한 번에 정리했어요</Text>
+              </View>
+
+              <View style={styles.reportStatRow}>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>모델</Text>
+                  <Text style={styles.reportPillValue}>{aiReport.itemName}</Text>
+                </View>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>수요</Text>
+                  <Text style={styles.reportPillValue}>{aiReport.marketDemand}</Text>
+                </View>
+              </View>
+
+              <View style={styles.reportStatRow}>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>상태 점수</Text>
+                  <Text style={styles.reportPillValue}>
+                    {aiReport.conditionScore !== null ? `${aiReport.conditionScore}/10` : 'N/A'}
+                  </Text>
+                </View>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>권장 가격</Text>
+                  <Text style={styles.reportPillValue}>
+                    {aiReport.priceRange ? `€${aiReport.priceRange.min} ~ €${aiReport.priceRange.max}` : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.reportBody}>
+                <Text style={styles.reportSectionTitle}>판매 근거 요약</Text>
+                <Text style={styles.reportReasoning}>{aiReport.reasoning}</Text>
+              </View>
+
+              {aiReport.insights.length > 0 ? (
+                <View style={styles.reportBody}>
+                  <Text style={styles.reportSectionTitle}>핵심 인사이트</Text>
+                  {aiReport.insights.map((insight, idx) => (
+                    <View key={`${insight}-${idx}`} style={styles.reportInsightRow}>
+                      <MaterialIcons name="check-circle" size={14} color="#16a34a" />
+                      <Text style={styles.reportInsightText}>{insight}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              <Pressable
+                style={[styles.reportApplyBtn, !aiPriceRange && styles.reportApplyBtnDisabled]}
+                onPress={handleApplyRecommendedPrice}
+                disabled={!aiPriceRange}
+              >
+                <Text style={styles.reportApplyBtnText}>추천 가격 입력하기</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {/* Condition Selector */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>상태</Text>
+            <View style={styles.conditionRow}>
+              {conditions.map((c) => (
+                <Pressable
+                  key={c}
+                  style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
+                  onPress={() => setCondition(c)}
+                >
+                  <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
+                    {conditionLabelMap[c]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Description Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>설명</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="상품 설명을 입력해 주세요."
+              placeholderTextColor="#64748b"
+              multiline
+              textAlignVertical="top"
+              value={description}
+              onChangeText={setDescription}
+            />
+          </View>
+
+        </ScrollView>
+
+        {/* Footer / CTA */}
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+          <Pressable
+            style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+            onPress={handlePostItem}
+            disabled={isPosting}
+          >
+            <Text style={styles.ctaText}>{isPosting ? '등록 중...' : '상품 등록하기'}</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#f6f8f6' },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f6f8f6',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  closeBtn: {
+    position: 'absolute',
+    right: 20,
+    padding: 4,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  aiLoadingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dbfde4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    gap: 4,
+  },
+  aiLoadingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#16a34a',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  photoScroll: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    overflow: 'visible',
+  },
+  addPhotoBtn: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#19e61b',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0fdf4',
+    marginRight: 12,
+  },
+  addPhotoText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#19e61b',
+    marginTop: 6,
+    textAlign: 'center',
+    paddingHorizontal: 4,
+  },
+  photoCard: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 12,
+    backgroundColor: '#e2e8f0',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  aiActionRow: {
+    marginTop: -10,
+    marginBottom: 18,
+  },
+  aiAnalyzeBtn: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  aiAnalyzeBtnDisabled: {
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+  },
+  aiAnalyzeBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  aiAnalyzeBtnTextDisabled: {
+    color: '#94a3b8',
+  },
+  aiStepHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  removePhotoBtn: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 10,
+    padding: 4,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#0f172a',
+  },
+  selector: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectorText: {
+    fontSize: 16,
+    color: '#0f172a',
+  },
+  placeholderText: {
+    color: '#94a3b8',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748b',
+    marginRight: 8,
+  },
+  priceInput: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#0f172a',
+  },
+  conditionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  conditionChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  conditionChipActive: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#19e61b',
+  },
+  conditionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  conditionTextActive: {
+    color: '#16a34a',
+  },
+  textArea: {
+    height: 120,
+    paddingTop: 14,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f6f8f6',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 16,
+    paddingHorizontal: 20,
+  },
+  ctaBtn: {
+    backgroundColor: '#19e61b',
+    borderRadius: 16,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#19e61b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  ctaBtnDisabled: {
+    opacity: 0.65,
+  },
+  ctaText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  aiBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#dcfce7',
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  aiBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  aiIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiBannerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#14532d',
+  },
+  aiBannerSubtitle: {
+    fontSize: 14,
+    color: '#fff',
+    opacity: 0.9,
+    marginTop: 4,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Bright background
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanningWrap: {
+    width: '85%',
+    alignItems: 'center',
+  },
+  scanningPreviewBox: {
+    width: 280,
+    height: 220,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 30,
+    borderWidth: 2,
+    borderColor: '#30e86e',
+    backgroundColor: '#fff',
+    shadowColor: '#30e86e',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  scanningPreviewImg: {
+    width: 280,
+    height: 220,
+  },
+  scannerLine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#30e86e',
+    shadowColor: '#30e86e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 10,
+  },
+  scanningOverlayTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(48, 232, 110, 0.1)', // Light green tint
+  },
+  aiLiveContent: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    justifyContent: 'space-between',
+  },
+  aiPulseContainer: {
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiPulse: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30e86e',
+  },
+  aiLiveTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a', // Dark text for contrast
+    letterSpacing: 1,
+    flex: 1,
+    marginLeft: 12,
+  },
+  percentageBadge: {
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#30e86e',
+  },
+  percentageText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#16a34a',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  liveFeedContainer: {
+    height: 130,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  feedScroll: {
+    flex: 1,
+  },
+  feedRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'flex-start',
+  },
+  feedArrow: {
+    fontSize: 12,
+    color: '#30e86e',
+    marginRight: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  feedItem: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 18,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  feedItemActive: {
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+  progressSection: {
+    marginBottom: 16,
+  },
+  progressBarBg: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 4,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#30e86e',
+    borderRadius: 4,
+  },
+  progressGlow: {
+    position: 'absolute',
+    top: 0,
+    width: 40,
+    height: '100%',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 5,
+  },
+  overlayStepMessage: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#30e86e',
+    textAlign: 'center',
+    letterSpacing: 1,
+    opacity: 1,
+  },
+  reportCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#dcfce7',
+    padding: 16,
+    marginBottom: 20,
+  },
+  reportHeader: {
+    marginBottom: 12,
+  },
+  reportTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#14532d',
+  },
+  reportSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 18,
+  },
+  reportStatRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  reportPill: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  reportPillLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#16a34a',
+    marginBottom: 2,
+  },
+  reportPillValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  reportBody: {
+    marginTop: 8,
+  },
+  reportSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  reportReasoning: {
+    fontSize: 13,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  reportInsightRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginBottom: 6,
+  },
+  reportInsightText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 19,
+  },
+  reportApplyBtn: {
+    marginTop: 12,
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportApplyBtnDisabled: {
+    backgroundColor: '#94a3b8',
+  },
+  reportApplyBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  aiPriceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#1e293b',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  aiPriceBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#30e86e',
+  },
+});
