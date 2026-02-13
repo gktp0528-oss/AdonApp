@@ -354,6 +354,80 @@
         "nearby": "내 주변",
         "rating": "평점순"
       }
+    },
+    "payment": {
+      "title": "안전 결제",
+      "summary": "주문 요약",
+      "tradeMethod": "거래 방식",
+      "meetup": {
+        "title": "직거래",
+        "desc": "판매자를 직접 만나서 거래합니다.",
+        "date": "만나는 날짜",
+        "time": "만나는 시간",
+        "place": "만나는 장소",
+        "placeholder": {
+          "place": "예: 강남역 10번 출구 앞"
+        }
+      },
+      "delivery": {
+        "title": "택배 배송",
+        "desc": "우체국, 편의점 택배, 반값 택배 등",
+        "recipient": "받는 분 성함",
+        "phone": "휴대폰 번호",
+        "address": "배송지 주소",
+        "postcode": "우편번호",
+        "placeholder": {
+          "recipient": "홍길동",
+          "phone": "010-1234-5678",
+          "address": "서울시 강남구 테헤란로 123",
+          "postcode": "06234"
+        }
+      },
+      "locker": {
+        "title": "무인 보관함",
+        "desc": "지하철, 편의점 무인 보관함 이용",
+        "select": "보관함 선택",
+        "search": "주변 보관함 검색..."
+      },
+      "price": {
+        "item": "상품 금액",
+        "shipping": "배송비",
+        "fee": "서비스 수수료",
+        "total": "총 결제 금액"
+      },
+      "escrow": {
+        "title": "에스크로 안전 결제",
+        "desc": "구매 확정 전까지 결제 금액을 안전하게 보관합니다."
+      },
+      "submit": "결제하기",
+      "provider": {
+        "title": "배송 업체 선택",
+        "packeta": "반값택배 (GS/CU)",
+        "dpd": "일반택배 (우체국/CJ)",
+        "foxpost": "무인택배함"
+      },
+      "error": {
+        "methodRequired": "거래 방식을 선택해주세요.",
+        "fieldsRequired": "모든 필수 정보를 입력해주세요.",
+        "providerRequired": "배송 업체를 선택해주세요."
+      }
+    },
+    "transaction": {
+      "title": "거래 상세",
+      "status": "거래 상태",
+      "safetyCode": "안심 PIN 코드",
+      "safetyCodeDesc": "물건을 받은 후, 판매자에게 이 4자리 숫자를 보여주세요.",
+      "verifyBuyer": "구매자 인증",
+      "pinVerified": "인증되었습니다! 거래 상태가 업데이트됩니다.",
+      "pinInvalid": "잘못된 PIN 번호입니다. 다시 확인해주세요.",
+      "pinCopied": "PIN 번호가 복사되었습니다.",
+      "completeMsg": "거래가 성공적으로 완료되었습니다!",
+      "backHome": "홈으로 돌아가기",
+      "statusLabel": {
+        "paidHeld": "결제 완료 (보관 중)",
+        "released": "거래 확정 완료",
+        "cancelled": "취소됨"
+      }
     }
   }
 }
