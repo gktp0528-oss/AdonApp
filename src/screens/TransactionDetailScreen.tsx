@@ -16,6 +16,7 @@ import { RootStackParamList } from '../navigation/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Transaction } from '../types/transaction';
 import { transactionService } from '../services/transactionService';
+import { userService } from '../services/userService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionDetail'>;
 
@@ -26,6 +27,7 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
     const [loading, setLoading] = useState(true);
     const [verifying, setVerifying] = useState(false);
     const [pinInput, setPinInput] = useState('');
+    const currentUserId = userService.getCurrentUserId();
 
     useEffect(() => {
         const fetchTransaction = async () => {
@@ -83,37 +85,50 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.statusCard}>
                     <Text style={styles.statusLabel}>{t('screen.transaction.status')}</Text>
-                    <Text style={styles.statusValue}>{transaction?.status || 'Paid & Held'}</Text>
+                    <Text style={styles.statusValue}>{transaction?.status?.toUpperCase() || 'PAID'}</Text>
                 </View>
 
-                {/* Safety Code Section for Buyer */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('screen.transaction.safetyCode')}</Text>
-                    <View style={styles.pinBox}>
-                        <Text style={styles.pinText}>{transaction?.safetyCode || '8241'}</Text>
+                {/* Buyer Perspective: See the PIN */}
+                {transaction?.buyerId === currentUserId && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('screen.transaction.safetyCode')}</Text>
+                        <View style={styles.pinBox}>
+                            <Text style={styles.pinText}>{transaction?.safetyCode}</Text>
+                        </View>
+                        <Text style={styles.helperText}>{t('screen.transaction.safetyCodeDesc')}</Text>
                     </View>
-                    <Text style={styles.helperText}>{t('screen.transaction.safetyCodeDesc')}</Text>
-                </View>
+                )}
 
-                {/* Seller Verification Input (Mocking role-based view) */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('screen.transaction.verifyBuyer')}</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter 4-digit PIN"
-                        keyboardType="number-pad"
-                        maxLength={4}
-                        value={pinInput}
-                        onChangeText={setPinInput}
-                    />
-                    <TouchableOpacity
-                        style={[styles.button, verifying && styles.buttonDisabled]}
-                        onPress={handleVerifyPin}
-                        disabled={verifying}
-                    >
-                        {verifying ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('common.verify')}</Text>}
-                    </TouchableOpacity>
-                </View>
+                {/* Seller Perspective: Input the PIN */}
+                {transaction?.sellerId === currentUserId && transaction?.status === 'paid_held' && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('screen.transaction.verifyBuyer')}</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter 4-digit PIN"
+                            keyboardType="number-pad"
+                            maxLength={4}
+                            value={pinInput}
+                            onChangeText={setPinInput}
+                        />
+                        <TouchableOpacity
+                            style={[styles.button, verifying && styles.buttonDisabled]}
+                            onPress={handleVerifyPin}
+                            disabled={verifying}
+                        >
+                            {verifying ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('common.verify')}</Text>}
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* Completion Message */}
+                {(transaction?.status === 'released' || transaction?.status === 'delivered') && (
+                    <View style={[styles.section, styles.successSection]}>
+                        <MaterialIcons name="check-circle" size={48} color="#22c55e" />
+                        <Text style={styles.successTitle}>{t('common.success')}</Text>
+                        <Text style={styles.successDesc}>The item has been successfully traded!</Text>
+                    </View>
+                )}
             </ScrollView>
         </SafeAreaView>
     );
@@ -186,4 +201,7 @@ const styles = StyleSheet.create({
     },
     buttonDisabled: { opacity: 0.7 },
     buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    successSection: { alignItems: 'center', padding: 40 },
+    successTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a', marginVertical: 12 },
+    successDesc: { fontSize: 14, color: '#64748b', textAlign: 'center' },
 });

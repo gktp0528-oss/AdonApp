@@ -1,5 +1,5 @@
 import '../lib/polyfills';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Pressable,
@@ -77,23 +77,12 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [progressAnim] = useState(new Animated.Value(0));
   const [displayProgress, setDisplayProgress] = useState(0);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastTone, setToastTone] = useState<'info' | 'success' | 'error'>('info');
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const listenerId = progressAnim.addListener(({ value }) => {
       setDisplayProgress(Math.floor(value));
     });
     return () => progressAnim.removeListener(listenerId);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -122,15 +111,6 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   const addFeed = (msg: string) => {
     setAiLiveFeed(prev => [...prev.slice(-4), msg]);
-  };
-
-  const showToast = (message: string, tone: 'info' | 'success' | 'error' = 'info') => {
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-    setToastTone(tone);
-    setToastMessage(message);
-    toastTimerRef.current = setTimeout(() => setToastMessage(''), 2200);
   };
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
@@ -245,7 +225,6 @@ export function AiListingScreen({ navigation, route }: Props) {
       Alert.alert('사진을 먼저 등록해주세요!', 'AI 분석은 사진이 있어야 시작할 수 있어요. 📸');
       return;
     }
-    showToast('AI 분석을 시작했어요. 2단계로 진행됩니다.');
     analyzePhotosWithAi(photos);
   };
 
@@ -396,13 +375,10 @@ export function AiListingScreen({ navigation, route }: Props) {
           status: 'completed',
           createdAt: new Date(),
         });
-        showToast('AI 분석이 완료됐어요. 제안 내용을 확인해 주세요.', 'success');
-
       } catch (e) {
         console.warn('Failed to parse AI JSON:', e);
         setTitle('AI 분석 실패');
         setDescription('AI가 정보를 읽어오는 데 실패했어요. 직접 작성해 보시겠어요?');
-        showToast('AI 응답 해석에 실패했어요. 내용을 직접 수정해 주세요.', 'error');
       }
 
       setTimeout(() => {
@@ -414,7 +390,6 @@ export function AiListingScreen({ navigation, route }: Props) {
       console.error('AI Analysis failed:', error);
       setIsAiLoading(false);
       setAiStep(null);
-      showToast('AI 분석에 실패했어요. 잠시 후 다시 시도해 주세요.', 'error');
 
       const errorMessage = error?.message || '알 수 없는 에러가 발생했어요.';
       Alert.alert('AI 분석 오류' + (errorMessage.includes('API_NOT_ENABLED') ? ' (API 미활성화)' : ''),
@@ -541,18 +516,6 @@ export function AiListingScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       {renderAiLoadingOverlay()}
-      {toastMessage ? (
-        <View
-          style={[
-            styles.toast,
-            toastTone === 'success' && styles.toastSuccess,
-            toastTone === 'error' && styles.toastError,
-            { top: insets.top + 8 },
-          ]}
-        >
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      ) : null}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -1181,28 +1144,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 1,
     opacity: 1,
-  },
-  toast: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    zIndex: 1500,
-    backgroundColor: '#0f172a',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  toastSuccess: {
-    backgroundColor: '#166534',
-  },
-  toastError: {
-    backgroundColor: '#b91c1c',
-  },
-  toastText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'center',
   },
   aiPriceBtn: {
     flexDirection: 'row',

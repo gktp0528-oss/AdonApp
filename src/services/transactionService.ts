@@ -5,6 +5,11 @@ import {
     getDoc,
     serverTimestamp,
     Timestamp,
+    query,
+    where,
+    orderBy,
+    limit,
+    getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Transaction, TransactionStatus, EscrowStatus, TradeType } from '../types/transaction';
@@ -41,8 +46,8 @@ export const transactionService = {
             ...data,
             id: transactionId,
             safetyCode,
-            status: 'pending_payment',
-            escrowStatus: 'pending_payment',
+            status: 'paid_held',
+            escrowStatus: 'paid_held',
             createdAt: serverTimestamp() as Timestamp,
             updatedAt: serverTimestamp() as Timestamp,
         };
@@ -79,7 +84,7 @@ export const transactionService = {
         // For this demo/v1, we'll do a simple check.
         const snap = await getDoc(transactionRef);
         if (snap.exists() && snap.data().safetyCode === inputCode) {
-            await this.updateTransactionStatus(transactionId, 'delivered');
+            await this.updateTransactionStatus(transactionId, 'released');
             return true;
         }
         return false;
@@ -93,6 +98,26 @@ export const transactionService = {
         const snap = await getDoc(transactionRef);
         if (snap.exists()) {
             return { id: snap.id, ...snap.data() } as Transaction;
+        }
+        return null;
+    },
+
+    /**
+     * Finds the latest transaction between a buyer and seller for a listing.
+     */
+    async getTransactionsByChat(listingId: string, buyerId: string, sellerId: string): Promise<Transaction | null> {
+        const trRef = collection(db, 'transactions');
+        const q = query(
+            trRef,
+            where('listingId', '==', listingId),
+            where('buyerId', '==', buyerId),
+            where('sellerId', '==', sellerId),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            return { id: snap.docs[0].id, ...snap.docs[0].data() } as Transaction;
         }
         return null;
     },

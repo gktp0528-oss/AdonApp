@@ -14,6 +14,7 @@ import { chatService } from '../services/chatService';
 import { userService } from '../services/userService';
 import { Message, Conversation } from '../types/chat';
 import { User } from '../types/user';
+import { transactionService } from '../services/transactionService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
@@ -34,6 +35,7 @@ export function ChatScreen({ navigation, route }: Props) {
   const [uploading, setUploading] = useState(false);
   const [limit, setLimit] = useState(20);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -53,6 +55,32 @@ export function ChatScreen({ navigation, route }: Props) {
       setOtherUser(user);
     });
     return () => unsub();
+  }, [conversation, currentUserId]);
+
+  // Check for active transaction
+  useEffect(() => {
+    if (!conversation || !currentUserId) return;
+    const otherUserId = conversation.participants.find((p) => p !== currentUserId);
+    if (!otherUserId) return;
+
+    const findTransaction = async () => {
+      // We check both ways since either could be buyer/seller
+      const tr = await transactionService.getTransactionsByChat(
+        conversation.listingId,
+        currentUserId,
+        otherUserId
+      ) || await transactionService.getTransactionsByChat(
+        conversation.listingId,
+        otherUserId,
+        currentUserId
+      );
+
+      if (tr) {
+        setActiveTransactionId(tr.id);
+      }
+    };
+
+    findTransaction();
   }, [conversation, currentUserId]);
 
   // Watch messages in real-time
@@ -176,11 +204,21 @@ export function ChatScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Listing context card */}
         {conversation && (
           <View style={styles.meetCard}>
-            <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
-            <Text style={styles.meetPlace}>{conversation.listingTitle}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
+              <Text style={styles.meetPlace}>{conversation.listingTitle}</Text>
+            </View>
+            {activeTransactionId && (
+              <Pressable
+                style={styles.viewTrBtn}
+                onPress={() => navigation.navigate('TransactionDetail', { transactionId: activeTransactionId })}
+              >
+                <Text style={styles.viewTrBtnText}>{t('screen.transaction.title')}</Text>
+                <MaterialIcons name="chevron-right" size={16} color="#16a34a" />
+              </Pressable>
+            )}
           </View>
         )}
 
@@ -267,9 +305,11 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20 },
   user: { fontWeight: '700', color: '#111827', fontSize: 15 },
   online: { color: '#6b7280', fontSize: 12 },
-  meetCard: { backgroundColor: '#fff', margin: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', padding: 12 },
+  meetCard: { backgroundColor: '#fff', margin: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', padding: 12, flexDirection: 'row', alignItems: 'center' },
   meetTitle: { color: '#16a34a', fontWeight: '800', fontSize: 12, textTransform: 'uppercase' },
   meetPlace: { marginTop: 4, fontWeight: '700', color: '#111827' },
+  viewTrBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0fdf4', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#dcfce7' },
+  viewTrBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 12, marginRight: 2 },
   chatArea: { flex: 1 },
   chatContent: { paddingHorizontal: 12, paddingBottom: 12, gap: 10 },
   day: { alignSelf: 'center', marginVertical: 8, fontSize: 10, color: '#6b7280', fontWeight: '700' },
