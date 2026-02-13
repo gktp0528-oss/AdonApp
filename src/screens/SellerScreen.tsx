@@ -139,24 +139,43 @@ export function SellerScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.statRow}>
+            {/* Reliability/Rating */}
             <View style={styles.statItem}>
-              <View style={styles.ratingWrapper}>
-                <StarRating rating={Math.round((seller.positiveRate || 0) / 20)} size={16} />
+              <View style={styles.statIconCircle}>
+                <MaterialIcons name="star" size={20} color="#eab308" />
+              </View>
+              <View style={styles.statContent}>
                 <Text style={styles.statValue}>
                   {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '0.0'}
                 </Text>
+                <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
               </View>
-              <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
             </View>
+
             <View style={styles.statDivider} />
+
+            {/* Sales */}
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{seller.sales || 0}</Text>
-              <Text style={styles.statLabel}>{t('screen.profile.stats.sales')}</Text>
+              <View style={[styles.statIconCircle, { backgroundColor: '#eff6ff' }]}>
+                <MaterialIcons name="shopping-bag" size={20} color="#3b82f6" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>{seller.sales || 0}</Text>
+                <Text style={styles.statLabel}>{t('screen.profile.stats.sales')}</Text>
+              </View>
             </View>
+
             <View style={styles.statDivider} />
+
+            {/* Response Time */}
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{seller.responseTime || t('screen.profile.stats.responseValue.fast')}</Text>
-              <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
+              <View style={[styles.statIconCircle, { backgroundColor: '#f0fdf4' }]}>
+                <MaterialIcons name="access-time" size={20} color="#22c55e" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>{seller.responseTime || t('screen.profile.stats.responseValue.fast')}</Text>
+                <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
+              </View>
             </View>
           </View>
 
@@ -342,37 +361,55 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
     width: '100%',
     marginBottom: 24,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   statItem: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fefce8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  statContent: {
     alignItems: 'center',
   },
   statValue: {
     fontSize: 18,
     fontWeight: '900',
     color: '#0f172a',
-  },
-  ratingWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 11,
     color: '#94a3b8',
     fontWeight: '700',
     textTransform: 'uppercase',
-    marginTop: 2,
+    letterSpacing: 0.5,
   },
   statDivider: {
     width: 1,
-    height: 25,
+    height: 40,
     backgroundColor: '#e2e8f0',
   },
   reliabilityCard: {
