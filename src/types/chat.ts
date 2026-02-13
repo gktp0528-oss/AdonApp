@@ -19,5 +19,6 @@ export interface Conversation {
     lastMessageAt: Timestamp;
     lastSenderId: string;
     unreadCount: Record<string, number>; // { [userId]: count }
+    lastReadAt?: Record<string, Timestamp>;
     createdAt: Timestamp;
 }

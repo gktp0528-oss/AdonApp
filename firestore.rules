@@ -12,13 +12,8 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isTempSellerId(userId) {
-      return userId == "temp_seller_123";
-    }
-
     function isAllowedSellerCreate() {
-      return (isAuthenticated() && request.resource.data.sellerId == request.auth.uid)
-        || (!isAuthenticated() && isTempSellerId(request.resource.data.sellerId));
+      return isAuthenticated() && request.resource.data.sellerId == request.auth.uid;
     }
 
     function hasValidListingShape() {
@@ -53,12 +48,11 @@ service cloud.firestore {
       // Anyone can read listings
       allow read: if true;
       
-      // Create: authenticated owner OR temporary local seller, with schema validation.
+      // Create: authenticated owner only, with schema validation.
       allow create: if isAllowedSellerCreate() && hasValidListingShape();
 
-      // Update/Delete: only owner when authenticated, or temp seller while auth is not integrated.
-      allow update, delete: if (isAuthenticated() && resource.data.sellerId == request.auth.uid)
-        || (!isAuthenticated() && isTempSellerId(resource.data.sellerId));
+      // Update/Delete: authenticated owner only.
+      allow update, delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
     }
 
     // USERS RULES

@@ -20,6 +20,6 @@ export const storage = getStorage(app);
 export const db = getFirestore(app);
 // Using standard Firebase AI SDK (replaces vertexai in v12+)
 export const aiBackend = getAI(app, {
-    backend: new VertexAIBackend({ location: 'europe-west3' })
+    backend: new VertexAIBackend('us-central1')
 });
 export default app;

@@ -43,12 +43,11 @@ export const userService = {
         });
     },
 
-    // Get current user ID (Real Auth)
+    // Get current user ID.
+    // This app requires login, so we do not use any shared fallback account.
     getCurrentUserId(): string {
         const currentUser = authService.getCurrentUser();
-        // Fallback to temp id if not logged in (for public view or dev)
-        // In strict mode, this should return null or throw
-        return currentUser ? currentUser.uid : 'temp_seller_123';
+        return currentUser ? currentUser.uid : '';
     },
 
     // Update user profile

@@ -32,4 +32,5 @@ export type RootStackParamList = {
   CategorySelect: { parentId?: string; currentPath?: string } | undefined;
   AiIntro: undefined;
   AiPriceAssistant: { imageUris?: string[]; initialPrice?: string } | undefined;
+  Payment: { listingId: string; sellerId: string };
 };

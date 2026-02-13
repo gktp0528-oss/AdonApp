@@ -19,6 +19,7 @@ import { AiListingScreen } from './src/screens/AiListingScreen';
 import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
 import { AiIntroScreen } from './src/screens/AiIntroScreen';
 import AiPriceAssistantScreen from './src/screens/PriceAssistantScreen';
+import PaymentScreen from './src/screens/PaymentScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -44,7 +45,7 @@ export default function App() {
       // Update immediately on mount/resume
       const updatePresence = async () => {
         const userId = userService.getCurrentUserId();
-        if (userId && userId !== 'temp_seller_123') {
+        if (userId) {
           try {
             await userService.updateUser(userId, {
               lastActive: new Date(),
@@ -99,6 +100,7 @@ export default function App() {
           <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
+          <Stack.Screen name="Payment" component={PaymentScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Navigator>
       </NavigationContainer>

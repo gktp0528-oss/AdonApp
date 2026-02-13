@@ -25,26 +25,10 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-// import { getGenerativeModel } from "firebase/vertexai";
+import { getGenerativeModel } from "firebase/ai";
 import { storage, db, aiBackend } from '../firebaseConfig';
 
-// Temporary Mock to fix build
-const getGenerativeModel = (backend: any, config: any) => ({
-  generateContent: async (params: any) => ({
-    response: {
-      text: () => JSON.stringify({
-        itemName: "AI 미연결 상태",
-        description: "AI 모듈이 잠시 비활성화되었습니다. 나중에 다시 시도해주세요.",
-        priceRange: { min: 0, max: 0 },
-        category: "Other",
-        conditionScore: 5,
-        marketDemand: "Unknown",
-        insights: ["AI 모듈 점검 중"],
-        reasoning: "시스템 점검 중입니다."
-      })
-    }
-  })
-});
+
 
 import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';

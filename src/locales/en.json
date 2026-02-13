@@ -350,6 +350,56 @@
         "nearby": "Nearby",
         "rating": "Top Rated"
       }
+    },
+    "payment": {
+      "title": "Secure Checkout",
+      "summary": "Order Summary",
+      "tradeMethod": "Trade Method",
+      "meetup": {
+        "title": "Direct Meet-up",
+        "desc": "Meet the seller in person.",
+        "date": "Meeting Date",
+        "time": "Meeting Time",
+        "place": "Meeting Place",
+        "placeholder": {
+          "place": "e.g. Near WestEnd Mall Entrance"
+        }
+      },
+      "delivery": {
+        "title": "Courier",
+        "desc": "Hungarian Post, Packeta, DPD, etc.",
+        "recipient": "Recipient Name",
+        "phone": "Phone Number",
+        "address": "Delivery Address",
+        "postcode": "Postcode",
+        "placeholder": {
+          "recipient": "Full Name",
+          "phone": "+36 30 123 4567",
+          "address": "Street, House Number, Floor/Door",
+          "postcode": "1234"
+        }
+      },
+      "locker": {
+        "title": "Locker",
+        "desc": "Foxpost, Zasilkovna automated lockers.",
+        "select": "Select Locker Location",
+        "search": "Search for a locker near you..."
+      },
+      "price": {
+        "item": "Item Price",
+        "shipping": "Shipping Fee",
+        "fee": "Service Fee",
+        "total": "Total Amount"
+      },
+      "escrow": {
+        "title": "Safe Payment with Escrow",
+        "desc": "Your payment is held securely until you receive and confirm the item."
+      },
+      "submit": "Complete Payment",
+      "error": {
+        "methodRequired": "Please select a trade method.",
+        "fieldsRequired": "Please fill in all required fields."
+      }
     }
   }
 }

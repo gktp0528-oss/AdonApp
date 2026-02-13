@@ -31,7 +31,7 @@ export function BottomTabMock({ active, onTabPress }: Props) {
     import('../services/userService').then(({ userService }) => {
       import('../services/chatService').then(({ chatService }) => {
         const userId = userService.getCurrentUserId();
-        if (userId && userId !== 'temp_seller_123') {
+        if (userId) {
           const unsub = chatService.watchTotalUnreadCount(userId, (count) => {
             setUnreadCount(count);
           });

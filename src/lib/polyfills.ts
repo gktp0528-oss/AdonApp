@@ -2,6 +2,8 @@
  * Robust Polyfill for AbortSignal.any which is missing in some React Native environments
  * but required by the Firebase Vertex AI SDK.
  */
+import 'react-native-get-random-values';
+import 'text-encoding';
 (function () {
     const g = (typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : {}) as any;
 

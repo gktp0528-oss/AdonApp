@@ -51,6 +51,7 @@ export function ProductScreen({ navigation, route }: Props) {
   const [liked, setLiked] = useState(false);
   const [following, setFollowing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isChatStarting, setIsChatStarting] = useState(false);
 
   useEffect(() => {
     if (!targetId) {
@@ -130,8 +131,7 @@ export function ProductScreen({ navigation, route }: Props) {
   const handleStartChat = async () => {
     const currentUserId = userService.getCurrentUserId();
 
-    // Check for anonymous/temp user - 'temp_seller_123' is hardcoded fallback in userService
-    if (!currentUserId || currentUserId === 'temp_seller_123') {
+    if (!currentUserId) {
       Alert.alert(
         t('common.loginRequired') || 'Login Required',
         t('screen.product.chat.loginPrompt') || 'Please login to start a chat.',
@@ -146,7 +146,19 @@ export function ProductScreen({ navigation, route }: Props) {
       return;
     }
 
-    if (!listing.sellerId || currentUserId === listing.sellerId) return;
+    if (!listing.sellerId) {
+      Alert.alert(t('common.error'), t('screen.product.chat.error'));
+      return;
+    }
+    if (currentUserId === listing.sellerId) {
+      Alert.alert(
+        t('common.info', 'Info'),
+        t('screen.product.chat.ownListing', '내 상품에는 채팅을 시작할 수 없어요.')
+      );
+      return;
+    }
+
+    setIsChatStarting(true);
     try {
       const conversationId = await chatService.getOrCreateConversation(
         currentUserId,
@@ -160,8 +172,25 @@ export function ProductScreen({ navigation, route }: Props) {
       navigation.navigate('Chat', { conversationId });
     } catch (error) {
       console.error('Failed to start chat:', error);
-      Alert.alert(t('common.error'), t('screen.product.chat.error'));
+      Alert.alert(
+        t('common.error'),
+        `${t('screen.product.chat.error')}\n${(error as any)?.code ? `(${(error as any).code})` : ''}`
+      );
+    } finally {
+      setIsChatStarting(false);
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!listing) return;
+    console.log('--- Handle Buy Now Clicked ---');
+    console.log('Listing ID:', listing.id);
+    console.log('Seller ID:', listing.sellerId);
+
+    navigation.navigate('Payment', {
+      listingId: listing.id,
+      sellerId: listing.sellerId!,
+    });
   };
 
   return (
@@ -342,14 +371,19 @@ export function ProductScreen({ navigation, route }: Props) {
         <Pressable
           style={styles.chatBtn}
           onPress={handleStartChat}
+          disabled={isChatStarting}
           accessibilityRole="button"
           accessibilityLabel={t('screen.product.action.chat')}
         >
-          <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
+          {isChatStarting ? (
+            <ActivityIndicator size="small" color="#1f2937" />
+          ) : (
+            <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
+          )}
         </Pressable>
         <Pressable
           style={styles.buyBtn}
-          onPress={handleStartChat}
+          onPress={handleBuyNow}
           accessibilityRole="button"
           accessibilityLabel={t('screen.product.action.buy')}
         >

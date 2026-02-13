@@ -5,6 +5,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
@@ -19,16 +20,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 export function ChatScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { conversationId } = route.params;
+  const isFocused = useIsFocused();
   const currentUserId = userService.getCurrentUserId();
   const scrollRef = useRef<ScrollView>(null);
+  const lastReadMessageIdRef = useRef('');
+  const prevMessageLengthRef = useRef(0);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [otherUser, setOtherUser] = useState<User | null>(null);
   const [draft, setDraft] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [limit, setLimit] = useState(20);
-  const [loadMore, setLoadMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -54,30 +59,41 @@ export function ChatScreen({ navigation, route }: Props) {
   useEffect(() => {
     const unsub = chatService.watchMessages(conversationId, (msgs) => {
       setMessages(msgs);
-      setLoading(false);
-      // Optional: Logic to maintain scroll position when loading more could go here
+      setInitialLoading(false);
+      setLoadingMore(false);
     }, limit);
     return () => unsub();
   }, [conversationId, limit]);
 
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    // If we're at the top (offsetY <= 0) and we have enough messages to suspect there are more
-    if (offsetY <= 0 && messages.length >= limit && !loading) {
-      setLoadMore(true);
+    if (offsetY <= 0 && messages.length >= limit && !initialLoading && !loadingMore) {
+      setLoadingMore(true);
       setLimit(prev => prev + 20);
     }
   };
 
-  // Mark as read when entering
+  // Mark as read whenever there is a new incoming last message while focused.
   useEffect(() => {
-    chatService.markAsRead(conversationId, currentUserId);
-  }, [conversationId, currentUserId]);
+    if (!isFocused || !currentUserId || messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.senderId === currentUserId) return;
+    if (lastReadMessageIdRef.current === lastMessage.id) return;
 
-  // Auto-scroll when new messages arrive
+    lastReadMessageIdRef.current = lastMessage.id;
+    chatService.markAsRead(conversationId, currentUserId);
+  }, [conversationId, currentUserId, isFocused, messages]);
+
+  // Auto-scroll only for newly appended messages, not when loading older pages.
   useEffect(() => {
+    const prevLen = prevMessageLengthRef.current;
+    const nextLen = messages.length;
+    const didGrow = nextLen > prevLen;
+    prevMessageLengthRef.current = nextLen;
+
+    if (!didGrow || loadingMore) return;
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-  }, [messages.length]);
+  }, [messages.length, loadingMore]);
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -99,14 +115,14 @@ export function ChatScreen({ navigation, route }: Props) {
       });
 
       if (!result.canceled && result.assets[0].uri) {
-        setLoading(true);
+        setUploading(true);
         const uploadUrl = await uploadImage(result.assets[0].uri);
         await chatService.sendMessage(conversationId, currentUserId, '', uploadUrl);
-        setLoading(false);
+        setUploading(false);
       }
     } catch (error) {
       console.error('Image selection failed', error);
-      setLoading(false);
+      setUploading(false);
       Alert.alert(t('common.error'), t('screen.chat.error.image'));
     }
   };
@@ -126,7 +142,7 @@ export function ChatScreen({ navigation, route }: Props) {
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <SafeAreaView style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color="#22c55e" />
@@ -182,22 +198,41 @@ export function ChatScreen({ navigation, route }: Props) {
 
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUserId;
+
+            // Read receipt logic
+            let isRead = false;
+            if (isMe && conversation?.lastReadAt) {
+              const otherUserId = conversation.participants.find(p => p !== currentUserId);
+              if (otherUserId) {
+                const otherLastReadAt = conversation.lastReadAt[otherUserId];
+                if (otherLastReadAt && msg.createdAt) {
+                  // Firebase Timestamp comparison
+                  isRead = msg.createdAt.toMillis() <= otherLastReadAt.toMillis();
+                }
+              }
+            }
+
             return (
               <View key={msg.id} style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
                 {msg.imageUrl ? (
                   <Image source={{ uri: msg.imageUrl }} style={styles.msgImage} resizeMode="cover" />
                 ) : null}
                 {msg.text ? <Text style={isMe ? styles.msgMine : styles.msg}>{msg.text}</Text> : null}
-                <Text style={[styles.timestamp, isMe && styles.timestampMine]}>
-                  {formatTime(msg.createdAt)}
-                </Text>
+                <View style={[styles.msgBottom, isMe && styles.msgBottomMine]}>
+                  {isMe && !isRead && (
+                    <Text style={styles.unreadCount}>1</Text>
+                  )}
+                  <Text style={[styles.timestamp, isMe && styles.timestampMine]}>
+                    {formatTime(msg.createdAt)}
+                  </Text>
+                </View>
               </View>
             );
           })}
         </ScrollView>
 
         <View style={styles.composer}>
-          <Pressable onPress={pickImage} style={styles.iconBtn}>
+          <Pressable onPress={pickImage} style={styles.iconBtn} disabled={uploading}>
             <MaterialIcons name="add-photo-alternate" size={24} color="#6b7280" />
           </Pressable>
           <TextInput
@@ -208,8 +243,9 @@ export function ChatScreen({ navigation, route }: Props) {
             onChangeText={setDraft}
             onSubmitEditing={handleSend}
             returnKeyType="send"
+            editable={!uploading}
           />
-          <Pressable style={styles.send} onPress={handleSend} accessibilityRole="button" accessibilityLabel={t('screen.chat.send')}>
+          <Pressable style={[styles.send, uploading && styles.sendDisabled]} onPress={handleSend} disabled={uploading} accessibilityRole="button" accessibilityLabel={t('screen.chat.send')}>
             <MaterialIcons name="send" size={18} color="#05250f" />
           </Pressable>
         </View>
@@ -242,11 +278,15 @@ const styles = StyleSheet.create({
   bubbleRight: { alignSelf: 'flex-end', backgroundColor: '#19e61b', borderBottomRightRadius: 4 },
   msg: { color: '#1f2937', lineHeight: 20, fontSize: 15 },
   msgMine: { color: '#05250f', lineHeight: 20, fontWeight: '600', fontSize: 15 },
-  timestamp: { fontSize: 10, color: '#9ca3af', marginTop: 4 },
+  timestamp: { fontSize: 10, color: '#9ca3af' },
   timestampMine: { color: '#065f13' },
+  msgBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginTop: 4, gap: 4 },
+  msgBottomMine: { justifyContent: 'flex-end' },
+  unreadCount: { fontSize: 10, color: '#065f13', fontWeight: '800' },
   composer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e5e7eb', padding: 12, gap: 10 },
   input: { flex: 1, backgroundColor: '#f3f4f6', borderRadius: 24, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, color: '#111827' },
   send: { backgroundColor: '#19e61b', borderRadius: 999, padding: 12 },
+  sendDisabled: { opacity: 0.5 },
   iconBtn: { padding: 4 },
   msgImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
 });

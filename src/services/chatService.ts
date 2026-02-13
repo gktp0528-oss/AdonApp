@@ -3,7 +3,7 @@ import {
     doc,
     addDoc,
     getDoc,
-    getDocs,
+    setDoc,
     query,
     where,
     orderBy,
@@ -19,6 +19,11 @@ import { Conversation, Message } from '../types/chat';
 const CONVERSATIONS = 'conversations';
 const MESSAGES = 'messages';
 
+const buildConversationId = (buyerId: string, sellerId: string, listingId: string) => {
+    const [userA, userB] = [buyerId, sellerId].sort();
+    return `${listingId}_${userA}_${userB}`;
+};
+
 export const chatService = {
     /**
      * Find existing conversation between two users for a specific listing,
@@ -29,36 +34,23 @@ export const chatService = {
         sellerId: string,
         listing: { id: string; title: string; photo: string },
     ): Promise<string> {
-        // Check if a conversation already exists for this buyer+seller+listing
-        const q = query(
-            collection(db, CONVERSATIONS),
-            where('participants', 'array-contains', buyerId),
-            where('listingId', '==', listing.id),
-        );
-        const snap = await getDocs(q);
-
-        const existing = snap.docs.find((d) => {
-            const data = d.data();
-            return data.participants.includes(sellerId);
-        });
-
-        if (existing) return existing.id;
-
-        // Create new conversation
+        const conversationId = buildConversationId(buyerId, sellerId, listing.id);
+        const conversationRef = doc(db, CONVERSATIONS, conversationId);
         const now = Timestamp.now();
-        const convRef = await addDoc(collection(db, CONVERSATIONS), {
-            participants: [buyerId, sellerId],
-            listingId: listing.id,
-            listingTitle: listing.title,
-            listingPhoto: listing.photo,
-            lastMessage: '',
-            lastMessageAt: now,
-            lastSenderId: '',
-            unreadCount: { [buyerId]: 0, [sellerId]: 0 },
-            createdAt: now,
-        });
+        // Upsert without pre-read to avoid permission-denied on non-existing documents.
+        await setDoc(
+            conversationRef,
+            {
+                participants: [buyerId, sellerId],
+                listingId: listing.id,
+                listingTitle: listing.title,
+                listingPhoto: listing.photo,
+                createdAt: now,
+            },
+            { merge: true },
+        );
 
-        return convRef.id;
+        return conversationId;
     },
 
     /**
@@ -88,7 +80,9 @@ export const chatService = {
             lastMessage: text || (imageUrl ? '📷 Picture' : ''),
             lastMessageAt: now,
             lastSenderId: senderId,
+            [`unreadCount.${senderId}`]: 0,
             [`unreadCount.${otherUserId}`]: increment(1),
+            [`lastReadAt.${senderId}`]: now,
         });
     },
 
@@ -122,15 +116,16 @@ export const chatService = {
     ): () => void {
         const q = query(
             collection(db, CONVERSATIONS, conversationId, MESSAGES),
-            orderBy('createdAt', 'asc'),
+            orderBy('createdAt', 'desc'),
             limit(limitCount),
         );
         return onSnapshot(
             q,
             (snapshot) => {
-                const messages = snapshot.docs.map(
+                const newestFirst = snapshot.docs.map(
                     (d) => ({ id: d.id, ...d.data() } as Message),
                 );
+                const messages = newestFirst.reverse();
                 callback(messages);
             },
             (error) => {
@@ -193,8 +188,10 @@ export const chatService = {
      */
     async markAsRead(conversationId: string, userId: string): Promise<void> {
         try {
+            const now = Timestamp.now();
             await updateDoc(doc(db, CONVERSATIONS, conversationId), {
                 [`unreadCount.${userId}`]: 0,
+                [`lastReadAt.${userId}`]: now,
             });
         } catch (error) {
             console.error(`Error marking conversation ${conversationId} as read:`, error);

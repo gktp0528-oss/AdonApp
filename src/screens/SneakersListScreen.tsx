@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,6 +12,7 @@ import { BottomTabMock } from '../components/BottomTabMock';
 type Props = NativeStackScreenProps<RootStackParamList, 'CategoryList'>;
 
 type ListItem = { id: string; name: string; price: string; meta: string; image: string };
+type SortKey = 'latest' | 'priceLow' | 'nearby' | 'rating';
 
 const IMG_SNEAKER =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEcEftcal76cLHG7bwAUxxxtwMFdSYWvLCgiOCdkOD48VeuNZX38RzYfjXjA0gEstCMHZTfOzV_bEYDOprbuCyKH2QA-I1U-qnBf2UUqIYLBPgX24kZMgszA4xz-OQSv69TZEi6p6qs-PUJTcF9YSBggqnND7L17hswYPdrmtXqa6463Eqm03TfGSvDFS-79AjbsF59SEVKEjGP1zA5vWCgsyDhrfcPlLdbD10jYUC5sfMaL3gWVDUSiPRP-UEJ8g25-ImRKwO1JUS';
@@ -145,8 +146,31 @@ const itemsByCategory: Record<string, ListItem[]> = {
 export function SneakersListScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { categoryId, categoryName } = route.params;
+  const [sortKey, setSortKey] = useState<SortKey>('latest');
   const items = useMemo(() => itemsByCategory[categoryId] ?? fallbackItems, [categoryId]);
-  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'search');
+  const sortedItems = useMemo(() => {
+    const withSignal = items.map((item) => {
+      const price = Number(item.price.replace(/[^0-9.]/g, '')) || 0;
+      const seed = item.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const distanceKm = 0.8 + (seed % 42) / 3.7;
+      const rating = 3.7 + (seed % 14) / 10;
+
+      return { ...item, priceValue: price, distanceKm, rating };
+    });
+
+    if (sortKey === 'priceLow') {
+      return [...withSignal].sort((a, b) => a.priceValue - b.priceValue);
+    }
+    if (sortKey === 'nearby') {
+      return [...withSignal].sort((a, b) => a.distanceKm - b.distanceKm);
+    }
+    if (sortKey === 'rating') {
+      return [...withSignal].sort((a, b) => b.rating - a.rating);
+    }
+    return withSignal;
+  }, [items, sortKey]);
+  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'category');
+  const sortOptions: SortKey[] = ['latest', 'priceLow', 'nearby', 'rating'];
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -154,30 +178,26 @@ export function SneakersListScreen({ navigation, route }: Props) {
         <DetailBackButton onPress={() => navigation.goBack()} />
         <View style={styles.headerText}>
           <Text style={styles.title}>{categoryName}</Text>
-          <Text style={styles.subtitle}>{t('screen.categoryList.itemsCount', { count: items.length * 23 })}</Text>
+          <Text style={styles.subtitle}>{t('screen.categoryList.itemsCount', { count: items.length })}</Text>
         </View>
-        <Pressable style={styles.filterBtn}>
-          <MaterialIcons name="tune" size={20} color="#0f172a" />
-        </Pressable>
+        <View style={styles.filterBtn}>
+          <MaterialIcons name="inventory-2" size={18} color="#334155" />
+        </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        <View style={[styles.chip, styles.chipActive]}>
-          <Text style={styles.chipActiveText}>{t('screen.categoryList.sort.latest')}</Text>
-        </View>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('screen.categoryList.sort.priceLow')}</Text>
-        </View>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('screen.categoryList.sort.nearby')}</Text>
-        </View>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{t('screen.categoryList.sort.rating')}</Text>
-        </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipsScroll}>
+        {sortOptions.map((option) => {
+          const isActive = option === sortKey;
+          return (
+            <Pressable key={option} style={[styles.chip, isActive && styles.chipActive]} onPress={() => setSortKey(option)}>
+              <Text style={isActive ? styles.chipActiveText : styles.chipText}>{t(`screen.categoryList.sort.${option}`)}</Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-        {items.map((item) => (
+        {sortedItems.map((item) => (
           <Pressable
             key={item.id}
             style={styles.card}
@@ -200,11 +220,16 @@ export function SneakersListScreen({ navigation, route }: Props) {
             <Text numberOfLines={1} style={styles.name}>
               {item.name}
             </Text>
+            <View style={styles.statsRow}>
+              <Text style={styles.statText}>★ {item.rating.toFixed(1)}</Text>
+              <Text style={styles.statDivider}>•</Text>
+              <Text style={styles.statText}>{item.distanceKm.toFixed(1)} km</Text>
+            </View>
             <Text style={styles.meta}>{item.meta}</Text>
           </Pressable>
         ))}
       </ScrollView>
-      <BottomTabMock active="search" onTabPress={handleTabPress} />
+      <BottomTabMock active="category" onTabPress={handleTabPress} />
 
     </SafeAreaView>
   );
@@ -214,15 +239,15 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f6f8f6' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 6,
     paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
   headerText: { flex: 1 },
-  title: { fontSize: 24, fontWeight: '800', color: '#062b08' },
-  subtitle: { marginTop: 2, color: '#94a3b8', fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '800', color: '#111827' },
+  subtitle: { marginTop: 4, color: '#64748b', fontWeight: '600' },
   filterBtn: {
     width: 36,
     height: 36,
@@ -233,18 +258,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chips: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
+  chipsScroll: { marginBottom: 10 },
+  chips: { paddingHorizontal: 16, gap: 8 },
   chip: {
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
   },
-  chipActive: { backgroundColor: '#19e61b', borderColor: '#19e61b' },
+  chipActive: { backgroundColor: '#dcfce7', borderColor: '#86efac' },
   chipText: { color: '#64748b', fontWeight: '600', fontSize: 12 },
-  chipActiveText: { color: '#062b08', fontWeight: '800', fontSize: 12 },
+  chipActiveText: { color: '#166534', fontWeight: '800', fontSize: 12 },
   grid: {
     paddingHorizontal: 16,
     paddingBottom: 130,
@@ -253,17 +279,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: { width: '48%', marginBottom: 14 },
-  image: { width: '100%', aspectRatio: 1, borderRadius: 14, backgroundColor: '#d1d5db' },
+  image: { width: '100%', aspectRatio: 1, borderRadius: 16, backgroundColor: '#d1d5db' },
   pricePill: {
     position: 'absolute',
-    left: 8,
-    top: 8,
+    left: 9,
+    top: 9,
     backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 8,
-    paddingHorizontal: 7,
+    borderRadius: 9,
+    paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  price: { color: '#166534', fontWeight: '800', fontSize: 12 },
-  name: { marginTop: 8, color: '#0f172a', fontWeight: '700', fontSize: 14 },
+  price: { color: '#14532d', fontWeight: '800', fontSize: 12 },
+  name: { marginTop: 9, color: '#0f172a', fontWeight: '700', fontSize: 14 },
+  statsRow: { marginTop: 4, flexDirection: 'row', alignItems: 'center' },
+  statText: { color: '#475569', fontSize: 11, fontWeight: '700' },
+  statDivider: { marginHorizontal: 4, color: '#94a3b8', fontSize: 12 },
   meta: { marginTop: 3, color: '#64748b', fontSize: 12 },
 });
