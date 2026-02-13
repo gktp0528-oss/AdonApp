@@ -19,6 +19,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Transaction } from '../types/transaction';
 import { transactionService } from '../services/transactionService';
 import { userService } from '../services/userService';
+import { chatService } from '../services/chatService';
+import { listingService } from '../services/listingService';
 import { DetailBackButton } from '../components/DetailBackButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionDetail'>;
@@ -56,9 +58,27 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
             const success = await transactionService.verifySafetyCode(transactionId, pinInput);
             if (success) {
                 Alert.alert(t('common.success'), t('screen.transaction.pinVerified'));
+
                 // Refresh data
                 const updated = await transactionService.getTransaction(transactionId);
-                if (updated) setTransaction(updated);
+                if (updated) {
+                    setTransaction(updated);
+
+                    // Send system message to chat
+                    try {
+                        const listing = await listingService.getListingById(updated.listingId);
+                        if (listing) {
+                            const convId = await chatService.getOrCreateConversation(
+                                updated.buyerId,
+                                updated.sellerId,
+                                { id: listing.id, title: listing.title, photo: listing.photos?.[0] || '' }
+                            );
+                            await chatService.sendMessage(convId, currentUserId || 'system', t('chat.system.transactionCompleted'));
+                        }
+                    } catch (chatError) {
+                        console.error('Failed to send completion message:', chatError);
+                    }
+                }
             } else {
                 Alert.alert(t('common.error'), t('screen.transaction.pinInvalid'));
             }
