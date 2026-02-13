@@ -20,6 +20,7 @@ import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
 import { AiIntroScreen } from './src/screens/AiIntroScreen';
 import AiPriceAssistantScreen from './src/screens/PriceAssistantScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
+import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -101,6 +102,7 @@ export default function App() {
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
           <Stack.Screen name="Payment" component={PaymentScreen} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Navigator>
       </NavigationContainer>

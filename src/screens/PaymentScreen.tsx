@@ -136,7 +136,7 @@ export default function PaymentScreen({ navigation, route }: Props) {
             Alert.alert(
                 t('screen.payment.submit'),
                 'Your payment is now held in escrow. Please coordinate with the seller.',
-                [{ text: 'OK', onPress: () => navigation.popToTop() }]
+                [{ text: 'OK', onPress: () => navigation.replace('TransactionDetail', { transactionId }) }]
             );
         } catch (error) {
             console.error('Payment failed:', error);
@@ -186,10 +186,7 @@ export default function PaymentScreen({ navigation, route }: Props) {
                         <Text style={styles.priceLabel}>{t('screen.payment.price.item')}</Text>
                         <Text style={styles.priceValue}>{formatCurrency(listing.price, listing.currency)}</Text>
                     </View>
-                    <View style={styles.priceRow}>
-                        <Text style={styles.priceLabel}>{t('screen.payment.price.shipping')}</Text>
-                        <Text style={styles.priceValue}>{formatCurrency(shippingFee, listing.currency)}</Text>
-                    </View>
+                    {/* Shipping fee hidden for meetup-only phase */}
                     <View style={styles.priceRow}>
                         <Text style={styles.priceLabel}>{t('screen.payment.price.fee')}</Text>
                         <Text style={styles.priceValue}>{formatCurrency(platformFee, listing.currency)}</Text>

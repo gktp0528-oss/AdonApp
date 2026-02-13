@@ -1,5 +1,5 @@
 import '../lib/polyfills';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Image,
   Pressable,
@@ -77,12 +77,23 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [progressAnim] = useState(new Animated.Value(0));
   const [displayProgress, setDisplayProgress] = useState(0);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastTone, setToastTone] = useState<'info' | 'success' | 'error'>('info');
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const listenerId = progressAnim.addListener(({ value }) => {
       setDisplayProgress(Math.floor(value));
     });
     return () => progressAnim.removeListener(listenerId);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -111,6 +122,15 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   const addFeed = (msg: string) => {
     setAiLiveFeed(prev => [...prev.slice(-4), msg]);
+  };
+
+  const showToast = (message: string, tone: 'info' | 'success' | 'error' = 'info') => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToastTone(tone);
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 2200);
   };
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
@@ -216,15 +236,17 @@ export function AiListingScreen({ navigation, route }: Props) {
       const newUris = result.assets.map(a => a.uri);
       const combinedPhotos = [...photos, ...newUris];
       setPhotos(combinedPhotos);
-
-      // Immediate visual feedback
-      setIsAiLoading(true);
-      setAiStep('uploading');
-      progressAnim.setValue(0);
-
-      // Analyze all selected photos together
-      analyzePhotosWithAi(newUris);
     }
+  };
+
+  const handleRunAiAnalysis = () => {
+    if (isAiLoading) return;
+    if (photos.length === 0) {
+      Alert.alert('사진을 먼저 등록해주세요!', 'AI 분석은 사진이 있어야 시작할 수 있어요. 📸');
+      return;
+    }
+    showToast('AI 분석을 시작했어요. 2단계로 진행됩니다.');
+    analyzePhotosWithAi(photos);
   };
 
   const processImage = async (uri: string) => {
@@ -374,11 +396,13 @@ export function AiListingScreen({ navigation, route }: Props) {
           status: 'completed',
           createdAt: new Date(),
         });
+        showToast('AI 분석이 완료됐어요. 제안 내용을 확인해 주세요.', 'success');
 
       } catch (e) {
         console.warn('Failed to parse AI JSON:', e);
         setTitle('AI 분석 실패');
         setDescription('AI가 정보를 읽어오는 데 실패했어요. 직접 작성해 보시겠어요?');
+        showToast('AI 응답 해석에 실패했어요. 내용을 직접 수정해 주세요.', 'error');
       }
 
       setTimeout(() => {
@@ -390,6 +414,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       console.error('AI Analysis failed:', error);
       setIsAiLoading(false);
       setAiStep(null);
+      showToast('AI 분석에 실패했어요. 잠시 후 다시 시도해 주세요.', 'error');
 
       const errorMessage = error?.message || '알 수 없는 에러가 발생했어요.';
       Alert.alert('AI 분석 오류' + (errorMessage.includes('API_NOT_ENABLED') ? ' (API 미활성화)' : ''),
@@ -403,13 +428,13 @@ export function AiListingScreen({ navigation, route }: Props) {
     const getStepMessage = () => {
       switch (aiStep) {
         case 'uploading':
-          return '사진을 안전하게 클라우드로 전송 중이에요... 📤';
+          return '1단계: 사진 업로드 및 정보 스캔 중';
         case 'analyzing':
-          return 'Adon Vision AI가 상품을 정밀 분석하고 있어요... 🧠✨';
+          return '1단계: 사진 업로드 및 정보 스캔 중';
         case 'finalizing':
-          return '멋진 제목과 설명을 거의 다 만들었어요! 😍';
+          return '2단계: 시세 계산과 등록 문구 정리 중';
         default:
-          return 'AI가 하은님의 상품을 분석 중이에요... 🌈';
+          return 'AI 분석 준비 중';
       }
     };
 
@@ -516,6 +541,18 @@ export function AiListingScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       {renderAiLoadingOverlay()}
+      {toastMessage ? (
+        <View
+          style={[
+            styles.toast,
+            toastTone === 'success' && styles.toastSuccess,
+            toastTone === 'error' && styles.toastError,
+            { top: insets.top + 8 },
+          ]}
+        >
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      ) : null}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -575,6 +612,20 @@ export function AiListingScreen({ navigation, route }: Props) {
               </View>
             ))}
           </ScrollView>
+
+          <View style={styles.aiActionRow}>
+            <Pressable
+              style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
+              onPress={handleRunAiAnalysis}
+              disabled={isAiLoading || photos.length === 0}
+            >
+              <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#16a34a'} />
+              <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
+                {isAiLoading ? 'AI 분석 진행 중...' : 'AI 분석 시작'}
+              </Text>
+            </Pressable>
+            <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
+          </View>
 
           {/* Title Input */}
           <View style={styles.inputGroup}>
@@ -766,6 +817,39 @@ const styles = StyleSheet.create({
   photoImage: {
     width: '100%',
     height: '100%',
+  },
+  aiActionRow: {
+    marginTop: -10,
+    marginBottom: 18,
+  },
+  aiAnalyzeBtn: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  aiAnalyzeBtnDisabled: {
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+  },
+  aiAnalyzeBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  aiAnalyzeBtnTextDisabled: {
+    color: '#94a3b8',
+  },
+  aiStepHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
   },
   removePhotoBtn: {
     position: 'absolute',

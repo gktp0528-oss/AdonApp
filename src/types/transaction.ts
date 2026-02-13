@@ -64,6 +64,7 @@ export interface Transaction {
     currency: string;
     paymentMethod?: string;
     paymentProviderRef?: string;
+    safetyCode?: string; // 4-digit PIN for meetup verification
     confirmBy?: Timestamp;
     meetup?: MeetupData;
     delivery?: DeliveryData;

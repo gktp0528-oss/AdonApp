@@ -2,6 +2,7 @@ import {
     collection,
     doc,
     setDoc,
+    getDoc,
     serverTimestamp,
     Timestamp,
 } from 'firebase/firestore';
@@ -31,9 +32,15 @@ export const transactionService = {
         const transactionRef = doc(collection(db, 'transactions'));
         const transactionId = transactionRef.id;
 
+        // Generate a 4-digit safety code for meetup trades
+        const safetyCode = data.tradeType === 'meetup'
+            ? Math.floor(1000 + Math.random() * 9000).toString()
+            : undefined;
+
         const newTransaction: Partial<Transaction> = {
             ...data,
             id: transactionId,
+            safetyCode,
             status: 'pending_payment',
             escrowStatus: 'pending_payment',
             createdAt: serverTimestamp() as Timestamp,
@@ -61,5 +68,20 @@ export const transactionService = {
             updates.escrowStatus = escrowStatus;
         }
         await setDoc(transactionRef, updates, { merge: true });
+    },
+
+    /**
+     * Verifies a safety code and updates status if correct.
+     */
+    async verifySafetyCode(transactionId: string, inputCode: string): Promise<boolean> {
+        const transactionRef = doc(db, 'transactions', transactionId);
+        // In a real app, we'd use a transaction or a Cloud Function for security.
+        // For this demo/v1, we'll do a simple check.
+        const snap = await getDoc(transactionRef);
+        if (snap.exists() && snap.data().safetyCode === inputCode) {
+            await this.updateTransactionStatus(transactionId, 'delivered');
+            return true;
+        }
+        return false;
     },
 };
