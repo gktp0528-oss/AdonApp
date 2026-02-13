@@ -32,18 +32,10 @@ import { storage, db, aiBackend } from '../firebaseConfig';
 
 import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
-import type { ListingCondition } from '../types/listing';
+import { ListingCondition, UnifiedAiReport } from '../types/listing';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
-
-type UnifiedAiReport = {
-  itemName: string;
-  marketDemand: string;
-  conditionScore: number | null;
-  priceRange: { min: number; max: number } | null;
-  insights: string[];
-  reasoning: string;
-};
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
@@ -67,6 +59,7 @@ export function AiListingScreen({ navigation, route }: Props) {
     if (route.params?.appliedReport) {
       const data = route.params.appliedReport;
       if (data.itemName) setTitle(data.itemName);
+      if (data.category) setCategory(data.category);
       if (data.priceRange) {
         setAiPriceRange(data.priceRange);
         const suggested = getRecommendedPriceFromRange(data.priceRange);
@@ -328,7 +321,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       2. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
       3. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
       4. 특히 에어팟 같은 소모품은 배터리 수명과 외관 스크래치가 가격에 치명적임을 반영하세요.
-      5. 제품의 카테고리를 다음 중 하나로 분류하세요: Fashion, Luxury, Electronics, Home & Living, Sports & Leisure, Other.
+      5. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, kids.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
@@ -387,6 +380,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           const report: UnifiedAiReport = {
             itemName: typeof data.itemName === 'string' && data.itemName.trim() ? data.itemName.trim() : '분석 상품',
+            category: typeof data.category === 'string' && data.category.trim() ? data.category.trim() : 'fashion',
             marketDemand: typeof data.marketDemand === 'string' && data.marketDemand.trim() ? data.marketDemand.trim() : 'N/A',
             conditionScore: normalizedScore,
             priceRange: normalizedPriceRange,

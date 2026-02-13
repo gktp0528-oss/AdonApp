@@ -37,6 +37,7 @@ export interface Listing {
 
 export type UnifiedAiReport = {
     itemName: string;
+    category: string;
     marketDemand: string;
     conditionScore: number | null;
     priceRange: { min: number; max: number } | null;
