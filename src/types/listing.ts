@@ -32,7 +32,6 @@ export interface Listing {
         address: string;
     };
     views?: number;
-    views?: number;
     likes?: number;
 }
 

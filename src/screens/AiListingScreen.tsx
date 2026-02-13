@@ -99,46 +99,12 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
-  const [aiLiveFeed, setAiLiveFeed] = useState<string[]>([]);
-  const [scannerAnim] = useState(new Animated.Value(0));
-  const [progressAnim] = useState(new Animated.Value(0));
-  const [displayProgress, setDisplayProgress] = useState(0);
+  const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
   const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
 
-  useEffect(() => {
-    const listenerId = progressAnim.addListener(({ value }) => {
-      setDisplayProgress(Math.floor(value));
-    });
-    return () => progressAnim.removeListener(listenerId);
-  }, []);
-
-  useEffect(() => {
-    if (isAiLoading) {
-      setAiLiveFeed(['⚡️ Adon Vision Engine 초기화 중...']);
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scannerAnim, {
-            toValue: 1,
-            duration: 2000,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scannerAnim, {
-            toValue: 0,
-            duration: 2000,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      scannerAnim.setValue(0);
-    }
-  }, [isAiLoading]);
-
   const addFeed = (msg: string) => {
-    setAiLiveFeed(prev => [...prev.slice(-4), msg]);
+    // Placeholder for future logging if needed
   };
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
@@ -301,7 +267,7 @@ export function AiListingScreen({ navigation, route }: Props) {
     if (!aiStep) setAiStep('uploading');
 
     // Smoothly animate to 15% immediately for 'uploading' start
-    Animated.timing(progressAnim, { toValue: 15, duration: 1000, useNativeDriver: false }).start();
+    // Animated.timing(progressAnim, { toValue: 15, duration: 1000, useNativeDriver: false }).start(); // Removed
 
     // Fail-safe check
     const g = (typeof global !== 'undefined' ? global : window) as any;
@@ -317,8 +283,8 @@ export function AiListingScreen({ navigation, route }: Props) {
       };
     }
 
-    addFeed('⚡️ Adon Vision Engine 초기화 완료');
-    addFeed('📤 사진 데이터 클라우드 업로드 중...');
+    // addFeed('⚡️ Adon Vision Engine 초기화 완료');
+    // addFeed('📤 사진 데이터 클라우드 업로드 중...');
 
     try {
       // Optimize images before upload & analysis
@@ -334,9 +300,9 @@ export function AiListingScreen({ navigation, route }: Props) {
       await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
 
-      Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
+      // Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
-      addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
+      // addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
       const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
 
       // Prepare all images for Gemini
@@ -381,16 +347,16 @@ export function AiListingScreen({ navigation, route }: Props) {
       }
       반드시 한국어로 작성하세요.`;
 
-      addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...');
-      Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
+      // addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...'); 
+      // Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const aiResponse = await result.response;
       const responseText = aiResponse.text();
 
       setAiStep('finalizing');
-      Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
-      addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
+      // Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
+      // addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
 
       try {
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
