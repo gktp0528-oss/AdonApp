@@ -116,95 +116,109 @@ export default function PaymentScreen({ navigation, route }: Props) {
 
         setIsSubmitting(true);
         try {
-            locker: tradeType === 'locker' ? lockerData : undefined,
+            const transactionPayload: any = {
+                listingId,
+                buyerId: currentUserId,
+                sellerId,
+                tradeType,
+                amount: {
+                    item: listing.price,
+                    shipping: shippingFee,
+                    platformFee: platformFee,
+                    total: totalAmount,
+                },
+                currency: listing.currency,
+                meetup: tradeType === 'meetup' ? meetupData : undefined,
+                delivery: tradeType === 'delivery' ? deliveryData : undefined,
+                locker: tradeType === 'locker' ? lockerData : undefined,
             };
 
-        console.log('[PaymentScreen] Initiating transaction with payload:', transactionPayload);
+            console.log('[PaymentScreen] Initiating transaction with payload:', transactionPayload);
 
-        const transactionId = await transactionService.createTransaction(transactionPayload);
+            const transactionId = await transactionService.createTransaction(transactionPayload);
 
-        Alert.alert(
-            t('screen.payment.submit'),
-            'Your payment is now held in escrow. Please coordinate with the seller.',
-            [{ text: 'OK', onPress: () => navigation.replace('TransactionDetail', { transactionId }) }]
-        );
-    } catch (error: any) {
-        console.error('[PaymentScreen] Payment failed:', error);
-        const errorMessage = error?.message || 'Failed to initiate transaction.';
-        Alert.alert(t('common.error'), `Error: ${errorMessage}`);
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+            Alert.alert(
+                t('screen.payment.submit'),
+                'Your payment is now held in escrow. Please coordinate with the seller.',
+                [{ text: 'OK', onPress: () => navigation.replace('TransactionDetail', { transactionId }) }]
+            );
+        } catch (error: any) {
+            console.error('[PaymentScreen] Payment failed:', error);
+            const errorMessage = error?.message || 'Failed to initiate transaction.';
+            Alert.alert(t('common.error'), `Error: ${errorMessage}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-return (
-    <View style={styles.root}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-            <DetailBackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.headerTitle}>{t('screen.payment.title')}</Text>
-            <View style={{ width: 40 }} />
-        </View>
+    return (
+        <View style={styles.root}>
+            {/* Header */}
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+                <DetailBackButton onPress={() => navigation.goBack()} />
+                <Text style={styles.headerTitle}>{t('screen.payment.title')}</Text>
+                <View style={{ width: 40 }} />
+            </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Order Summary */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('screen.payment.summary')}</Text>
-                <View style={styles.productCard}>
-                    <Image source={{ uri: listing.photos?.[0] }} style={styles.productImage} />
-                    <View style={styles.productInfo}>
-                        <Text style={styles.productTitle} numberOfLines={1}>{listing.title}</Text>
-                        <Text style={styles.productPrice}>{formatCurrency(listing.price, listing.currency)}</Text>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                {/* Order Summary */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('screen.payment.summary')}</Text>
+                    <View style={styles.productCard}>
+                        <Image source={{ uri: listing.photos?.[0] }} style={styles.productImage} />
+                        <View style={styles.productInfo}>
+                            <Text style={styles.productTitle} numberOfLines={1}>{listing.title}</Text>
+                            <Text style={styles.productPrice}>{formatCurrency(listing.price, listing.currency)}</Text>
+                        </View>
                     </View>
                 </View>
+
+                {/* Meetup-only implementation for initial launch */}
+                <MeetupForm data={meetupData} onChange={setMeetupData} />
+
+                {/* Escrow Notice */}
+                <View style={styles.escrowBox}>
+                    <MaterialIcons name="security" size={20} color="#16a34a" />
+                    <View style={styles.escrowContent}>
+                        <Text style={styles.escrowTitle}>{t('screen.payment.escrow.title')}</Text>
+                        <Text style={styles.escrowDesc}>{t('screen.payment.escrow.desc')}</Text>
+                    </View>
+                </View>
+
+                {/* Price Breakdown */}
+                <View style={styles.section}>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.priceLabel}>{t('screen.payment.price.item')}</Text>
+                        <Text style={styles.priceValue}>{formatCurrency(listing.price, listing.currency)}</Text>
+                    </View>
+                    {/* Shipping fee hidden for meetup-only phase */}
+                    <View style={styles.priceRow}>
+                        <Text style={styles.priceLabel}>{t('screen.payment.price.fee')}</Text>
+                        <Text style={styles.priceValue}>{formatCurrency(platformFee, listing.currency)}</Text>
+                    </View>
+                    <View style={[styles.priceRow, styles.totalRow]}>
+                        <Text style={styles.totalLabel}>{t('screen.payment.price.total')}</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(totalAmount, listing.currency)}</Text>
+                    </View>
+                </View>
+            </ScrollView>
+
+            {/* Footer CTA */}
+            <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+                <Pressable
+                    style={styles.submitBtn}
+                    onPress={handlePayment}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <ActivityIndicator color="#ffffff" />
+                    ) : (
+                        <Text style={styles.submitBtnText}>{t('screen.payment.submit')}</Text>
+                    )}
+                </Pressable>
             </View>
-
-            {/* Meetup-only implementation for initial launch */}
-            <MeetupForm data={meetupData} onChange={setMeetupData} />
-
-            {/* Escrow Notice */}
-            <View style={styles.escrowBox}>
-                <MaterialIcons name="security" size={20} color="#16a34a" />
-                <View style={styles.escrowContent}>
-                    <Text style={styles.escrowTitle}>{t('screen.payment.escrow.title')}</Text>
-                    <Text style={styles.escrowDesc}>{t('screen.payment.escrow.desc')}</Text>
-                </View>
-            </View>
-
-            {/* Price Breakdown */}
-            <View style={styles.section}>
-                <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>{t('screen.payment.price.item')}</Text>
-                    <Text style={styles.priceValue}>{formatCurrency(listing.price, listing.currency)}</Text>
-                </View>
-                {/* Shipping fee hidden for meetup-only phase */}
-                <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>{t('screen.payment.price.fee')}</Text>
-                    <Text style={styles.priceValue}>{formatCurrency(platformFee, listing.currency)}</Text>
-                </View>
-                <View style={[styles.priceRow, styles.totalRow]}>
-                    <Text style={styles.totalLabel}>{t('screen.payment.price.total')}</Text>
-                    <Text style={styles.totalValue}>{formatCurrency(totalAmount, listing.currency)}</Text>
-                </View>
-            </View>
-        </ScrollView>
-
-        {/* Footer CTA */}
-        <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-            <Pressable
-                style={styles.submitBtn}
-                onPress={handlePayment}
-                disabled={isSubmitting}
-            >
-                {isSubmitting ? (
-                    <ActivityIndicator color="#ffffff" />
-                ) : (
-                    <Text style={styles.submitBtnText}>{t('screen.payment.submit')}</Text>
-                )}
-            </Pressable>
         </View>
-    </View>
-);
+    );
 }
 
 const styles = StyleSheet.create({
