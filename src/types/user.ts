@@ -9,7 +9,9 @@ export interface User {
     positiveRate?: number;
     sales?: number;
     responseTime?: string; // e.g. "within 1 hour"
-    reliabilityLabel?: string; // e.g. "Reliable Seller"
+    rating?: number;
+    ratingCount?: number;
+    reliabilityLabel?: string;
     joinedAt: Date | any; // Timestamp or Date
     isVerified?: boolean;
     lastActive?: any; // Timestamp

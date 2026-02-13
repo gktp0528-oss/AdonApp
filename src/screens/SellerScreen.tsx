@@ -9,6 +9,7 @@ import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { DetailBackButton } from '../components/DetailBackButton';
 import { BottomTabMock } from '../components/BottomTabMock';
+import { StarRating } from '../components/StarRating';
 import { userService } from '../services/userService';
 import { listingService } from '../services/listingService';
 import { User } from '../types/user';
@@ -100,6 +101,20 @@ export function SellerScreen({ navigation, route }: Props) {
             )}
           </View>
 
+          {/* Settings Button - Only for current user's profile */}
+          {sellerId === userService.getCurrentUserId() && (
+            <Pressable
+              style={[styles.settingsButton, { top: insets.top + 14 }]}
+              onPress={() => navigation.navigate('Settings')}
+              accessibilityRole="button"
+              accessibilityLabel={t('screen.profile.settings')}
+            >
+              <View style={styles.settingsButtonInner}>
+                <MaterialIcons name="settings" size={22} color="#1f2937" />
+              </View>
+            </Pressable>
+          )}
+
           {/* Centered Avatar Overlapping */}
           <View style={styles.avatarContainer}>
             <View style={styles.avatarBorder}>
@@ -125,7 +140,12 @@ export function SellerScreen({ navigation, route }: Props) {
 
           <View style={styles.statRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{seller.positiveRate ? `${seller.positiveRate}%` : '100%'}</Text>
+              <View style={styles.ratingWrapper}>
+                <StarRating rating={Math.round((seller.positiveRate || 100) / 20)} size={16} />
+                <Text style={styles.statValue}>
+                  {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '5.0'}
+                </Text>
+              </View>
               <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
             </View>
             <View style={styles.statDivider} />
@@ -192,16 +212,12 @@ export function SellerScreen({ navigation, route }: Props) {
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
-        {sellerId === userService.getCurrentUserId() ? (
-          <PrimaryButton label={t('screen.profile.button.edit')} onPress={() => navigation.navigate('EditProfile')} />
-        ) : (
-          <>
-            <PrimaryButton label={t('screen.profile.button.share')} onPress={handleShareProfile} />
-            <PrimaryButton label={t('screen.profile.button.chat')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
-          </>
-        )}
-      </View>
+      {sellerId !== userService.getCurrentUserId() && (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
+          <PrimaryButton label={t('screen.profile.button.share')} onPress={handleShareProfile} />
+          <PrimaryButton label={t('screen.profile.button.chat')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
+        </View>
+      )}
       <BottomTabMock active="profile" onTabPress={handleTabPress} />
     </View>
   );
@@ -241,6 +257,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     zIndex: 10,
+  },
+  settingsButton: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
+  },
+  settingsButtonInner: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   avatarContainer: {
     position: 'absolute',
@@ -323,6 +357,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     color: '#0f172a',
+  },
+  ratingWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   statLabel: {
     fontSize: 11,

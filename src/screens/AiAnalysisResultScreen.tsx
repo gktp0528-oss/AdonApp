@@ -15,6 +15,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { RootStackParamList } from '../navigation/types';
 import { UnifiedAiReport } from '../types/listing';
 import { useTranslation } from 'react-i18next';
+import { aiBridge } from '../services/aiBridge';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiAnalysisResult'>;
 
@@ -43,7 +44,8 @@ export default function AiAnalysisResultScreen({ navigation, route }: Props) {
     }, []);
 
     const handleApply = () => {
-        navigation.navigate('AiListing', { appliedReport: report });
+        aiBridge.setReport(report);
+        navigation.goBack();
     };
 
     return (
@@ -62,9 +64,15 @@ export default function AiAnalysisResultScreen({ navigation, route }: Props) {
                     <Image source={{ uri: imageUri }} style={styles.heroImage} />
                     <View style={styles.heroOverlay} />
                     <Animated.View style={[styles.heroContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                        <View style={styles.badge}>
-                            <MaterialIcons name="auto-awesome" size={16} color="#000" />
-                            <Text style={styles.badgeText}>{t('screen.aiAnalysisResult.badge')}</Text>
+                        <View style={styles.badgeRow}>
+                            <View style={styles.badge}>
+                                <MaterialIcons name="auto-awesome" size={16} color="#000" />
+                                <Text style={styles.badgeText}>{t('screen.aiAnalysisResult.badge')}</Text>
+                            </View>
+                            <View style={[styles.badge, styles.categoryBadge]}>
+                                <MaterialIcons name="category" size={14} color="#166534" />
+                                <Text style={styles.categoryBadgeText}>{report.category.toUpperCase()}</Text>
+                            </View>
                         </View>
                         <Text style={styles.itemName}>{report.itemName}</Text>
                         <Text style={styles.marketDemand}>
@@ -194,6 +202,9 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
     },
     badgeText: { fontSize: 11, fontWeight: '900', color: '#0f172a' },
+    badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+    categoryBadge: { backgroundColor: '#dcfce7', borderColor: '#bbf7d0', borderWidth: 1 },
+    categoryBadgeText: { color: '#166534', fontSize: 10, fontWeight: '800', marginLeft: 4 },
     itemName: { fontSize: 28, fontWeight: '900', color: '#fff', textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 },
     marketDemand: { fontSize: 13, color: '#f0fdf4', fontWeight: '700', letterSpacing: 1 },
     statsCard: {

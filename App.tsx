@@ -14,6 +14,7 @@ import ChatListScreen from './src/screens/ChatListScreen';
 import { ProductScreen } from './src/screens/ProductScreen';
 import { SellerScreen } from './src/screens/SellerScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { AiListingScreen } from './src/screens/AiListingScreen';
 import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
@@ -22,6 +23,7 @@ import AiPriceAssistantScreen from './src/screens/PriceAssistantScreen';
 import AiAnalysisResultScreen from './src/screens/AiAnalysisResultScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
 import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
+import ReviewScreen from './src/screens/ReviewScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -98,13 +100,15 @@ export default function App() {
           <Stack.Screen name="CategoryList" component={SneakersListScreen} />
           <Stack.Screen name="Product" component={ProductScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
-          <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="Payment" component={PaymentScreen} />
           <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Navigator>
       </NavigationContainer>

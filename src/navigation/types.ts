@@ -27,6 +27,7 @@ export type RootStackParamList = {
   | undefined;
   Seller: { sellerId: string } | undefined;
   EditProfile: undefined;
+  Settings: undefined;
   Chat: { conversationId: string };
   AiListing: { selectedCategory?: string; selectedPrice?: string; appliedReport?: any } | undefined;
   AiAnalysisResult: { report: any; imageUri: string };
@@ -35,4 +36,5 @@ export type RootStackParamList = {
   AiPriceAssistant: { imageUris?: string[]; initialPrice?: string } | undefined;
   Payment: { listingId: string; sellerId: string };
   TransactionDetail: { transactionId: string };
+  Review: { transactionId: string; sellerId: string; listingId: string };
 };

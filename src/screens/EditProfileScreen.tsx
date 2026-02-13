@@ -29,6 +29,8 @@ export function EditProfileScreen({ navigation }: Props) {
     const [avatar, setAvatar] = useState('');
     const [coverImage, setCoverImage] = useState('');
     const [languageChanging, setLanguageChanging] = useState(false);
+    const [pickingAvatar, setPickingAvatar] = useState(false);
+    const [pickingCover, setPickingCover] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<AppLanguage>(
         (i18n.language?.slice(0, 2) as AppLanguage) || 'en'
     );
@@ -57,28 +59,38 @@ export function EditProfileScreen({ navigation }: Props) {
     };
 
     const pickAvatar = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.5,
-        });
+        try {
+            setPickingAvatar(true);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.5,
+            });
 
-        if (!result.canceled) {
-            setAvatar(result.assets[0].uri);
+            if (!result.canceled) {
+                setAvatar(result.assets[0].uri);
+            }
+        } finally {
+            setPickingAvatar(false);
         }
     };
 
     const pickCoverImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.7,
-        });
+        try {
+            setPickingCover(true);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [16, 9],
+                quality: 0.7,
+            });
 
-        if (!result.canceled) {
-            setCoverImage(result.assets[0].uri);
+            if (!result.canceled) {
+                setCoverImage(result.assets[0].uri);
+            }
+        } finally {
+            setPickingCover(false);
         }
     };
 
@@ -162,26 +174,39 @@ export function EditProfileScreen({ navigation }: Props) {
                         </Pressable>
                     </View>
                 ) : null}
-                <View style={styles.coverSection}>
+                <Pressable style={styles.coverSection} onPress={pickCoverImage} disabled={pickingCover}>
                     <Image
                         source={{ uri: coverImage || 'https://via.placeholder.com/400x225' }}
                         style={styles.coverPreview}
                     />
-                    <Pressable style={styles.coverEditBtn} onPress={pickCoverImage}>
-                        <MaterialIcons name="camera-alt" size={20} color="#fff" />
-                        <Text style={styles.coverEditBtnText}>{t('screen.editProfile.changeCover')}</Text>
-                    </Pressable>
-                </View>
+                    {pickingCover ? (
+                        <View style={styles.imageLoadingOverlay}>
+                            <ActivityIndicator size="large" color="#fff" />
+                            <Text style={styles.loadingText}>{t('screen.editProfile.openingGallery')}</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.coverEditBtn}>
+                            <MaterialIcons name="camera-alt" size={20} color="#fff" />
+                            <Text style={styles.coverEditBtnText}>{t('screen.editProfile.changeCover')}</Text>
+                        </View>
+                    )}
+                </Pressable>
 
                 <View style={styles.avatarSection}>
-                    <Pressable onPress={pickAvatar} style={styles.avatarBtn}>
+                    <Pressable onPress={pickAvatar} style={styles.avatarBtn} disabled={pickingAvatar}>
                         <Image
                             source={{ uri: avatar || 'https://via.placeholder.com/150' }}
                             style={styles.avatar}
                         />
-                        <View style={styles.editIconBadge}>
-                            <MaterialIcons name="edit" size={16} color="#fff" />
-                        </View>
+                        {pickingAvatar ? (
+                            <View style={styles.avatarLoadingOverlay}>
+                                <ActivityIndicator size="small" color="#16a34a" />
+                            </View>
+                        ) : (
+                            <View style={styles.editIconBadge}>
+                                <MaterialIcons name="edit" size={16} color="#fff" />
+                            </View>
+                        )}
                     </Pressable>
                     <Text style={styles.avatarHint}>{t('screen.editProfile.photoHint')}</Text>
                 </View>
@@ -324,6 +349,22 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     coverEditBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+    imageLoadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+    },
     avatarSection: { alignItems: 'center', marginTop: -50, marginBottom: 32 },
     avatarBtn: {
         borderWidth: 4,
@@ -346,8 +387,23 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#fff',
     },
+    avatarLoadingOverlay: {
+        position: 'absolute',
+        right: -4,
+        bottom: -4,
+        backgroundColor: '#fff',
+        padding: 8,
+        borderRadius: 999,
+        borderWidth: 2,
+        borderColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
+    },
     avatarHint: { marginTop: 8, color: '#6b7280', fontSize: 13, fontWeight: '600' },
-    formGroup: { marginBottom: 20 },
+    formGroup: { marginBottom: 20, paddingHorizontal: 20 },
     label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
     input: {
         borderWidth: 1,

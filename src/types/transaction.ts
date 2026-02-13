@@ -65,6 +65,7 @@ export interface Transaction {
     paymentMethod?: string;
     paymentProviderRef?: string;
     safetyCode?: string; // 4-digit PIN for meetup verification
+    reviewId?: string; // Reference to the submitted review
     confirmBy?: Timestamp;
     meetup?: MeetupData;
     delivery?: DeliveryData;

@@ -34,6 +34,7 @@ import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
 import { ListingCondition, UnifiedAiReport } from '../types/listing';
 import { useTranslation } from 'react-i18next';
+import { aiBridge } from '../services/aiBridge';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
@@ -55,21 +56,42 @@ export function AiListingScreen({ navigation, route }: Props) {
     }
   }, [route.params?.selectedPrice]);
 
+  const applyAiReport = (data: UnifiedAiReport) => {
+    if (data.itemName) setTitle(data.itemName);
+    if (data.category) setCategory(data.category);
+    if (data.priceRange) {
+      setAiPriceRange(data.priceRange);
+      const suggested = getRecommendedPriceFromRange(data.priceRange);
+      if (suggested) setPrice(suggested);
+    }
+    if (data.conditionScore) {
+      setCondition(inferConditionFromScore(data.conditionScore));
+    }
+    setAiReport(data);
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      const bridgeReport = aiBridge.popReport();
+      if (bridgeReport) {
+        applyAiReport(bridgeReport);
+      }
+    });
+
+    // Also check on mount just in case
+    const bridgeReport = aiBridge.popReport();
+    if (bridgeReport) {
+      applyAiReport(bridgeReport);
+    }
+
+    return unsubscribe;
+  }, [navigation]);
+
   useEffect(() => {
     if (route.params?.appliedReport) {
-      const data = route.params.appliedReport;
-      if (data.itemName) setTitle(data.itemName);
-      if (data.category) setCategory(data.category);
-      if (data.priceRange) {
-        setAiPriceRange(data.priceRange);
-        const suggested = getRecommendedPriceFromRange(data.priceRange);
-        if (suggested) setPrice(suggested);
-      }
-      if (data.conditionScore) {
-        setCondition(inferConditionFromScore(data.conditionScore));
-      }
-
-      setAiReport(data);
+      applyAiReport(route.params.appliedReport);
+      // Clear the param after applying to avoid re-triggering on future focus/renders
+      navigation.setParams({ appliedReport: undefined } as any);
     }
   }, [route.params?.appliedReport]);
 

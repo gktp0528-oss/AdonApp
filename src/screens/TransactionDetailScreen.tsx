@@ -73,7 +73,7 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                                 updated.sellerId,
                                 { id: listing.id, title: listing.title, photo: listing.photos?.[0] || '' }
                             );
-                            await chatService.sendMessage(convId, currentUserId || 'system', t('chat.system.transactionCompleted'));
+                            await chatService.sendMessage(convId, currentUserId || 'system', t('chat.screen.system.transactionCompleted'));
                         }
                     } catch (chatError) {
                         console.error('Failed to send completion message:', chatError);
@@ -178,6 +178,20 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                         >
                             <Text style={styles.homeBtnText}>{t('screen.transaction.backHome')}</Text>
                         </TouchableOpacity>
+
+                        {transaction?.buyerId === currentUserId && !transaction?.reviewId && (
+                            <TouchableOpacity
+                                style={styles.reviewBtn}
+                                onPress={() => navigation.navigate('Review', {
+                                    transactionId,
+                                    sellerId: transaction.sellerId,
+                                    listingId: transaction.listingId
+                                })}
+                            >
+                                <MaterialIcons name="rate-review" size={20} color="#fff" />
+                                <Text style={styles.reviewBtnText}>{t('screen.review.title')}</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 )}
             </ScrollView>
@@ -260,4 +274,20 @@ const styles = StyleSheet.create({
     copyText: { color: '#64748b', fontSize: 14, fontWeight: '600' },
     homeBtn: { marginTop: 20, backgroundColor: '#f1f5f9', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 24 },
     homeBtnText: { color: '#0f172a', fontWeight: '700' },
+    reviewBtn: {
+        marginTop: 12,
+        backgroundColor: '#22c55e',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 28,
+        borderRadius: 24,
+        gap: 8,
+        elevation: 3,
+        shadowColor: '#22c55e',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    reviewBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });

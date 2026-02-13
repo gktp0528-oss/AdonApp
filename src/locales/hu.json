@@ -234,6 +234,7 @@
       "shareErrorTitle": "Hiba",
       "shareErrorMessage": "Jelenleg nem lehet megosztani a profilt.",
       "locationDefault": "Európa",
+      "settings": "Beállítások",
       "stats": {
         "reliability": "Megbízhatóság",
         "sales": "Eladások",
@@ -256,6 +257,53 @@
         "chat": "Csevegés indítása"
       }
     },
+    "settings": {
+      "title": "Beállítások",
+      "sections": {
+        "account": "Fiók",
+        "preferences": "Beállítások",
+        "notifications": "Értesítések",
+        "privacy": "Adatvédelem",
+        "support": "Támogatás",
+        "accountActions": "Fiókkezelés"
+      },
+      "account": {
+        "editProfile": "Profil szerkesztése",
+        "logout": "Kijelentkezés",
+        "logoutConfirmTitle": "Kijelentkezés",
+        "logoutConfirmMessage": "Biztosan ki szeretne jelentkezni?",
+        "logoutError": "Nem sikerült kijelentkezni.",
+        "delete": "Fiók törlése",
+        "deleteConfirmTitle": "Fiók törlése",
+        "deleteConfirmMessage": "Biztosan törölni szeretné a fiókját? Ez a művelet nem vonható vissza.",
+        "deleteWarningTitle": "Hamarosan",
+        "deleteWarningMessage": "A fiók törlése hamarosan elérhető lesz. Kérjük, lépjen kapcsolatba az ügyfélszolgálattal."
+      },
+      "language": {
+        "title": "Nyelv",
+        "selectTitle": "Nyelv kiválasztása",
+        "errorTitle": "Hiba",
+        "errorMessage": "Nem sikerült nyelvet váltani."
+      },
+      "appearance": {
+        "darkMode": "Sötét mód",
+        "comingSoon": "Hamarosan",
+        "comingSoonMessage": "A sötét mód hamarosan elérhető lesz."
+      },
+      "notifications": {
+        "push": "Push értesítések",
+        "email": "Email értesítések"
+      },
+      "privacy": {
+        "publicProfile": "Nyilvános profil"
+      },
+      "support": {
+        "help": "Súgó központ",
+        "helpMessage": "Segítségre van szüksége? Írjon nekünk: support@adon.app",
+        "about": "Névjegy",
+        "aboutMessage": "ADON v1.0.0\nPrémium viszonteladási piac\n\n© 2025 ADON. Minden jog fenntartva."
+      }
+    },
     "editProfile": {
       "title": "Profil szerkesztése",
       "loadError": "Nem sikerült betölteni a profilt.",
@@ -266,6 +314,7 @@
       "validationEmpty": "A név nem lehet üres.",
       "changeCover": "Borítókép módosítása",
       "photoHint": "Profilkép",
+      "openingGallery": "Galéria megnyitása...",
       "label": {
         "name": "Megjelenítési név",
         "location": "Hely",

@@ -33,8 +33,7 @@
       "likeNew": "Like New",
       "good": "Good",
       "fair": "Fair"
-    },
-    "verify": "Verify"
+    }
   },
   "screen": {
     "login": {
@@ -239,26 +238,74 @@
       "shareErrorTitle": "Error",
       "shareErrorMessage": "Cannot share profile right now.",
       "locationDefault": "Europe",
+      "settings": "Settings",
       "stats": {
         "reliability": "Reliability",
         "sales": "Sales",
         "response": "Response",
-        "reliabilityLabel": "ADON Reliability Index",
-        "reliabilityDefault": "Verified seller with trusted activity.",
-        "products": {
-          "title": "Selling Items",
-          "seeAll": "See All",
-          "empty": "No items listed.",
-          "emptyButton": "Start Selling"
-        },
-        "button": {
-          "edit": "Edit Profile",
-          "share": "Share Profile",
-          "chat": "Start Chat"
-        },
         "responseValue": {
           "fast": "Fast"
         }
+      },
+      "reliabilityLabel": "ADON Reliability Index",
+      "reliabilityDefault": "Verified seller with trusted activity.",
+      "products": {
+        "title": "Selling Items",
+        "seeAll": "See All",
+        "empty": "No items listed.",
+        "emptyButton": "Start Selling"
+      },
+      "button": {
+        "edit": "Edit Profile",
+        "share": "Share Profile",
+        "chat": "Start Chat"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "sections": {
+        "account": "Account",
+        "preferences": "Preferences",
+        "notifications": "Notifications",
+        "privacy": "Privacy",
+        "support": "Support",
+        "accountActions": "Account Management"
+      },
+      "account": {
+        "editProfile": "Edit Profile",
+        "logout": "Logout",
+        "logoutConfirmTitle": "Logout",
+        "logoutConfirmMessage": "Are you sure you want to logout?",
+        "logoutError": "Failed to logout.",
+        "delete": "Delete Account",
+        "deleteConfirmTitle": "Delete Account",
+        "deleteConfirmMessage": "Are you sure you want to delete your account? This action cannot be undone.",
+        "deleteWarningTitle": "Coming Soon",
+        "deleteWarningMessage": "Account deletion will be available soon. Please contact support."
+      },
+      "language": {
+        "title": "Language",
+        "selectTitle": "Select Language",
+        "errorTitle": "Error",
+        "errorMessage": "Failed to change language."
+      },
+      "appearance": {
+        "darkMode": "Dark Mode",
+        "comingSoon": "Coming Soon",
+        "comingSoonMessage": "Dark mode will be available soon."
+      },
+      "notifications": {
+        "push": "Push Notifications",
+        "email": "Email Notifications"
+      },
+      "privacy": {
+        "publicProfile": "Public Profile"
+      },
+      "support": {
+        "help": "Help Center",
+        "helpMessage": "Need help? Contact us at support@adon.app",
+        "about": "About",
+        "aboutMessage": "ADON v1.0.0\nPremium Resale Marketplace\n\n© 2025 ADON. All rights reserved."
       }
     },
     "editProfile": {
@@ -271,6 +318,7 @@
       "validationEmpty": "Name cannot be empty.",
       "changeCover": "Change Cover",
       "photoHint": "Profile Photo",
+      "openingGallery": "Opening gallery...",
       "label": {
         "name": "Display Name",
         "location": "Location",
@@ -345,6 +393,10 @@
         "c4": {
           "text": "Great. I will bring the sneakers and original box."
         }
+      },
+      "system": {
+        "transactionCompleted": "Transaction completed! Please leave a review to help others. 🌟",
+        "reviewSubmitted": "Review submitted! Thank you for sharing your experience. 💖"
       }
     },
     "categoryList": {
@@ -431,11 +483,19 @@
       "demand": "{{value}} DEMAND",
       "label": {
         "condition": "CONDITION",
+        "category": "CATEGORY",
         "price": "ESTIMATED VALUE",
         "insights": "KEY INSIGHTS",
         "summary": "ANALYSIS SUMMARY"
       },
       "submit": "Apply / Edit"
+    },
+    "review": {
+      "title": "Write Review",
+      "ratingPrompt": "How was your experience?",
+      "commentPlaceholder": "Tell us about the seller...",
+      "submit": "Submit Review",
+      "success": "Review submitted! Thank you."
     }
   }
 }
