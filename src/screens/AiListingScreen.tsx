@@ -99,7 +99,6 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
-  const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
   const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
 
