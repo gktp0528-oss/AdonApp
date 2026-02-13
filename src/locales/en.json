@@ -161,6 +161,7 @@
       "action": {
         "chat": "Chat",
         "buy": "Buy Now",
+        "ownListing": "You cannot buy your own product.",
         "back": "Back"
       },
       "accessibility": {

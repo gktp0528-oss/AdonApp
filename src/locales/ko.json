@@ -159,6 +159,7 @@
       "action": {
         "chat": "채팅하기",
         "buy": "바로 구매",
+        "ownListing": "내 상품은 구매할 수 없어요.",
         "back": "뒤로 가기"
       },
       "accessibility": {

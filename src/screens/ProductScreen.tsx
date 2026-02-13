@@ -183,6 +183,16 @@ export function ProductScreen({ navigation, route }: Props) {
 
   const handleBuyNow = () => {
     if (!listing) return;
+
+    const currentUserId = userService.getCurrentUserId();
+    if (currentUserId === listing.sellerId) {
+      Alert.alert(
+        t('common.info') || 'Info',
+        t('screen.product.action.ownListing') || 'You cannot buy your own product.'
+      );
+      return;
+    }
+
     console.log('--- Handle Buy Now Clicked ---');
     console.log('Listing ID:', listing.id);
     console.log('Seller ID:', listing.sellerId);

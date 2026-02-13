@@ -36,6 +36,15 @@ import type { ListingCondition } from '../types/listing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
+type UnifiedAiReport = {
+  itemName: string;
+  marketDemand: string;
+  conditionScore: number | null;
+  priceRange: { min: number; max: number } | null;
+  insights: string[];
+  reasoning: string;
+};
+
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -77,6 +86,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [progressAnim] = useState(new Animated.Value(0));
   const [displayProgress, setDisplayProgress] = useState(0);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
+  const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
 
   useEffect(() => {
     const listenerId = progressAnim.addListener(({ value }) => {
@@ -119,6 +129,31 @@ export function AiListingScreen({ navigation, route }: Props) {
     'Like New': '거의 새것',
     Good: '양호',
     Fair: '사용감 있음',
+  };
+
+  const getRecommendedPriceFromRange = (range: { min: number; max: number } | null): string | null => {
+    if (!range) return null;
+    const min = Number(range.min);
+    const max = Number(range.max);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return null;
+    return String(Math.round((min + max) / 2));
+  };
+
+  const inferConditionFromScore = (score: number | null): ListingCondition => {
+    if (score === null) return 'Good';
+    if (score >= 9) return 'New';
+    if (score >= 7) return 'Like New';
+    if (score >= 4) return 'Good';
+    return 'Fair';
+  };
+
+  const handleApplyRecommendedPrice = () => {
+    const suggestedPrice = getRecommendedPriceFromRange(aiPriceRange);
+    if (!suggestedPrice) {
+      Alert.alert('추천 가격을 계산할 수 없어요.', '리포트를 한 번 더 분석해 주세요.');
+      return;
+    }
+    setPrice(suggestedPrice);
   };
 
   const handlePostItem = async () => {
@@ -344,15 +379,26 @@ export function AiListingScreen({ navigation, route }: Props) {
         const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
         if (data) {
+          const parsedScore = Number(data.conditionScore);
+          const normalizedScore = Number.isFinite(parsedScore) ? Math.max(1, Math.min(10, Math.round(parsedScore))) : null;
+          const normalizedInsights = Array.isArray(data.insights)
+            ? data.insights.filter((x: unknown) => typeof x === 'string' && x.trim()).slice(0, 4)
+            : [];
+
+          let normalizedPriceRange: { min: number; max: number } | null = null;
+          if (data.priceRange && typeof data.priceRange.min === 'number' && typeof data.priceRange.max === 'number') {
+            const min = Math.max(0, Math.round(data.priceRange.min));
+            const max = Math.max(0, Math.round(data.priceRange.max));
+            normalizedPriceRange = min <= max ? { min, max } : { min: max, max: min };
+          }
+
           if (typeof data.itemName === 'string' && data.itemName.trim()) {
             setTitle(data.itemName.trim());
           } else {
             setTitle('AI 분석 상품');
           }
 
-          if (data.priceRange && typeof data.priceRange.min === 'number' && typeof data.priceRange.max === 'number') {
-            setAiPriceRange(data.priceRange);
-          }
+          setAiPriceRange(normalizedPriceRange);
 
           if (typeof data.category === 'string' && data.category.trim()) {
             setCategory(data.category.trim());
@@ -363,10 +409,34 @@ export function AiListingScreen({ navigation, route }: Props) {
             setDescription(desc.trim());
           }
 
-          setCondition('Good');
+          setCondition(inferConditionFromScore(normalizedScore));
+          setAiReport({
+            itemName: typeof data.itemName === 'string' && data.itemName.trim() ? data.itemName.trim() : '분석 상품',
+            marketDemand: typeof data.marketDemand === 'string' && data.marketDemand.trim() ? data.marketDemand.trim() : 'N/A',
+            conditionScore: normalizedScore,
+            priceRange: normalizedPriceRange,
+            insights: normalizedInsights,
+            reasoning: typeof desc === 'string' && desc.trim() ? desc.trim() : '리포트 설명이 제공되지 않았습니다.',
+          });
+
+          if (!price.trim() && normalizedPriceRange) {
+            const suggestedPrice = getRecommendedPriceFromRange(normalizedPriceRange);
+            if (suggestedPrice) {
+              setPrice(suggestedPrice);
+            }
+          }
         } else {
           setTitle('AI 분석 완료');
           setDescription(responseText);
+          setAiPriceRange(null);
+          setAiReport({
+            itemName: '분석 상품',
+            marketDemand: 'N/A',
+            conditionScore: null,
+            priceRange: null,
+            insights: [],
+            reasoning: responseText,
+          });
         }
 
         await addDoc(collection(db, 'ai_processing_logs'), {
@@ -619,17 +689,11 @@ export function AiListingScreen({ navigation, route }: Props) {
               <Text style={styles.label}>가격</Text>
               <Pressable
                 style={styles.aiPriceBtn}
-                onPress={() => {
-                  if (photos.length > 0) {
-                    navigation.navigate('AiPriceAssistant', { imageUris: photos, initialPrice: price });
-                  } else {
-                    Alert.alert('사진을 먼저 등록해주세요!', '상품 사진이 있어야 AI가 정확한 시세를 분석할 수 있어요! 📸');
-                  }
-                }}
+                onPress={handleRunAiAnalysis}
               >
                 <MaterialIcons name="auto-awesome" size={16} color="#30e86e" />
                 <Text style={styles.aiPriceBtnText}>
-                  {aiPriceRange ? `AI 시세: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 시세 분석'}
+                  {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
                 </Text>
               </Pressable>
             </View>
@@ -645,6 +709,66 @@ export function AiListingScreen({ navigation, route }: Props) {
               />
             </View>
           </View>
+
+          {aiReport ? (
+            <View style={styles.reportCard}>
+              <View style={styles.reportHeader}>
+                <Text style={styles.reportTitle}>Adon AI 통합 리포트</Text>
+                <Text style={styles.reportSubtitle}>상품 분석 + 가격 제안 + 판매 문구를 한 번에 정리했어요</Text>
+              </View>
+
+              <View style={styles.reportStatRow}>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>모델</Text>
+                  <Text style={styles.reportPillValue}>{aiReport.itemName}</Text>
+                </View>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>수요</Text>
+                  <Text style={styles.reportPillValue}>{aiReport.marketDemand}</Text>
+                </View>
+              </View>
+
+              <View style={styles.reportStatRow}>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>상태 점수</Text>
+                  <Text style={styles.reportPillValue}>
+                    {aiReport.conditionScore !== null ? `${aiReport.conditionScore}/10` : 'N/A'}
+                  </Text>
+                </View>
+                <View style={styles.reportPill}>
+                  <Text style={styles.reportPillLabel}>권장 가격</Text>
+                  <Text style={styles.reportPillValue}>
+                    {aiReport.priceRange ? `€${aiReport.priceRange.min} ~ €${aiReport.priceRange.max}` : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.reportBody}>
+                <Text style={styles.reportSectionTitle}>판매 근거 요약</Text>
+                <Text style={styles.reportReasoning}>{aiReport.reasoning}</Text>
+              </View>
+
+              {aiReport.insights.length > 0 ? (
+                <View style={styles.reportBody}>
+                  <Text style={styles.reportSectionTitle}>핵심 인사이트</Text>
+                  {aiReport.insights.map((insight, idx) => (
+                    <View key={`${insight}-${idx}`} style={styles.reportInsightRow}>
+                      <MaterialIcons name="check-circle" size={14} color="#16a34a" />
+                      <Text style={styles.reportInsightText}>{insight}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              <Pressable
+                style={[styles.reportApplyBtn, !aiPriceRange && styles.reportApplyBtnDisabled]}
+                onPress={handleApplyRecommendedPrice}
+                disabled={!aiPriceRange}
+              >
+                <Text style={styles.reportApplyBtnText}>추천 가격 입력하기</Text>
+              </Pressable>
+            </View>
+          ) : null}
 
           {/* Condition Selector */}
           <View style={styles.inputGroup}>
@@ -1144,6 +1268,93 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 1,
     opacity: 1,
+  },
+  reportCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#dcfce7',
+    padding: 16,
+    marginBottom: 20,
+  },
+  reportHeader: {
+    marginBottom: 12,
+  },
+  reportTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#14532d',
+  },
+  reportSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 18,
+  },
+  reportStatRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  reportPill: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  reportPillLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#16a34a',
+    marginBottom: 2,
+  },
+  reportPillValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  reportBody: {
+    marginTop: 8,
+  },
+  reportSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  reportReasoning: {
+    fontSize: 13,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  reportInsightRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginBottom: 6,
+  },
+  reportInsightText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 19,
+  },
+  reportApplyBtn: {
+    marginTop: 12,
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportApplyBtnDisabled: {
+    backgroundColor: '#94a3b8',
+  },
+  reportApplyBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   aiPriceBtn: {
     flexDirection: 'row',
