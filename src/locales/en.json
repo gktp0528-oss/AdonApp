@@ -5,7 +5,12 @@
     "retry": "Retry",
     "save": "Save",
     "cancel": "Cancel",
+    "save": "Save",
+    "cancel": "Cancel",
     "confirm": "Confirm",
+    "copy": "Copy",
+    "verify": "Verify",
+    "success": "Success",
     "time": {
       "justNow": "Just now",
       "ago": {
@@ -418,7 +423,15 @@
       "safetyCodeDesc": "Share this 4-digit PIN with the seller ONLY when you have received the item during the meetup.",
       "verifyBuyer": "Verify Buyer",
       "pinVerified": "PIN verified successfully! Transaction status updated.",
-      "pinInvalid": "Invalid PIN. Please try again."
+      "pinInvalid": "Invalid PIN. Please try again.",
+      "pinCopied": "PIN copied to clipboard.",
+      "completeMsg": "The item has been successfully traded!",
+      "backHome": "Back to Home",
+      "statusLabel": {
+        "paidHeld": "Payment Held (Escrow)",
+        "released": "Transaction Completed",
+        "cancelled": "Cancelled"
+      }
     }
   }
 }

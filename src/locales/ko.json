@@ -6,6 +6,9 @@
     "save": "저장",
     "cancel": "취소",
     "confirm": "확인",
+    "copy": "복사",
+    "verify": "인증",
+    "success": "성공",
     "time": {
       "justNow": "방금 전",
       "ago": {

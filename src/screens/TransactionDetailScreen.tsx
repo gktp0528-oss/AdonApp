@@ -9,7 +9,9 @@ import {
     View,
     TextInput,
     Alert,
+    Pressable,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -17,6 +19,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Transaction } from '../types/transaction';
 import { transactionService } from '../services/transactionService';
 import { userService } from '../services/userService';
+import { DetailBackButton } from '../components/DetailBackButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionDetail'>;
 
@@ -54,6 +57,8 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
             if (success) {
                 Alert.alert(t('common.success'), t('screen.transaction.pinVerified'));
                 // Refresh data
+                const updated = await transactionService.getTransaction(transactionId);
+                if (updated) setTransaction(updated);
             } else {
                 Alert.alert(t('common.error'), t('screen.transaction.pinInvalid'));
             }
@@ -61,6 +66,22 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
             console.error('PIN Verification error:', error);
         } finally {
             setVerifying(false);
+        }
+    };
+
+    const copyToClipboard = async () => {
+        if (transaction?.safetyCode) {
+            await Clipboard.setStringAsync(transaction.safetyCode);
+            Alert.alert(t('common.success'), t('screen.transaction.pinCopied'));
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'paid_held': return t('screen.transaction.statusLabel.paidHeld');
+            case 'released': return t('screen.transaction.statusLabel.released');
+            case 'cancelled': return t('screen.transaction.statusLabel.cancelled');
+            default: return status.toUpperCase();
         }
     };
 
@@ -75,25 +96,29 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
-                </TouchableOpacity>
+                <DetailBackButton onPress={() => navigation.goBack()} />
                 <Text style={styles.headerTitle}>{t('screen.transaction.title')}</Text>
-                <View style={{ width: 24 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.statusCard}>
                     <Text style={styles.statusLabel}>{t('screen.transaction.status')}</Text>
-                    <Text style={styles.statusValue}>{transaction?.status?.toUpperCase() || 'PAID'}</Text>
+                    <Text style={styles.statusValue}>{transaction?.status ? getStatusLabel(transaction.status) : '-'}</Text>
                 </View>
 
                 {/* Buyer Perspective: See the PIN */}
                 {transaction?.buyerId === currentUserId && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('screen.transaction.safetyCode')}</Text>
-                        <View style={styles.pinBox}>
-                            <Text style={styles.pinText}>{transaction?.safetyCode}</Text>
+                        <View style={styles.pinContainer}>
+                            <View style={styles.pinBox}>
+                                <Text style={styles.pinText}>{transaction?.safetyCode}</Text>
+                            </View>
+                            <TouchableOpacity style={styles.copyBtn} onPress={copyToClipboard}>
+                                <MaterialIcons name="content-copy" size={20} color="#64748b" />
+                                <Text style={styles.copyText}>{t('common.copy')}</Text>
+                            </TouchableOpacity>
                         </View>
                         <Text style={styles.helperText}>{t('screen.transaction.safetyCodeDesc')}</Text>
                     </View>
@@ -126,7 +151,13 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                     <View style={[styles.section, styles.successSection]}>
                         <MaterialIcons name="check-circle" size={48} color="#22c55e" />
                         <Text style={styles.successTitle}>{t('common.success')}</Text>
-                        <Text style={styles.successDesc}>The item has been successfully traded!</Text>
+                        <Text style={styles.successDesc}>{t('screen.transaction.completeMsg')}</Text>
+                        <TouchableOpacity
+                            style={styles.homeBtn}
+                            onPress={() => navigation.navigate('Home')}
+                        >
+                            <Text style={styles.homeBtnText}>{t('screen.transaction.backHome')}</Text>
+                        </TouchableOpacity>
                     </View>
                 )}
             </ScrollView>
@@ -204,4 +235,9 @@ const styles = StyleSheet.create({
     successSection: { alignItems: 'center', padding: 40 },
     successTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a', marginVertical: 12 },
     successDesc: { fontSize: 14, color: '#64748b', textAlign: 'center' },
+    pinContainer: { alignItems: 'center', gap: 12 },
+    copyBtn: { flexDirection: 'row', alignItems: 'center', padding: 8, gap: 4 },
+    copyText: { color: '#64748b', fontSize: 14, fontWeight: '600' },
+    homeBtn: { marginTop: 20, backgroundColor: '#f1f5f9', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 24 },
+    homeBtnText: { color: '#0f172a', fontWeight: '700' },
 });
