@@ -12,8 +12,8 @@ import {
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
-  Animated,
   Easing,
+  Animated,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -75,7 +75,6 @@ export function AiListingScreen({ navigation, route }: Props) {
       if (data.conditionScore) {
         setCondition(inferConditionFromScore(data.conditionScore));
       }
-      if (data.reasoning) setDescription(data.reasoning);
 
       setAiReport(data);
     }
@@ -385,9 +384,6 @@ export function AiListingScreen({ navigation, route }: Props) {
           }
 
           const desc = data.reasoning || data.description || '';
-          if (typeof desc === 'string') {
-            setDescription(desc.trim());
-          }
 
           const report: UnifiedAiReport = {
             itemName: typeof data.itemName === 'string' && data.itemName.trim() ? data.itemName.trim() : '분석 상품',
@@ -398,13 +394,20 @@ export function AiListingScreen({ navigation, route }: Props) {
             reasoning: typeof desc === 'string' && desc.trim() ? desc.trim() : '리포트 설명이 제공되지 않았습니다.',
           };
 
-          setIsAiLoading(false);
-          setAiStep(null);
+          // Add a small delay so user can actually see the 'Finalizing' checkmark (1.5s total)
+          await new Promise(resolve => setTimeout(resolve, 1500));
 
+          // Navigate FIRST while overlay is still active
           navigation.navigate('AiAnalysisResult', {
             report,
             imageUri: photos[0]
           });
+
+          // Delay cleanup for 500ms so the screen transition finishes before unmounting overlay
+          setTimeout(() => {
+            setIsAiLoading(false);
+            setAiStep(null);
+          }, 500);
 
         } else {
           // Fallback for failed JSON parse
@@ -422,13 +425,10 @@ export function AiListingScreen({ navigation, route }: Props) {
       } catch (e) {
         console.warn('Failed to parse AI JSON:', e);
         setTitle('AI 분석 실패');
-        setDescription('AI가 정보를 읽어오는 데 실패했어요. 직접 작성해 보시겠어요?');
-      }
-
-      setTimeout(() => {
+        // Error fallback: just clear loading, don't write to description
         setIsAiLoading(false);
         setAiStep(null);
-      }, 1000);
+      }
 
     } catch (error: any) {
       console.error('AI Analysis failed:', error);
@@ -442,17 +442,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   };
 
   if (isAiLoading) {
-    return (
-      <View style={styles.loadingOverlay}>
-        <View style={styles.scanningWrap}>
-          <View style={styles.aiPulseContainer}>
-            <View style={styles.aiPulse} />
-          </View>
-          <Text style={styles.aiLiveTitle}>ADON VISION ENGINE</Text>
-          <Text style={styles.percentageText}>{aiStep === 'uploading' ? 'UPLOADING...' : 'ANALYZING...'}</Text>
-        </View>
-      </View>
-    );
+    return <AiLoadingOverlay step={aiStep} />;
   }
 
   return (
@@ -570,65 +560,6 @@ export function AiListingScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          {aiReport ? (
-            <View style={styles.reportCard}>
-              <View style={styles.reportHeader}>
-                <Text style={styles.reportTitle}>Adon AI 통합 리포트</Text>
-                <Text style={styles.reportSubtitle}>상품 분석 + 가격 제안 + 판매 문구를 한 번에 정리했어요</Text>
-              </View>
-
-              <View style={styles.reportStatRow}>
-                <View style={styles.reportPill}>
-                  <Text style={styles.reportPillLabel}>모델</Text>
-                  <Text style={styles.reportPillValue}>{aiReport.itemName}</Text>
-                </View>
-                <View style={styles.reportPill}>
-                  <Text style={styles.reportPillLabel}>수요</Text>
-                  <Text style={styles.reportPillValue}>{aiReport.marketDemand}</Text>
-                </View>
-              </View>
-
-              <View style={styles.reportStatRow}>
-                <View style={styles.reportPill}>
-                  <Text style={styles.reportPillLabel}>상태 점수</Text>
-                  <Text style={styles.reportPillValue}>
-                    {aiReport.conditionScore !== null ? `${aiReport.conditionScore}/10` : 'N/A'}
-                  </Text>
-                </View>
-                <View style={styles.reportPill}>
-                  <Text style={styles.reportPillLabel}>권장 가격</Text>
-                  <Text style={styles.reportPillValue}>
-                    {aiReport.priceRange ? `€${aiReport.priceRange.min} ~ €${aiReport.priceRange.max}` : 'N/A'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.reportBody}>
-                <Text style={styles.reportSectionTitle}>판매 근거 요약</Text>
-                <Text style={styles.reportReasoning}>{aiReport.reasoning}</Text>
-              </View>
-
-              {aiReport.insights.length > 0 ? (
-                <View style={styles.reportBody}>
-                  <Text style={styles.reportSectionTitle}>핵심 인사이트</Text>
-                  {aiReport.insights.map((insight, idx) => (
-                    <View key={`${insight}-${idx}`} style={styles.reportInsightRow}>
-                      <MaterialIcons name="check-circle" size={14} color="#16a34a" />
-                      <Text style={styles.reportInsightText}>{insight}</Text>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-
-              <Pressable
-                style={[styles.reportApplyBtn, !aiPriceRange && styles.reportApplyBtnDisabled]}
-                onPress={handleApplyRecommendedPrice}
-                disabled={!aiPriceRange}
-              >
-                <Text style={styles.reportApplyBtnText}>추천 가격 입력하기</Text>
-              </Pressable>
-            </View>
-          ) : null}
 
           {/* Condition Selector */}
           <View style={styles.inputGroup}>
@@ -676,6 +607,175 @@ export function AiListingScreen({ navigation, route }: Props) {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+// -------------------------------------------------------------------------
+// NEW AI LOADING OVERLAY COMPONENT (Using Native Animated for compatibility)
+// -------------------------------------------------------------------------
+
+function AiLoadingOverlay({ step }: { step: 'uploading' | 'analyzing' | 'finalizing' | null }) {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const titleFade = React.useRef(new Animated.Value(0)).current;
+  const flashAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    // Fade in text on step change
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+
+    // Trigger Flash when finalizing
+    if (step === 'finalizing') {
+      Animated.sequence([
+        Animated.delay(1000), // Wait for checkmark pop
+        Animated.timing(flashAnim, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [step]);
+
+  React.useEffect(() => {
+    // Title fade in once
+    Animated.timing(titleFade, {
+      toValue: 1,
+      duration: 800,
+      delay: 200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const flashScale = flashAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 15], // Circle grows to cover screen
+  });
+
+  const flashOpacity = flashAnim.interpolate({
+    inputRange: [0, 0.8, 1],
+    outputRange: [0, 1, 1],
+  });
+
+  return (
+    <View style={styles.loadingOverlay}>
+      <View style={styles.scanningWrap}>
+        {/* ICON AREA */}
+        <View style={{ height: 100, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          {step === 'uploading' && <UploadingIcon />}
+          {step === 'analyzing' && <AnalyzingIcon />}
+          {step === 'finalizing' && <FinalizingIcon />}
+        </View>
+
+        {/* TEXT AREA */}
+        <Animated.Text style={[styles.aiLiveTitle, { opacity: titleFade }]}>
+          ADON VISION ENGINE
+        </Animated.Text>
+
+        <Animated.Text
+          style={[styles.percentageText, { opacity: fadeAnim }]}
+        >
+          {step === 'uploading' && 'CLOUD UPLOADING...'}
+          {step === 'analyzing' && 'DEEP ANALYZING...'}
+          {step === 'finalizing' && 'COMPLETED!'}
+        </Animated.Text>
+      </View>
+
+      {/* FLASH OVERLAY (Option 1) */}
+      <Animated.View
+        style={[
+          styles.flashCircle,
+          {
+            transform: [{ scale: flashScale }],
+            opacity: flashOpacity
+          }
+        ]}
+      />
+    </View>
+  );
+}
+
+function UploadingIcon() {
+  const y = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(y, {
+          toValue: -15,
+          duration: 600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(y, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ translateY: y }] }}>
+      <MaterialIcons name="cloud-upload" size={64} color="#30e86e" />
+    </Animated.View>
+  );
+}
+
+function AnalyzingIcon() {
+  const rotate = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotate, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = rotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  return (
+    <Animated.View style={{ transform: [{ rotate: spin }] }}>
+      <MaterialIcons name="settings-suggest" size={64} color="#30e86e" />
+    </Animated.View>
+  );
+}
+
+function FinalizingIcon() {
+  const scale = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <View style={{
+        width: 80, height: 80, borderRadius: 40, backgroundColor: '#30e86e',
+        alignItems: 'center', justifyContent: 'center'
+      }}>
+        <MaterialIcons name="check" size={48} color="#fff" />
+      </View>
+    </Animated.View>
   );
 }
 
@@ -890,7 +990,7 @@ const styles = StyleSheet.create({
     color: '#16a34a',
   },
   textArea: {
-    height: 120,
+    height: 200,
     paddingTop: 14,
   },
   footer: {
@@ -1229,5 +1329,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#30e86e',
+  },
+  flashCircle: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#30e86e',
+    zIndex: 2000,
   },
 });

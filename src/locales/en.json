@@ -3,7 +3,6 @@
     "loading": "Loading...",
     "error": "An error occurred.",
     "retry": "Retry",
-    "retry": "Retry",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -35,7 +34,6 @@
       "good": "Good",
       "fair": "Fair"
     },
-    "success": "Success",
     "verify": "Verify"
   },
   "screen": {
@@ -425,12 +423,19 @@
       "pinInvalid": "Invalid PIN. Please try again.",
       "pinCopied": "PIN copied to clipboard.",
       "completeMsg": "The item has been successfully traded!",
-      "backHome": "Back to Home",
-      "statusLabel": {
-        "paidHeld": "Payment Held (Escrow)",
-        "released": "Transaction Completed",
-        "cancelled": "Cancelled"
-      }
+      "backHome": "Back to Home"
+    },
+    "aiAnalysisResult": {
+      "headerTitle": "ADON AI REPORT",
+      "badge": "AI ANALYZED",
+      "demand": "{{value}} DEMAND",
+      "label": {
+        "condition": "CONDITION",
+        "price": "ESTIMATED VALUE",
+        "insights": "KEY INSIGHTS",
+        "summary": "ANALYSIS SUMMARY"
+      },
+      "submit": "Apply / Edit"
     }
   }
 }

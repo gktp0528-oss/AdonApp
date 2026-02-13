@@ -431,6 +431,18 @@
         "released": "거래 확정 완료",
         "cancelled": "취소됨"
       }
+    },
+    "aiAnalysisResult": {
+      "headerTitle": "ADON AI 리포트",
+      "badge": "AI 분석 완료",
+      "demand": "{{value}} 수요",
+      "label": {
+        "condition": "상태 점수",
+        "price": "예상 가격",
+        "insights": "핵심 인사이트",
+        "summary": "분석 요약"
+      },
+      "submit": "적용 / 수정"
     }
   }
 }
