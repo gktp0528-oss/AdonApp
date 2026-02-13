@@ -112,7 +112,6 @@ export const transactionService = {
             where('listingId', '==', listingId),
             where('buyerId', '==', buyerId),
             where('sellerId', '==', sellerId),
-            orderBy('createdAt', 'desc'),
             limit(1)
         );
         const snap = await getDocs(q);
