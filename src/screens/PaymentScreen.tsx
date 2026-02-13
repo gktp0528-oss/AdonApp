@@ -35,7 +35,7 @@ export default function PaymentScreen({ navigation, route }: Props) {
     const [listing, setListing] = useState<Listing | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [tradeType, setTradeType] = useState<TradeType>('meetup');
+    const [tradeType] = useState<TradeType>('meetup');
 
     // Form States
     const [meetupData, setMeetupData] = useState<MeetupData>({ date: '', time: '', place: '' });
@@ -168,44 +168,8 @@ export default function PaymentScreen({ navigation, route }: Props) {
                     </View>
                 </View>
 
-                {/* Trade Method Selection */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('screen.payment.tradeMethod')}</Text>
-                    <View style={styles.methodTabs}>
-                        <Pressable
-                            style={[styles.methodTab, tradeType === 'meetup' && styles.methodTabActive]}
-                            onPress={() => setTradeType('meetup')}
-                        >
-                            <MaterialIcons name="person-pin-circle" size={24} color={tradeType === 'meetup' ? '#22c55e' : '#64748b'} />
-                            <Text style={[styles.methodTabText, tradeType === 'meetup' && styles.methodTabTextActive]}>
-                                {t('screen.payment.meetup.title')}
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            style={[styles.methodTab, tradeType === 'delivery' && styles.methodTabActive]}
-                            onPress={() => setTradeType('delivery')}
-                        >
-                            <MaterialIcons name="local-shipping" size={24} color={tradeType === 'delivery' ? '#22c55e' : '#64748b'} />
-                            <Text style={[styles.methodTabText, tradeType === 'delivery' && styles.methodTabTextActive]}>
-                                {t('screen.payment.delivery.title')}
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            style={[styles.methodTab, tradeType === 'locker' && styles.methodTabActive]}
-                            onPress={() => setTradeType('locker')}
-                        >
-                            <MaterialIcons name="inventory" size={24} color={tradeType === 'locker' ? '#22c55e' : '#64748b'} />
-                            <Text style={[styles.methodTabText, tradeType === 'locker' && styles.methodTabTextActive]}>
-                                {t('screen.payment.locker.title')}
-                            </Text>
-                        </Pressable>
-                    </View>
-
-                    {/* Dynamic Form */}
-                    {tradeType === 'meetup' && <MeetupForm data={meetupData} onChange={setMeetupData} />}
-                    {tradeType === 'delivery' && <DeliveryForm data={deliveryData} onChange={setDeliveryData} />}
-                    {tradeType === 'locker' && <LockerForm data={lockerData} onChange={setLockerData} />}
-                </View>
+                {/* Meetup-only implementation for initial launch */}
+                <MeetupForm data={meetupData} onChange={setMeetupData} />
 
                 {/* Escrow Notice */}
                 <View style={styles.escrowBox}>

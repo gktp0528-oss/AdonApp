@@ -1,3 +1,4 @@
+import '../lib/polyfills';
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -13,23 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-// import { getGenerativeModel } from "firebase/vertexai";
+import { getGenerativeModel } from "firebase/ai";
 import { aiBackend } from '../firebaseConfig';
 import * as ImageManipulator from 'expo-image-manipulator';
-
-// Temporary Mock
-const getGenerativeModel = (backend: any, config: any) => ({
-    generateContent: async (params: any) => ({
-        response: {
-            text: () => JSON.stringify({
-                itemName: "Service Unavailable",
-                priceRange: { min: 0, max: 0 },
-                insights: ["AI Disabled"],
-                reasoning: "Module missing"
-            })
-        }
-    })
-});
 
 const { width } = Dimensions.get('window');
 
@@ -81,6 +68,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
     };
 
     const runDeepAnalysis = async (originalUris: string[]) => {
+        setLoading(true);
         try {
             const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
 
@@ -124,13 +112,19 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
 
 
             const result = await model.generateContent([prompt, ...imageParts]);
-            const text = result.response.text();
+            const text = (await result.response).text();
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+
+            if (!data || !data.priceRange || typeof data.priceRange.min !== 'number' || typeof data.priceRange.max !== 'number') {
+                setAnalysis(null);
+                return;
+            }
 
             setAnalysis(data);
         } catch (error) {
             console.error('Deep Analysis failed:', error);
+            setAnalysis(null);
         } finally {
             setLoading(false);
         }
