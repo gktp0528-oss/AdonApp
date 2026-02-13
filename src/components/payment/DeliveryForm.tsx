@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { DeliveryData } from '../../types/transaction';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface Props {
     data: DeliveryData;
@@ -17,6 +18,11 @@ export function DeliveryForm({ data, onChange }: Props) {
 
     return (
         <View style={styles.container}>
+            <View style={styles.providerBadge}>
+                <MaterialIcons name="local-shipping" size={16} color="#2563eb" />
+                <Text style={styles.providerName}>{t('screen.payment.provider.dpd')}</Text>
+            </View>
+
             <Text style={styles.label}>{t('screen.payment.delivery.recipient')}</Text>
             <TextInput
                 style={styles.input}
@@ -89,5 +95,24 @@ const styles = StyleSheet.create({
     textArea: {
         height: 80,
         textAlignVertical: 'top',
+    },
+    providerBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#eff6ff',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#dbeafe',
+    },
+    providerName: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#2563eb',
+        marginLeft: 6,
+        textTransform: 'uppercase',
     },
 });

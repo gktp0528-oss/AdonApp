@@ -44,9 +44,10 @@ export default function PaymentScreen({ navigation, route }: Props) {
         phone: '',
         address: '',
         postcode: '',
+        carrier: 'DPD',
     });
     const [lockerData, setLockerData] = useState<LockerData>({
-        provider: '',
+        provider: 'Packeta',
         locationId: '',
         locationName: '',
     });
@@ -81,8 +82,15 @@ export default function PaymentScreen({ navigation, route }: Props) {
         );
     }
 
-    const shippingFee = tradeType === 'meetup' ? 0 : 5.99; // Mock shipping fee
-    const platformFee = listing.price * 0.05; // 5% fee
+    const getShippingFee = () => {
+        if (tradeType === 'meetup') return 0;
+        if (tradeType === 'locker') return 1100; // Packeta/Foxpost base fee
+        if (tradeType === 'delivery') return 2500; // DPD base fee
+        return 0;
+    };
+
+    const shippingFee = getShippingFee();
+    const platformFee = Math.round(listing.price * 0.05); // 5% fee rounded
     const totalAmount = listing.price + shippingFee + platformFee;
 
     const handlePayment = async () => {

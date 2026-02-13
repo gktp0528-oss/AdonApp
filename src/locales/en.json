@@ -396,9 +396,16 @@
         "desc": "Your payment is held securely until you receive and confirm the item."
       },
       "submit": "Complete Payment",
+      "provider": {
+        "title": "Select Shipping Service",
+        "packeta": "Packeta (Lockers)",
+        "dpd": "DPD (Home Delivery)",
+        "foxpost": "FoxPost (Lockers)"
+      },
       "error": {
         "methodRequired": "Please select a trade method.",
-        "fieldsRequired": "Please fill in all required fields."
+        "fieldsRequired": "Please fill in all required fields.",
+        "providerRequired": "Please select a shipping provider."
       }
     }
   }

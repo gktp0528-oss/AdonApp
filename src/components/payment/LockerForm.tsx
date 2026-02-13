@@ -30,6 +30,11 @@ export function LockerForm({ data, onChange }: Props) {
 
     return (
         <View style={styles.container}>
+            <View style={styles.providerBadge}>
+                <MaterialIcons name="inventory" size={16} color="#e11d48" />
+                <Text style={styles.providerName}>{t('screen.payment.provider.packeta')}</Text>
+            </View>
+
             <Text style={styles.label}>{t('screen.payment.locker.select')}</Text>
 
             <View style={styles.searchBar}>
@@ -128,5 +133,24 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#64748b',
         marginTop: 2,
+    },
+    providerBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff1f2',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#ffe4e6',
+    },
+    providerName: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#e11d48',
+        marginLeft: 6,
+        textTransform: 'uppercase',
     },
 });
