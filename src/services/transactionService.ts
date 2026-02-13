@@ -42,7 +42,7 @@ export const transactionService = {
             ? Math.floor(1000 + Math.random() * 9000).toString()
             : undefined;
 
-        const newTransaction: Partial<Transaction> = {
+        const newTransaction: any = {
             ...data,
             id: transactionId,
             safetyCode,
@@ -51,6 +51,13 @@ export const transactionService = {
             createdAt: serverTimestamp() as Timestamp,
             updatedAt: serverTimestamp() as Timestamp,
         };
+
+        // Filter out undefined properties to avoid Firestore errors
+        Object.keys(newTransaction).forEach(key => {
+            if (newTransaction[key] === undefined) {
+                delete newTransaction[key];
+            }
+        });
 
         await setDoc(transactionRef, newTransaction);
         return transactionId;
