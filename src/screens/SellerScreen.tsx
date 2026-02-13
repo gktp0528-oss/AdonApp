@@ -141,9 +141,9 @@ export function SellerScreen({ navigation, route }: Props) {
           <View style={styles.statRow}>
             <View style={styles.statItem}>
               <View style={styles.ratingWrapper}>
-                <StarRating rating={Math.round((seller.positiveRate || 100) / 20)} size={16} />
+                <StarRating rating={Math.round((seller.positiveRate || 0) / 20)} size={16} />
                 <Text style={styles.statValue}>
-                  {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '5.0'}
+                  {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '0.0'}
                 </Text>
               </View>
               <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
