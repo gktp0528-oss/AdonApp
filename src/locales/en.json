@@ -141,7 +141,7 @@
       },
       "trust": {
         "response": "Response",
-        "reliability": "Reliability"
+        "reliability": "Trust Score"
       },
       "spec": {
         "category": "Category",
@@ -240,14 +240,14 @@
       "locationDefault": "Europe",
       "settings": "Settings",
       "stats": {
-        "reliability": "Reliability",
+        "reliability": "Trust Score",
         "sales": "Sales",
         "response": "Response",
         "responseValue": {
           "fast": "Fast"
         }
       },
-      "reliabilityLabel": "ADON Reliability Index",
+      "reliabilityLabel": "ADON Trust Label",
       "reliabilityDefault": "Verified seller with trusted activity.",
       "products": {
         "title": "Selling Items",
