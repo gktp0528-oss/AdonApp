@@ -257,6 +257,7 @@
           "12hours": "Within 12 hours",
           "day": "Within 24 hours",
           "fewDays": "Within a few days",
+          "fewHours": "Within a few hours",
           "unknown": "N/A"
         }
       },

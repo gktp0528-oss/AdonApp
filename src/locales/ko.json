@@ -257,6 +257,7 @@
           "12hours": "12시간 이내",
           "day": "24시간 이내",
           "fewDays": "며칠 이내",
+          "fewHours": "몇 시간 이내",
           "unknown": "N/A"
         }
       },

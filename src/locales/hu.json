@@ -240,7 +240,13 @@
         "sales": "Eladások",
         "response": "Válaszadás",
         "responseValue": {
-          "fast": "Gyors"
+          "fast": "Gyors",
+          "hour": "1 órán belül",
+          "12hours": "12 órán belül",
+          "day": "24 órán belül",
+          "fewDays": "Pár napon belül",
+          "fewHours": "Pár órán belül",
+          "unknown": "N/A"
         }
       },
       "reliabilityLabel": "ADON Megbízhatósági Index",

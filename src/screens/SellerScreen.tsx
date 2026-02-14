@@ -179,7 +179,11 @@ export function SellerScreen({ navigation, route }: Props) {
                   <MaterialIcons name="access-time" size={20} color="#22c55e" />
                 </View>
                 <View style={styles.statContent}>
-                  <Text style={styles.statValue}>{t(seller.responseTime || 'screen.profile.stats.responseValue.unknown')}</Text>
+                  <Text style={styles.statValue}>
+                    {seller.responseCount && seller.responseCount > 0
+                      ? t(seller.responseTime || 'screen.profile.stats.responseValue.unknown')
+                      : t('screen.profile.stats.responseValue.unknown')}
+                  </Text>
                   <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
                 </View>
               </View>
