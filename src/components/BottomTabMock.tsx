@@ -3,31 +3,28 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 type TabKey = 'home' | 'category' | 'post' | 'chat' | 'profile';
 
-type Props = {
-  active: TabKey;
-  onTabPress?: (tab: TabKey) => void;
-};
-
-const tabs: Array<{ key: TabKey; labelKey: string; fallback: string; icon: string }> = [
-  { key: 'home', labelKey: 'common.tab.home', fallback: 'Home', icon: 'home-filled' },
-  { key: 'category', labelKey: 'common.tab.category', fallback: 'Category', icon: 'dashboard' },
-  { key: 'post', labelKey: 'common.tab.post', fallback: 'Post', icon: 'add-circle' },
-  { key: 'chat', labelKey: 'common.tab.chat', fallback: 'Chat', icon: 'chat-bubble' },
-  { key: 'profile', labelKey: 'common.tab.profile', fallback: 'Profile', icon: 'person' },
+const tabs: Array<{ key: TabKey; labelKey: string; fallback: string; icon: string; routeName: string }> = [
+  { key: 'home', labelKey: 'common.tab.home', fallback: 'Home', icon: 'home-filled', routeName: 'HomeTab' },
+  { key: 'category', labelKey: 'common.tab.category', fallback: 'Category', icon: 'dashboard', routeName: 'CategoryTab' },
+  { key: 'post', labelKey: 'common.tab.post', fallback: 'Post', icon: 'add-circle', routeName: 'PostTab' },
+  { key: 'chat', labelKey: 'common.tab.chat', fallback: 'Chat', icon: 'chat-bubble', routeName: 'ChatTab' },
+  { key: 'profile', labelKey: 'common.tab.profile', fallback: 'Profile', icon: 'person', routeName: 'ProfileTab' },
 ];
 
-export function BottomTabMock({ active, onTabPress }: Props) {
+export function BottomTabMock({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [unreadCount, setUnreadCount] = React.useState(0);
 
+  // Map state.index to our TabKey
+  const activeRouteName = state.routes[state.index].name;
+  const activeTab = tabs.find(t => t.routeName === activeRouteName)?.key || 'home';
+
   React.useEffect(() => {
-    // Only subscribe if we are logged in (simple check)
-    // We could check auth state properly, but for mock tab this is fine.
-    // Ideally this should be in a Context or Redux, but implementing locally for now as requested.
     import('../services/userService').then(({ userService }) => {
       import('../services/chatService').then(({ chatService }) => {
         const userId = userService.getCurrentUserId();
@@ -41,30 +38,43 @@ export function BottomTabMock({ active, onTabPress }: Props) {
     });
   }, []);
 
+  const handleTabPress = (routeName: string, isFocused: boolean) => {
+    const event = navigation.emit({
+      type: 'tabPress',
+      target: routeName,
+      canPreventDefault: true,
+    });
+
+    if (!isFocused && !event.defaultPrevented) {
+      // The `merge: true` option makes sure that the params inside the tab screen are preserved
+      navigation.navigate({ name: routeName, merge: true } as any);
+    }
+  };
+
   return (
     <View style={[styles.wrap, { paddingBottom: 12 + insets.bottom }]}>
       {tabs.map((tab) => {
-        const isActive = tab.key === active;
+        const isFocused = activeTab === tab.key;
         const label = t(tab.labelKey, tab.fallback);
         return (
           <Pressable
             key={tab.key}
             style={styles.tab}
-            onPress={() => onTabPress?.(tab.key)}
+            onPress={() => handleTabPress(tab.routeName, isFocused)}
             accessibilityRole="button"
             accessibilityLabel={t('common.accessibility.tab', { label, defaultValue: `${label} tab` })}
-            accessibilityState={{ selected: isActive }}
+            accessibilityState={{ selected: isFocused }}
             hitSlop={6}
           >
             <View>
-              <MaterialIcons size={21} name={tab.icon as any} color={isActive ? '#19e61b' : '#9ca3af'} />
+              <MaterialIcons size={21} name={tab.icon as any} color={isFocused ? '#19e61b' : '#9ca3af'} />
               {tab.key === 'chat' && unreadCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
                 </View>
               )}
             </View>
-            <Text style={[styles.label, isActive && styles.labelActive]}>{label}</Text>
+            <Text style={[styles.label, isFocused && styles.labelActive]}>{label}</Text>
           </Pressable>
         );
       })}

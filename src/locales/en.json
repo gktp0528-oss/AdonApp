@@ -36,6 +36,14 @@
     }
   },
   "screen": {
+    "landing": {
+      "subtitle": "The New Standard of Premium Resale",
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "email": "Continue with Email",
+      "or": "or",
+      "signup": "Don't have an account? Sign up"
+    },
     "login": {
       "title": "Login",
       "tag": "PREMIUM RESALE",
@@ -244,7 +252,12 @@
         "sales": "Sales",
         "response": "Response",
         "responseValue": {
-          "fast": "Fast"
+          "fast": "Fast",
+          "hour": "Within 1 hour",
+          "12hours": "Within 12 hours",
+          "day": "Within 24 hours",
+          "fewDays": "Within a few days",
+          "unknown": "N/A"
         }
       },
       "reliabilityLabel": "ADON Trust Label",

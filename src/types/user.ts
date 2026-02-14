@@ -9,6 +9,8 @@ export interface User {
     positiveRate?: number;
     sales?: number;
     responseTime?: string; // e.g. "within 1 hour"
+    responseTotalTime?: number; // Total minutes for calculation
+    responseCount?: number; // Total count for calculation
     rating?: number;
     ratingCount?: number;
     reliabilityLabel?: string;

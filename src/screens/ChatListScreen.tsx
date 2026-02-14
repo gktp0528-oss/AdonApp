@@ -2,17 +2,22 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { RootStackParamList } from '../navigation/types';
+import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
-import { BottomTabMock } from '../components/BottomTabMock';
+import { TabTransitionView } from '../components/TabTransitionView';
 import { chatService } from '../services/chatService';
 import { userService } from '../services/userService';
 import { Conversation } from '../types/chat';
 import { User } from '../types/user';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ChatList'>;
+type Props = CompositeScreenProps<
+    BottomTabScreenProps<MainTabParamList, 'ChatTab'>,
+    NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function ChatListScreen({ navigation }: Props) {
     const { t } = useTranslation();
@@ -43,9 +48,6 @@ export default function ChatListScreen({ navigation }: Props) {
         const uniqueIds = [...new Set(otherUserIds)];
 
         const unsubs = uniqueIds.map((uid) => {
-            // If we already have a watcher or data, asking again is fine as it returns a new unsub
-            // but for performance, we might want to optimize. 
-            // For now, simple map is okay for typical list size.
             return userService.watchUserById(uid, (user) => {
                 if (user) {
                     setUserCache((prev) => ({ ...prev, [uid]: user }));
@@ -88,80 +90,81 @@ export default function ChatListScreen({ navigation }: Props) {
     }, [showUnreadOnly, keyword, conversations, currentUserId, userCache]);
 
     return (
-        <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-            <View style={styles.header}>
-                <Text style={styles.title}>{t('screen.chat.title')}</Text>
-                <Pressable
-                    style={[styles.filterButton, showUnreadOnly && styles.filterButtonActive]}
-                    onPress={() => setShowUnreadOnly((prev) => !prev)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('screen.chat.accessibility.toggleFilter')}
-                >
-                    <MaterialIcons name="tune" size={20} color="#19e61b" />
-                </Pressable>
-            </View>
-
-            <View style={styles.searchWrap}>
-                <MaterialIcons name="search" size={18} color="#9ca3af" />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder={t('screen.chat.placeholder')}
-                    placeholderTextColor="#6b7280"
-                    value={keyword}
-                    onChangeText={setKeyword}
-                />
-            </View>
-            <Text style={styles.filterHint}>{showUnreadOnly ? t('screen.chat.filter.unread') : t('screen.chat.filter.all')}</Text>
-
-            {loading ? (
-                <View style={styles.emptyWrap}>
-                    <ActivityIndicator size="large" color="#22c55e" />
+        <SafeAreaView style={styles.root} edges={['top']}>
+            <TabTransitionView style={{ flex: 1 }}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>{t('screen.chat.title')}</Text>
+                    <Pressable
+                        style={[styles.filterButton, showUnreadOnly && styles.filterButtonActive]}
+                        onPress={() => setShowUnreadOnly((prev) => !prev)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('screen.chat.accessibility.toggleFilter')}
+                    >
+                        <MaterialIcons name="tune" size={20} color="#19e61b" />
+                    </Pressable>
                 </View>
-            ) : (
-                <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-                    {filteredConversations.map((conv) => {
-                        const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
-                        const otherUser = userCache[otherUserId];
-                        const unreadCount = conv.unreadCount?.[currentUserId] || 0;
-                        const hasUnread = unreadCount > 0;
-                        const isOnline = otherUser?.isOnline;
 
-                        return (
-                            <Pressable
-                                key={conv.id}
-                                style={styles.row}
-                                onPress={() => navigation.navigate('Chat', { conversationId: conv.id })}
-                                accessibilityRole="button"
-                                accessibilityLabel={t('screen.chat.accessibility.openThread', { name: otherUser?.name || '' })}
-                            >
-                                <View>
-                                    <Image
-                                        source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
-                                        style={styles.avatar}
-                                    />
-                                    {isOnline ? <View style={styles.onlineDot} /> : null}
-                                </View>
-                                <View style={styles.textWrap}>
-                                    <View style={styles.rowTop}>
-                                        <Text style={styles.name}>{otherUser?.name || '...'}</Text>
-                                        <Text style={styles.time}>{toRelativeTime(conv.lastMessageAt)}</Text>
+                <View style={styles.searchWrap}>
+                    <MaterialIcons name="search" size={18} color="#9ca3af" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder={t('screen.chat.placeholder')}
+                        placeholderTextColor="#6b7280"
+                        value={keyword}
+                        onChangeText={setKeyword}
+                    />
+                </View>
+                <Text style={styles.filterHint}>{showUnreadOnly ? t('screen.chat.filter.unread') : t('screen.chat.filter.all')}</Text>
+
+                {loading ? (
+                    <View style={styles.emptyWrap}>
+                        <ActivityIndicator size="large" color="#22c55e" />
+                    </View>
+                ) : (
+                    <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+                        {filteredConversations.map((conv) => {
+                            const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
+                            const otherUser = userCache[otherUserId];
+                            const unreadCount = conv.unreadCount?.[currentUserId] || 0;
+                            const hasUnread = unreadCount > 0;
+                            const isOnline = otherUser?.isOnline;
+
+                            return (
+                                <Pressable
+                                    key={conv.id}
+                                    style={styles.row}
+                                    onPress={() => navigation.navigate('Chat', { conversationId: conv.id })}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('screen.chat.accessibility.openThread', { name: otherUser?.name || '' })}
+                                >
+                                    <View>
+                                        <Image
+                                            source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
+                                            style={styles.avatar}
+                                        />
+                                        {isOnline ? <View style={styles.onlineDot} /> : null}
                                     </View>
-                                    <Text numberOfLines={1} style={[styles.message, hasUnread && styles.messageUnread]}>
-                                        {conv.lastMessage || conv.listingTitle}
-                                    </Text>
-                                </View>
-                                {hasUnread ? <View style={styles.unreadDot} /> : null}
-                            </Pressable>
-                        );
-                    })}
-                    {filteredConversations.length === 0 && !loading ? (
-                        <View style={styles.emptyWrap}>
-                            <Text style={styles.emptyText}>{t('screen.chat.empty')}</Text>
-                        </View>
-                    ) : null}
-                </ScrollView>
-            )}
-            <BottomTabMock active="chat" onTabPress={handleTabPress} />
+                                    <View style={styles.textWrap}>
+                                        <View style={styles.rowTop}>
+                                            <Text style={styles.name}>{otherUser?.name || '...'}</Text>
+                                            <Text style={styles.time}>{toRelativeTime(conv.lastMessageAt)}</Text>
+                                        </View>
+                                        <Text numberOfLines={1} style={[styles.message, hasUnread && styles.messageUnread]}>
+                                            {conv.lastMessage || conv.listingTitle}
+                                        </Text>
+                                    </View>
+                                    {hasUnread ? <View style={styles.unreadDot} /> : null}
+                                </Pressable>
+                            );
+                        })}
+                        {filteredConversations.length === 0 && !loading ? (
+                            <View style={styles.emptyWrap}>
+                                <Text style={styles.emptyText}>{t('screen.chat.empty')}</Text>
+                            </View>
+                        ) : null}
+                    </ScrollView>
+                )}
+            </TabTransitionView>
         </SafeAreaView>
     );
 }

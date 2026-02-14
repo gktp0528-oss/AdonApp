@@ -2,7 +2,10 @@ import React from 'react';
 import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { RootStackParamList } from './src/navigation/types';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MainTabParamList, RootStackParamList } from './src/navigation/types';
+import { BottomTabMock } from './src/components/BottomTabMock';
+
 import { SplashScreen } from './src/screens/SplashScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
@@ -26,10 +29,28 @@ import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
 import ReviewScreen from './src/screens/ReviewScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import initI18n from './src/i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
-import initI18n from './src/i18n';
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      tabBar={(props) => <BottomTabMock {...props} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+      backBehavior="none"
+    >
+      <Tab.Screen name="HomeTab" component={HomeScreen as any} />
+      <Tab.Screen name="CategoryTab" component={CategoryScreen as any} />
+      <Tab.Screen name="PostTab" component={AiListingScreen as any} />
+      <Tab.Screen name="ChatTab" component={ChatListScreen as any} />
+      <Tab.Screen name="ProfileTab" component={SellerScreen as any} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [isI18nReady, setIsI18nReady] = React.useState(false);
@@ -39,7 +60,6 @@ export default function App() {
       await initI18n();
       setIsI18nReady(true);
     };
-    setup();
     setup();
   }, []);
 
@@ -88,13 +108,7 @@ export default function App() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
-
-          {/* Main Tabs - Use Fade for smooth tab switching feel */}
-          <Stack.Screen name="Home" component={HomeScreen} options={{ animation: 'fade' }} />
-          <Stack.Screen name="Category" component={CategoryScreen} options={{ animation: 'fade' }} />
-          <Stack.Screen name="AiListing" component={AiListingScreen} options={{ animation: 'fade' }} />
-          <Stack.Screen name="ChatList" component={ChatListScreen} options={{ animation: 'fade' }} />
-          <Stack.Screen name="Seller" component={SellerScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
 
           {/* Sub Screens - Default Slide Animation */}
           <Stack.Screen name="CategoryList" component={SneakersListScreen} />

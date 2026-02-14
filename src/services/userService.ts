@@ -59,5 +59,37 @@ export const userService = {
             console.error(`Error updating user ${userId}:`, error);
             throw error;
         }
+    },
+
+    // Update response time statistics
+    async updateResponseTime(userId: string, minutes: number): Promise<void> {
+        try {
+            const user = await this.getUserById(userId);
+            if (!user) return;
+
+            const currentTotal = user.responseTotalTime || 0;
+            const currentCount = user.responseCount || 0;
+
+            const newTotal = currentTotal + minutes;
+            const newCount = currentCount + 1;
+            const averageMinutes = newTotal / newCount;
+
+            let label = 'screen.profile.stats.responseValue.fewDays';
+            if (averageMinutes < 60) {
+                label = 'screen.profile.stats.responseValue.hour';
+            } else if (averageMinutes < 12 * 60) {
+                label = 'screen.profile.stats.responseValue.12hours';
+            } else if (averageMinutes < 24 * 60) {
+                label = 'screen.profile.stats.responseValue.day';
+            }
+
+            await this.updateUser(userId, {
+                responseTotalTime: newTotal,
+                responseCount: newCount,
+                responseTime: label, // We store the translation key to handle i18n dynamically
+            });
+        } catch (error) {
+            console.error(`Error updating response time for ${userId}:`, error);
+        }
     }
 };

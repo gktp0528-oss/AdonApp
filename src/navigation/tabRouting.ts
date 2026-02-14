@@ -10,21 +10,21 @@ type TabResetNavigation = {
 
 let lastMainTabBeforePost: MainTabKey = 'home';
 
-const TAB_ROUTE_MAP: Record<TabKey, keyof RootStackParamList> = {
-  home: 'Home',
-  category: 'Category',
-  post: 'AiListing',
-  chat: 'ChatList',
-  profile: 'Seller',
-  search: 'CategoryList',
+const TAB_ROUTE_MAP: Record<TabKey, string> = {
+  home: 'HomeTab',
+  category: 'CategoryTab',
+  post: 'PostTab',
+  chat: 'ChatTab',
+  profile: 'ProfileTab',
+  search: 'CategoryList', // This is still a stack screen
 };
 
 export function resetToTab(
-  navigation: TabResetNavigation,
+  navigation: any,
   tab: TabKey,
   activeTab: TabKey
 ) {
-  // Track the latest non-post tab so Post can close back to where the user came from.
+  // Track the latest non-post tab
   if (tab === 'post' && activeTab !== 'post') {
     lastMainTabBeforePost = activeTab as MainTabKey;
   }
@@ -33,8 +33,14 @@ export function resetToTab(
     return;
   }
 
-  // Use navigate instead of reset to allow for smooth transitions/animations
-  navigation.navigate(TAB_ROUTE_MAP[tab]);
+  const routeName = TAB_ROUTE_MAP[tab];
+
+  // If it's a tab, we navigate via MainTabs
+  if (['home', 'category', 'post', 'chat', 'profile'].includes(tab)) {
+    navigation.navigate('MainTabs', { screen: routeName });
+  } else {
+    navigation.navigate(routeName);
+  }
 }
 
 export function getPostExitTab(): MainTabKey {

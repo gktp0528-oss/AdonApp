@@ -36,6 +36,14 @@
     }
   },
   "screen": {
+    "landing": {
+      "subtitle": "프리미엄 리세일의 새로운 기준",
+      "google": "Google로 계속하기",
+      "apple": "Apple로 계속하기",
+      "email": "이메일로 계속하기",
+      "or": "또는",
+      "signup": "계정이 없으신가요? 회원가입"
+    },
     "login": {
       "title": "로그인",
       "tag": "프리미엄 리세일",
@@ -244,7 +252,12 @@
         "sales": "판매",
         "response": "응답",
         "responseValue": {
-          "fast": "빠름"
+          "fast": "보통",
+          "hour": "1시간 이내",
+          "12hours": "12시간 이내",
+          "day": "24시간 이내",
+          "fewDays": "며칠 이내",
+          "unknown": "N/A"
         }
       },
       "reliabilityLabel": "ADON 신뢰 지표",

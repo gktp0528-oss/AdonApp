@@ -1,0 +1,46 @@
+{
+    "project_info": {
+        "project_number": "760431967573",
+        "project_id": "adon-315b7",
+        "storage_bucket": "adon-315b7.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:760431967573:android:2016a97620c10f3cee83dc",
+                "android_client_info": {
+                    "package_name": "com.adonapp.adon"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "760431967573-0escabmjg96unsnad2ispl0hh9g1ub9c.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyAewtFDFu-tZAldHQe3w0rqqJi8t3m6i5I"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "760431967573-0escabmjg96unsnad2ispl0hh9g1ub9c.apps.googleusercontent.com",
+                            "client_type": 3
+                        },
+                        {
+                            "client_id": "760431967573-b2er6jj8p9aph4bo407sf276j0umb73m.apps.googleusercontent.com",
+                            "client_type": 2,
+                            "ios_info": {
+                                "bundle_id": "com.adonapp.adon"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

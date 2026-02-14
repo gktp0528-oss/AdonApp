@@ -6,11 +6,17 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { RootStackParamList } from '../navigation/types';
+import { DocumentSnapshot } from 'firebase/firestore';
+import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
-import { BottomTabMock } from '../components/BottomTabMock';
+import { TabTransitionView } from '../components/TabTransitionView';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Category'>;
+type Props = CompositeScreenProps<
+    BottomTabScreenProps<MainTabParamList, 'CategoryTab'>,
+    NativeStackScreenProps<RootStackParamList>
+>;
 
 type HubCategory = {
     id: string;
@@ -80,20 +86,21 @@ export function CategoryScreen({ navigation }: Props) {
     return (
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
             <StatusBar style="dark" />
-            <ScrollView
-                contentContainerStyle={styles.content}
-                showsVerticalScrollIndicator={false}
-            >
-                {renderHeader()}
-                <MasonryCategorySection
-                    sectionTitle={t('screen.search.section.browse', { defaultValue: 'Browse Categories' })}
-                    categories={browseCategories}
-                    onPressCategory={(item, translatedName) =>
-                        navigation.navigate('CategoryList', { categoryId: item.id, categoryName: translatedName })
-                    }
-                />
-            </ScrollView>
-            <BottomTabMock active="category" onTabPress={handleTabPress} />
+            <TabTransitionView style={{ flex: 1 }}>
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {renderHeader()}
+                    <MasonryCategorySection
+                        sectionTitle={t('screen.search.section.browse', { defaultValue: 'Browse Categories' })}
+                        categories={browseCategories}
+                        onPressCategory={(item, translatedName) =>
+                            navigation.navigate('CategoryList', { categoryId: item.id, categoryName: translatedName })
+                        }
+                    />
+                </ScrollView>
+            </TabTransitionView>
         </SafeAreaView>
     );
 }

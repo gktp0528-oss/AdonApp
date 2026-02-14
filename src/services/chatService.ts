@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Conversation, Message } from '../types/chat';
+import { userService } from './userService';
 
 const CONVERSATIONS = 'conversations';
 const MESSAGES = 'messages';
@@ -59,6 +60,29 @@ export const chatService = {
     async sendMessage(conversationId: string, senderId: string, text: string, imageUrl?: string): Promise<void> {
         const now = Timestamp.now();
 
+        // Get conversation current state to calculate response time logic BEFORE updating it
+        const convDoc = await getDoc(doc(db, CONVERSATIONS, conversationId));
+        let otherUserId = '';
+
+        if (convDoc.exists()) {
+            const convData = convDoc.data() as Conversation;
+            otherUserId = convData.participants.find((p) => p !== senderId) || '';
+
+            // Calculate response time if:
+            // 1. Last sender was the OTHER person (so this is a reply)
+            // 2. Last message time exists
+            if (convData.lastSenderId && convData.lastSenderId !== senderId && convData.lastMessageAt) {
+                const lastTime = convData.lastMessageAt.toDate();
+                const currentTime = now.toDate();
+                const diffMs = currentTime.getTime() - lastTime.getTime();
+                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+                // Update response time for the CURRENT sender (who exists and is replying)
+                // We don't await this to not block the message sending UI
+                userService.updateResponseTime(senderId, diffMinutes);
+            }
+        }
+
         // Add message to subcollection
         await addDoc(collection(db, CONVERSATIONS, conversationId, MESSAGES), {
             senderId,
@@ -68,20 +92,13 @@ export const chatService = {
             read: false,
         });
 
-        // Get conversation to find the other participant
-        const convDoc = await getDoc(doc(db, CONVERSATIONS, conversationId));
-        if (!convDoc.exists()) return;
-
-        const convData = convDoc.data() as Omit<Conversation, 'id'>;
-        const otherUserId = convData.participants.find((p) => p !== senderId) || '';
-
         // Update conversation metadata
         await updateDoc(doc(db, CONVERSATIONS, conversationId), {
             lastMessage: text || (imageUrl ? '📷 Picture' : ''),
             lastMessageAt: now,
             lastSenderId: senderId,
             [`unreadCount.${senderId}`]: 0,
-            [`unreadCount.${otherUserId}`]: increment(1),
+            ...(otherUserId ? { [`unreadCount.${otherUserId}`]: increment(1) } : {}),
             [`lastReadAt.${senderId}`]: now,
         });
     },

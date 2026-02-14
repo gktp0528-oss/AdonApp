@@ -229,8 +229,6 @@ export function SneakersListScreen({ navigation, route }: Props) {
           </Pressable>
         ))}
       </ScrollView>
-      <BottomTabMock active="category" onTabPress={handleTabPress} />
-
     </SafeAreaView>
   );
 }

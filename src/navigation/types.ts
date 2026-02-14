@@ -1,11 +1,22 @@
+export type MainTabParamList = {
+  HomeTab: undefined;
+  CategoryTab: undefined;
+  PostTab: { selectedCategory?: string; selectedPrice?: string; appliedReport?: any } | undefined;
+  ChatTab: undefined;
+  ProfileTab: { sellerId: string } | undefined;
+};
+
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Signup: undefined;
-  Home: undefined;
+  MainTabs: undefined; // The persistent tab bar navigator
+
+  // Detail Screens
+  Home: undefined; // Keeping for direct navigation if needed, or we can alias
   Category: undefined;
   QuerySearch: undefined;
-  Search: undefined; // Keeping for safety during refactor, can remove later if unused
+  Search: undefined;
   CategoryList: { categoryId: string; categoryName: string };
   ChatList: undefined;
   Product:

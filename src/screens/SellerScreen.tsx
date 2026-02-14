@@ -3,19 +3,24 @@ import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Share, StyleShe
 import { useTranslation } from 'react-i18next';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RootStackParamList } from '../navigation/types';
+import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { BottomTabMock } from '../components/BottomTabMock';
+import { TabTransitionView } from '../components/TabTransitionView';
 import { StarRating } from '../components/StarRating';
 import { userService } from '../services/userService';
 import { listingService } from '../services/listingService';
 import { User } from '../types/user';
 import { Listing } from '../types/listing';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Seller'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'ProfileTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export function SellerScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -82,154 +87,156 @@ export function SellerScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.root}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={styles.headerContainer}>
-          <Image
-            source={{ uri: seller.coverImage || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80' }}
-            style={styles.cover}
-          />
-          <View style={styles.coverOverlay} />
+      <TabTransitionView style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <View style={styles.headerContainer}>
+            <Image
+              source={{ uri: seller.coverImage || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80' }}
+              style={styles.cover}
+            />
+            <View style={styles.coverOverlay} />
 
-          {/* Back Button */}
-          <View style={[styles.backButton, { top: insets.top + 14 }]}>
-            {route.params?.sellerId && navigation.canGoBack() && (
-              <DetailBackButton onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                }
-              }} />
-            )}
-          </View>
-
-          {/* Settings Button - Only for current user's profile */}
-          {sellerId === userService.getCurrentUserId() && (
-            <Pressable
-              style={[styles.settingsButton, { top: insets.top + 14 }]}
-              onPress={() => navigation.navigate('Settings')}
-              accessibilityRole="button"
-              accessibilityLabel={t('screen.profile.settings')}
-            >
-              <View style={styles.settingsButtonInner}>
-                <MaterialIcons name="settings" size={22} color="#1f2937" />
-              </View>
-            </Pressable>
-          )}
-
-          {/* Centered Avatar Overlapping */}
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatarBorder}>
-              <Image
-                source={{ uri: seller.avatar || 'https://via.placeholder.com/200' }}
-                style={styles.avatar}
-              />
-            </View>
-            {seller.isVerified && (
-              <View style={styles.verifiedBadge}>
-                <MaterialIcons name="verified" size={16} color="#fff" />
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.profileInfo}>
-          <View style={styles.nameSection}>
-            <Text style={styles.name}>{seller.name}</Text>
-            <Text style={styles.location}>{seller.location || t('screen.profile.locationDefault')}</Text>
-            {seller.bio ? <Text style={styles.bio}>{seller.bio}</Text> : null}
-          </View>
-
-          <View style={styles.statRow}>
-            {/* Reliability/Rating */}
-            <View style={styles.statItem}>
-              <View style={styles.statIconCircle}>
-                <MaterialIcons name="star" size={20} color="#eab308" />
-              </View>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>
-                  {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '0.0'}
-                </Text>
-                <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
-              </View>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            {/* Sales */}
-            <View style={styles.statItem}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#eff6ff' }]}>
-                <MaterialIcons name="shopping-bag" size={20} color="#3b82f6" />
-              </View>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>{seller.sales || 0}</Text>
-                <Text style={styles.statLabel}>{t('screen.profile.stats.sales')}</Text>
-              </View>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            {/* Response Time */}
-            <View style={styles.statItem}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#f0fdf4' }]}>
-                <MaterialIcons name="access-time" size={20} color="#22c55e" />
-              </View>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>{seller.responseTime || t('screen.profile.stats.responseValue.fast')}</Text>
-                <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.reliabilityCard}>
-            <Text style={styles.cardTitle}>{t('screen.profile.reliabilityLabel')}</Text>
-            <View style={styles.reliabilityContent}>
-              <MaterialIcons name="security" size={20} color="#16a34a" />
-              <Text style={styles.reliabilityText}>
-                {seller.reliabilityLabel || t('screen.profile.reliabilityDefault')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.productsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('screen.profile.products.title')}</Text>
-              <Pressable>
-                <Text style={styles.seeAllText}>{t('screen.profile.products.seeAll')} ({listings.length})</Text>
-              </Pressable>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-              {listings.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>{t('screen.profile.products.empty')}</Text>
-                  {sellerId === userService.getCurrentUserId() && (
-                    <Pressable style={styles.startSellingBtn} onPress={() => handleTabPress('post')}>
-                      <Text style={styles.startSellingText}>{t('screen.profile.products.emptyButton')}</Text>
-                    </Pressable>
-                  )}
-                </View>
-              ) : (
-                listings.map(item => (
-                  <Pressable
-                    key={item.id}
-                    style={styles.productCard}
-                    onPress={() => navigation.navigate('Product', { listingId: item.id })}
-                  >
-                    <Image
-                      source={{ uri: item.photos?.[0] || 'https://via.placeholder.com/150' }}
-                      style={styles.productImage}
-                    />
-                    <View style={styles.productInfo}>
-                      <Text numberOfLines={1} style={styles.productTitle}>{item.title}</Text>
-                      <Text style={styles.productPrice}>
-                        {item.currency === 'USD' ? '$' : '€'}{item.price}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))
+            {/* Back Button */}
+            <View style={[styles.backButton, { top: insets.top + 14 }]}>
+              {route.params?.sellerId && navigation.canGoBack() && (
+                <DetailBackButton onPress={() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  }
+                }} />
               )}
-            </ScrollView>
+            </View>
+
+            {/* Settings Button - Only for current user's profile */}
+            {sellerId === userService.getCurrentUserId() && (
+              <Pressable
+                style={[styles.settingsButton, { top: insets.top + 14 }]}
+                onPress={() => navigation.navigate('Settings')}
+                accessibilityRole="button"
+                accessibilityLabel={t('screen.profile.settings')}
+              >
+                <View style={styles.settingsButtonInner}>
+                  <MaterialIcons name="settings" size={22} color="#1f2937" />
+                </View>
+              </Pressable>
+            )}
+
+            {/* Centered Avatar Overlapping */}
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarBorder}>
+                <Image
+                  source={{ uri: seller.avatar || 'https://via.placeholder.com/200' }}
+                  style={styles.avatar}
+                />
+              </View>
+              {seller.isVerified && (
+                <View style={styles.verifiedBadge}>
+                  <MaterialIcons name="verified" size={16} color="#fff" />
+                </View>
+              )}
+            </View>
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.profileInfo}>
+            <View style={styles.nameSection}>
+              <Text style={styles.name}>{seller.name}</Text>
+              <Text style={styles.location}>{seller.location || t('screen.profile.locationDefault')}</Text>
+              {seller.bio ? <Text style={styles.bio}>{seller.bio}</Text> : null}
+            </View>
+
+            <View style={styles.statRow}>
+              {/* Reliability/Rating */}
+              <View style={styles.statItem}>
+                <View style={styles.statIconCircle}>
+                  <MaterialIcons name="star" size={20} color="#eab308" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statValue}>
+                    {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '0.0'}
+                  </Text>
+                  <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
+                </View>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              {/* Sales */}
+              <View style={styles.statItem}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#eff6ff' }]}>
+                  <MaterialIcons name="shopping-bag" size={20} color="#3b82f6" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statValue}>{seller.sales || 0}</Text>
+                  <Text style={styles.statLabel}>{t('screen.profile.stats.sales')}</Text>
+                </View>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              {/* Response Time */}
+              <View style={styles.statItem}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#f0fdf4' }]}>
+                  <MaterialIcons name="access-time" size={20} color="#22c55e" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statValue}>{t(seller.responseTime || 'screen.profile.stats.responseValue.unknown')}</Text>
+                  <Text style={styles.statLabel}>{t('screen.profile.stats.response')}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.reliabilityCard}>
+              <Text style={styles.cardTitle}>{t('screen.profile.reliabilityLabel')}</Text>
+              <View style={styles.reliabilityContent}>
+                <MaterialIcons name="security" size={20} color="#16a34a" />
+                <Text style={styles.reliabilityText}>
+                  {seller.reliabilityLabel || t('screen.profile.reliabilityDefault')}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.productsSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{t('screen.profile.products.title')}</Text>
+                <Pressable>
+                  <Text style={styles.seeAllText}>{t('screen.profile.products.seeAll')} ({listings.length})</Text>
+                </Pressable>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+                {listings.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>{t('screen.profile.products.empty')}</Text>
+                    {sellerId === userService.getCurrentUserId() && (
+                      <Pressable style={styles.startSellingBtn} onPress={() => handleTabPress('post')}>
+                        <Text style={styles.startSellingText}>{t('screen.profile.products.emptyButton')}</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                ) : (
+                  listings.map(item => (
+                    <Pressable
+                      key={item.id}
+                      style={styles.productCard}
+                      onPress={() => navigation.navigate('Product', { listingId: item.id })}
+                    >
+                      <Image
+                        source={{ uri: item.photos?.[0] || 'https://via.placeholder.com/150' }}
+                        style={styles.productImage}
+                      />
+                      <View style={styles.productInfo}>
+                        <Text numberOfLines={1} style={styles.productTitle}>{item.title}</Text>
+                        <Text style={styles.productPrice}>
+                          {item.currency === 'USD' ? '$' : '€'}{item.price}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </ScrollView>
+      </TabTransitionView>
 
       {sellerId !== userService.getCurrentUserId() && (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
@@ -237,7 +244,6 @@ export function SellerScreen({ navigation, route }: Props) {
           <PrimaryButton label={t('screen.profile.button.chat')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
         </View>
       )}
-      <BottomTabMock active="profile" onTabPress={handleTabPress} />
     </View>
   );
 }

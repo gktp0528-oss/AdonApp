@@ -7,5 +7,13 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "AdonApp",
+        "supportEmail": "gktp0528@gmail.com"
+      }
+    }
   }
 }

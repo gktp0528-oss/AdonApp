@@ -6,15 +6,20 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { DocumentSnapshot } from 'firebase/firestore';
-import { RootStackParamList } from '../navigation/types';
+import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
-import { BottomTabMock } from '../components/BottomTabMock';
-import { CATEGORIES, USERS } from '../data/mockData'; // Keeping basic mocks for static UI parts
+import { TabTransitionView } from '../components/TabTransitionView';
+import { CATEGORIES, USERS } from '../data/mockData';
 import { listingService } from '../services/listingService';
 import { Listing } from '../types/listing';
 import { formatCurrency } from '../utils/format';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'HomeTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop';
 
@@ -169,82 +174,85 @@ export function HomeScreen({ navigation }: Props) {
     </View>
   );
 
+
+
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <StatusBar style="dark" backgroundColor="#ffffff" />
-      <FlatList
-        data={filteredListings}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.freshRow}
-        ListHeaderComponent={renderHeader}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        onEndReached={loadMoreListings}
-        onEndReachedThreshold={0.6}
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={styles.loadingMoreWrap}>
-              <ActivityIndicator size="small" color="#16a34a" />
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
-          initialLoading ? (
-            <View style={styles.emptyContainer}>
-              <ActivityIndicator size="small" color="#16a34a" />
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {selectedCategory === 'all'
-                  ? t('screen.home.empty.all')
-                  : t('screen.home.empty.category')}
-              </Text>
-              <Pressable style={styles.emptyBtn} onPress={onRefresh}>
-                <Text style={styles.emptyBtnText}>{t('screen.home.refresh')}</Text>
-              </Pressable>
-            </View>
-          )
-        }
-        renderItem={({ item }) => (
-          <Pressable
-            key={item.id}
-            style={styles.freshCard}
-            onPress={() => navigation.navigate('Product', { listingId: item.id })}
-          >
-            <View>
-              <Image
-                source={{ uri: item.photos?.[0] || FALLBACK_IMAGE }}
-                style={styles.freshImage}
-              />
-              <Pressable
-                style={styles.wishBtn}
-                accessibilityRole="button"
-                accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
-              >
-                <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
-              </Pressable>
-            </View>
-            <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
-            <View style={styles.freshMetaRow}>
-              <Text style={styles.freshPrice}>
-                {formatCurrency(item.price, item.currency)}
-              </Text>
-              <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
-            </View>
-            <View style={styles.categoryTag}>
-              <Text style={styles.categoryText}>
-                {toCategoryKey(item.category)
-                  ? t(`screen.home.category.${toCategoryKey(item.category)}`)
-                  : item.category}
-              </Text>
-            </View>
-          </Pressable>
-        )}
-      />
-      <BottomTabMock active="home" onTabPress={handleTabPress} />
+      <TabTransitionView style={{ flex: 1 }}>
+        <FlatList
+          data={filteredListings}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.freshRow}
+          ListHeaderComponent={renderHeader}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          onEndReached={loadMoreListings}
+          onEndReachedThreshold={0.6}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadingMoreWrap}>
+                <ActivityIndicator size="small" color="#16a34a" />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            initialLoading ? (
+              <View style={styles.emptyContainer}>
+                <ActivityIndicator size="small" color="#16a34a" />
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {selectedCategory === 'all'
+                    ? t('screen.home.empty.all')
+                    : t('screen.home.empty.category')}
+                </Text>
+                <Pressable style={styles.emptyBtn} onPress={onRefresh}>
+                  <Text style={styles.emptyBtnText}>{t('screen.home.refresh')}</Text>
+                </Pressable>
+              </View>
+            )
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              key={item.id}
+              style={styles.freshCard}
+              onPress={() => navigation.navigate('Product', { listingId: item.id })}
+            >
+              <View>
+                <Image
+                  source={{ uri: item.photos?.[0] || FALLBACK_IMAGE }}
+                  style={styles.freshImage}
+                />
+                <Pressable
+                  style={styles.wishBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
+                >
+                  <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
+                </Pressable>
+              </View>
+              <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
+              <View style={styles.freshMetaRow}>
+                <Text style={styles.freshPrice}>
+                  {formatCurrency(item.price, item.currency)}
+                </Text>
+                <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
+              </View>
+              <View style={styles.categoryTag}>
+                <Text style={styles.categoryText}>
+                  {toCategoryKey(item.category)
+                    ? t(`screen.home.category.${toCategoryKey(item.category)}`)
+                    : item.category}
+                </Text>
+              </View>
+            </Pressable>
+          )}
+        />
+      </TabTransitionView>
     </SafeAreaView>
   );
 }
