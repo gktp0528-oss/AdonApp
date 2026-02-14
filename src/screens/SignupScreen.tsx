@@ -30,7 +30,7 @@ export function SignupScreen({ navigation }: Props) {
       Alert.alert(
         t('screen.signup.alert.success'),
         t('screen.signup.alert.successMsg'),
-        [{ text: t('common.confirm'), onPress: () => navigation.replace('Home') }]
+        [{ text: t('common.confirm'), onPress: () => navigation.replace('MainTabs') }]
       );
     } catch (error: any) {
       Alert.alert(t('screen.signup.alert.failed'), error.message);
