@@ -249,9 +249,6 @@ export function ChatScreen({ navigation, route }: Props) {
             }
 
             if (msg.systemType === 'transaction_completed') {
-              const isSeller = conversation?.participants.find(p => p === currentUserId) && conversation.listingId ?
-                (otherUser?.id !== currentUserId && messages.some(m => m.systemType === 'payment_completed')) : false;
-
               // More reliable seller check: If the listing belongs to the current user
               // However, we don't have listing detail here directly in a clean way unless we use conversation metadata.
               // Let's use otherUser and currentUserId logic more clearly.
