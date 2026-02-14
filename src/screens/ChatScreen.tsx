@@ -15,6 +15,9 @@ import { userService } from '../services/userService';
 import { Message, Conversation } from '../types/chat';
 import { User } from '../types/user';
 import { transactionService } from '../services/transactionService';
+import { TransactionCompletion } from '../components/TransactionCompletion';
+import { ReviewModal } from '../components/ReviewModal';
+import { reviewService } from '../services/reviewService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
@@ -36,6 +39,8 @@ export function ChatScreen({ navigation, route }: Props) {
   const [limit, setLimit] = useState(20);
   const [loadingMore, setLoadingMore] = useState(false);
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
+  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
+  const [completedTransactionId, setCompletedTransactionId] = useState<string | null>(null);
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -210,15 +215,6 @@ export function ChatScreen({ navigation, route }: Props) {
               <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
               <Text style={styles.meetPlace}>{conversation.listingTitle}</Text>
             </View>
-            {activeTransactionId && (
-              <Pressable
-                style={styles.viewTrBtn}
-                onPress={() => navigation.navigate('TransactionDetail', { transactionId: activeTransactionId })}
-              >
-                <Text style={styles.viewTrBtnText}>{t('screen.transaction.title')}</Text>
-                <MaterialIcons name="chevron-right" size={16} color="#16a34a" />
-              </Pressable>
-            )}
           </View>
         )}
 
@@ -250,6 +246,73 @@ export function ChatScreen({ navigation, route }: Props) {
               }
             }
 
+            if (msg.systemType === 'transaction_completed') {
+              return (
+                <View key={msg.id} style={{ alignItems: 'center', marginVertical: 16 }}>
+                  <TransactionCompletion
+                    isChatView={true}
+                    onReviewPress={() => {
+                      if (activeTransactionId) {
+                        setCompletedTransactionId(activeTransactionId);
+                        setReviewModalVisible(true);
+                      } else {
+                        Alert.alert(t('common.error'), "Transaction data missing");
+                      }
+                    }}
+                    onHomePress={() => navigation.navigate('MainTabs')}
+                  />
+                </View>
+              );
+            }
+
+            if (msg.systemType === 'payment_completed') {
+              return (
+                <View key={msg.id} style={{ alignItems: 'center', marginVertical: 16 }}>
+                  <View style={{
+                    backgroundColor: '#fff',
+                    padding: 20,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    width: '80%',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                    borderWidth: 1,
+                    borderColor: '#f0fdf4'
+                  }}>
+                    <MaterialIcons name="verified" size={48} color="#22c55e" style={{ marginBottom: 12 }} />
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 8, textAlign: 'center' }}>
+                      {t('screen.chat.messages.system.paymentCompleted')}
+                    </Text>
+                    <Pressable
+                      style={{
+                        backgroundColor: '#22c55e',
+                        paddingVertical: 12,
+                        paddingHorizontal: 24,
+                        borderRadius: 24,
+                        marginTop: 12,
+                        width: '100%',
+                        alignItems: 'center'
+                      }}
+                      onPress={() => {
+                        if (activeTransactionId) {
+                          navigation.navigate('TransactionDetail', { transactionId: activeTransactionId });
+                        } else {
+                          // Fallback: This might happen if transaction just created and not refreshed.
+                          // We should probably rely on re-fetching.
+                          Alert.alert(t('common.loading'));
+                        }
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{t('screen.chat.messages.system.enterPin')}</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <View key={msg.id} style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
                 {msg.imageUrl ? (
@@ -268,6 +331,35 @@ export function ChatScreen({ navigation, route }: Props) {
             );
           })}
         </ScrollView>
+
+        <ReviewModal
+          isVisible={isReviewModalVisible}
+          onClose={() => setReviewModalVisible(false)}
+          onSubmit={async (rating, comment) => {
+            if (!currentUserId || !completedTransactionId || !conversation) return;
+
+            try {
+              const sellerId = conversation.participants.find(p => p !== currentUserId) || '';
+              if (!sellerId) return;
+
+              await reviewService.submitReview({
+                transactionId: completedTransactionId,
+                listingId: conversation.listingId,
+                reviewerId: currentUserId,
+                revieweeId: sellerId,
+                rating,
+                comment,
+              });
+
+              Alert.alert(t('common.success'), t('transaction.review.success'));
+              setReviewModalVisible(false);
+
+            } catch (error) {
+              console.error('Review submit failed', error);
+              Alert.alert(t('common.error'), t('common.error'));
+            }
+          }}
+        />
 
         <View style={styles.composer}>
           <Pressable onPress={pickImage} style={styles.iconBtn} disabled={uploading}>

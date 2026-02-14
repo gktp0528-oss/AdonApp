@@ -1,7 +1,6 @@
 export type MainTabParamList = {
   HomeTab: undefined;
   CategoryTab: undefined;
-  PostTab: { selectedCategory?: string; selectedPrice?: string; appliedReport?: any } | undefined;
   ChatTab: undefined;
   ProfileTab: { sellerId: string } | undefined;
 };
@@ -48,4 +47,5 @@ export type RootStackParamList = {
   Payment: { listingId: string; sellerId: string };
   TransactionDetail: { transactionId: string };
   Review: { transactionId: string; sellerId: string; listingId: string };
+  SearchResult: { query: string };
 };

@@ -5,12 +5,16 @@ import {
     StyleSheet,
     Text,
     View,
+    Keyboard,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StackActions } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import ALL_CATEGORIES from '../data/categories.json';
+
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CategorySelect'>;
 type CategoryItem = {
@@ -20,11 +24,12 @@ type CategoryItem = {
     isLeaf: boolean;
     icon?: string;
 };
-const ROOT_PATH = '전체 카테고리';
 
 export function CategorySelectScreen({ navigation, route }: Props) {
+    const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const parentId = route.params?.parentId || null;
-    const currentPath = route.params?.currentPath || ROOT_PATH;
+    const currentPath = route.params?.currentPath || t('screen.categorySelect.all');
     const isRootLevel = parentId === null;
 
     const filteredCategories = useMemo(() => {
@@ -32,15 +37,35 @@ export function CategorySelectScreen({ navigation, route }: Props) {
     }, [parentId]);
 
     const handleSelect = (category: CategoryItem) => {
+        console.log('Category selected:', category);
         const newPath = `${currentPath} > ${category.name}`;
         if (category.isLeaf) {
-            const displayPath = newPath.replace(`${ROOT_PATH} > `, '');
-            navigation.navigate({
-                name: 'AiListing',
-                params: { selectedCategory: displayPath },
-                merge: true,
-            } as any);
+            const selectedLabel = category.name;
+            console.log('Navigating back to AiListing with:', selectedLabel);
+
+            Keyboard.dismiss();
+            const navState = navigation.getState();
+            let aiListingIndex = -1;
+            for (let i = navState.routes.length - 1; i >= 0; i -= 1) {
+                if (navState.routes[i].name === 'AiListing') {
+                    aiListingIndex = i;
+                    break;
+                }
+            }
+
+            if (aiListingIndex >= 0) {
+                const popCount = navState.index - aiListingIndex;
+                if (popCount > 0) {
+                    navigation.dispatch(StackActions.pop(popCount));
+                }
+                navigation.navigate({ name: 'AiListing', params: { selectedCategory: selectedLabel }, merge: true } as never);
+                return;
+            }
+
+            // Fallback when AiListing route is not found in stack
+            navigation.navigate('AiListing', { selectedCategory: selectedLabel });
         } else {
+            console.log('Pushing sub-category:', category.id);
             navigation.push('CategorySelect', {
                 parentId: category.id,
                 currentPath: newPath
@@ -49,13 +74,13 @@ export function CategorySelectScreen({ navigation, route }: Props) {
     };
 
     return (
-        <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-            <View style={styles.header}>
+        <SafeAreaView style={styles.root} edges={['bottom']}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 8) }]}>
                 <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
                     <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
                 </Pressable>
                 <View style={styles.titleContainer}>
-                    <Text style={styles.headerTitle}>카테고리 선택</Text>
+                    <Text style={styles.headerTitle}>{t('screen.categorySelect.title')}</Text>
                     <Text style={styles.pathText} numberOfLines={1}>{currentPath}</Text>
                 </View>
                 <View style={styles.backBtn} />
@@ -103,7 +128,7 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                 )}
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <Text style={styles.emptyText}>하위 카테고리가 없습니다.</Text>
+                        <Text style={styles.emptyText}>{t('screen.categorySelect.empty')}</Text>
                     </View>
                 }
             />

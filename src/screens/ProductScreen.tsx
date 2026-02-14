@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, Share, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View, ActivityIndicator, useWindowDimensions, FlatList } from 'react-native';
+import { Image } from 'expo-image';
+import ImageViewing from 'react-native-image-viewing';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { DetailBackButton } from '../components/DetailBackButton';
+import { MapComponent } from '../components/MapComponent';
 import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
 import { chatService } from '../services/chatService';
@@ -18,6 +21,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Product'>;
 export function ProductScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
 
   const toCategoryKey = (value?: string) => {
     const v = (value || '').toLowerCase();
@@ -52,6 +56,8 @@ export function ProductScreen({ navigation, route }: Props) {
   const [following, setFollowing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isChatStarting, setIsChatStarting] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
 
   useEffect(() => {
     if (!targetId) {
@@ -113,8 +119,18 @@ export function ProductScreen({ navigation, route }: Props) {
   }
 
   // Display Logic
-  const heroImage = listing.photos?.[0] || 'https://via.placeholder.com/400';
   const priceDisplay = formatCurrency(listing.price, listing.currency);
+
+  const images = listing.photos?.length
+    ? listing.photos.map(uri => ({ uri }))
+    : [{ uri: 'https://via.placeholder.com/400' }];
+
+  const handleScroll = (event: any) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setCurrentImageIndex(roundIndex);
+  };
 
   const handleShareListing = async () => {
     try {
@@ -207,7 +223,36 @@ export function ProductScreen({ navigation, route }: Props) {
     <View style={styles.root}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.heroWrap}>
-          <Image source={{ uri: heroImage }} style={styles.hero} />
+          <FlatList
+            data={images}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleScroll}
+            renderItem={({ item, index }) => (
+              <Pressable onPress={() => {
+                setCurrentImageIndex(index);
+                setIsViewerVisible(true);
+              }}>
+                <Image
+                  source={{ uri: item.uri }}
+                  style={[styles.hero, { width: screenWidth }]}
+                  contentFit="cover"
+                  transition={200}
+                />
+              </Pressable>
+            )}
+            keyExtractor={(_, index) => index.toString()}
+          />
+
+          <ImageViewing
+            images={images}
+            imageIndex={currentImageIndex}
+            visible={isViewerVisible}
+            onRequestClose={() => setIsViewerVisible(false)}
+            swipeToCloseEnabled={true}
+            doubleTapToZoomEnabled={true}
+          />
 
           <View style={[styles.topActions, { top: insets.top + 12 }]}>
             <DetailBackButton onPress={() => navigation.goBack()} />
@@ -245,7 +290,7 @@ export function ProductScreen({ navigation, route }: Props) {
             <View style={[styles.authWrap, { justifyContent: 'center', bottom: 10 }]}>
               <View style={styles.dots}>
                 {listing.photos.map((_, i) => (
-                  <View key={i} style={[styles.dot, i === 0 && styles.dotActive]} />
+                  <View key={i} style={[styles.dot, i === currentImageIndex && styles.dotActive]} />
                 ))}
               </View>
             </View>
@@ -368,10 +413,12 @@ export function ProductScreen({ navigation, route }: Props) {
             <Text style={styles.locationText}>{seller?.location || t('screen.product.location.private')}</Text>
           </View>
 
-          <View style={styles.mapCard}>
-            <View style={styles.mapPinOuter}>
-              <View style={styles.mapPinInner} />
-            </View>
+          <View style={{ marginTop: 10 }}>
+            <MapComponent
+              latitude={listing.pickupLocation?.latitude}
+              longitude={listing.pickupLocation?.longitude}
+              height={180}
+            />
           </View>
 
         </View>
@@ -581,28 +628,7 @@ const styles = StyleSheet.create({
 
   locationHead: { marginTop: 10, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   locationText: { color: '#94a3b8', fontSize: 15 },
-  mapCard: {
-    marginTop: 10,
-    height: 126,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  mapPinOuter: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 4,
-    borderColor: '#22c55e',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(34,197,94,0.15)',
-  },
-  mapPinInner: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#22c55e' },
+
 
   bottomBar: {
     position: 'absolute',

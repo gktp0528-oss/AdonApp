@@ -222,6 +222,18 @@
         "priceAi": "Árasszisztens",
         "photoAi": "Fotóstúdió"
       },
+      "empty": {
+        "recent": "Nincsenek korábbi keresések.",
+        "suggestions": "Nincs találat.",
+        "title": "Nincs találat",
+        "description": "Nem találtunk terméket a(z) \"{{query}}\" kifejezésre.\nKérjük, próbálkozzon más keresőszóval."
+      },
+      "action": {
+        "clear": "Összes törlése"
+      },
+      "recent": "Legutóbbi keresések",
+      "resultCount": "{{count}} termék található",
+      "loading": "Keresés...",
       "accessibility": {
         "openCategory": "{{name}} kategória megnyitása"
       }
@@ -241,12 +253,12 @@
         "response": "Válaszadás",
         "responseValue": {
           "fast": "Gyors",
-          "hour": "1 órán belül",
-          "12hours": "12 órán belül",
-          "day": "24 órán belül",
-          "fewDays": "Pár napon belül",
-          "fewHours": "Pár órán belül",
-          "unknown": "N/A"
+          "hour": "< 1h",
+          "12hours": "< 12h",
+          "day": "< 24h",
+          "fewDays": "> 1d",
+          "fewHours": "< 6h",
+          "unknown": "-"
         }
       },
       "reliabilityLabel": "ADON Megbízhatósági Index",

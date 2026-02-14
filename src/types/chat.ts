@@ -5,6 +5,7 @@ export interface Message {
     senderId: string;
     text: string;
     imageUrl?: string;
+    systemType?: string;
     createdAt: Timestamp;
     read: boolean;
 }

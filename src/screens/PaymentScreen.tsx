@@ -24,6 +24,7 @@ import { MeetupForm } from '../components/payment/MeetupForm';
 import { DeliveryForm } from '../components/payment/DeliveryForm';
 import { LockerForm } from '../components/payment/LockerForm';
 import { transactionService } from '../services/transactionService';
+import { chatService } from '../services/chatService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Payment'>;
 
@@ -137,11 +138,29 @@ export default function PaymentScreen({ navigation, route }: Props) {
 
             const transactionId = await transactionService.createTransaction(transactionPayload);
 
-            Alert.alert(
-                t('screen.payment.submit'),
-                'Your payment is now held in escrow. Please coordinate with the seller.',
-                [{ text: 'OK', onPress: () => navigation.replace('TransactionDetail', { transactionId }) }]
-            );
+            // Send system message to chat
+            try {
+                const conversationId = await chatService.getOrCreateConversation(
+                    currentUserId,
+                    sellerId,
+                    { id: listing.id, title: listing.title, photo: listing.photos?.[0] || '' }
+                );
+
+                await chatService.sendMessage(
+                    conversationId,
+                    currentUserId,
+                    t('screen.chat.messages.system.paymentCompleted'),
+                    undefined,
+                    'payment_completed'
+                );
+
+                // Navigate to Chat
+                navigation.replace('Chat', { conversationId });
+            } catch (chatError) {
+                console.error('Failed to send payment message:', chatError);
+                // Fallback to TransactionDetail if chat fails
+                navigation.replace('TransactionDetail', { transactionId });
+            }
         } catch (error: any) {
             console.error('[PaymentScreen] Payment failed:', error);
             const errorMessage = error?.message || 'Failed to initiate transaction.';

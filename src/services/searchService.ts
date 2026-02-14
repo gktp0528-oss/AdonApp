@@ -12,6 +12,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Fuse from 'fuse.js';
 import { db } from '../firebaseConfig'; // Corrected path
 import { Listing } from '../types/listing';
 
@@ -29,85 +30,190 @@ const KEYWORD_STATS_COLLECTION = 'keyword_stats';
 const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
-class SearchServiceImpl implements SearchService {
+// Korean text normalization utilities
+const normalizeKorean = (text: string): string => {
+    if (!text) return '';
 
-    // Phase 1: Real Data Suggestions (Recent + Prefix Match)
+    // Remove all spaces
+    let normalized = text.replace(/\s+/g, '');
+
+    // Convert to lowercase
+    normalized = normalized.toLowerCase();
+
+    return normalized;
+};
+
+// Extract Korean initial consonants (초성)
+const getInitialConsonants = (text: string): string => {
+    const CHO = [
+        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
+        'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+    ];
+
+    let result = '';
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        // Check if Korean character (가-힣)
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+            const choIndex = Math.floor((code - 0xAC00) / 588);
+            result += CHO[choIndex];
+        } else {
+            result += text[i];
+        }
+    }
+    return result;
+};
+
+class SearchServiceImpl implements SearchService {
+    private listingsCache: Listing[] = [];
+    private lastCacheTime: number = 0;
+    private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+    // Enhanced Suggestions with Fuzzy Matching
     async getSuggestions(queryText: string, userId?: string): Promise<string[]> {
-        const normalizedQuery = queryText.trim().toLowerCase();
+        const normalizedQuery = queryText.trim();
         if (!normalizedQuery) return this.getRecentSearches();
 
         const suggestions: Set<string> = new Set();
 
         try {
-            // 1. Fetch from Firestore listings (Prefix match on title)
-            // Note: This is case-sensitive in Firestore without specific setup. 
-            // For Phase 0/1, we'll do a simple query. Real separate index recommended later.
-            const listingsRef = collection(db, 'listings');
-            // Capitalize first letter for better matching if titles are Title Case
-            // This is a naive implementation for Phase 0
-            const searchPrefix = normalizedQuery;
-            const endPrefix = normalizedQuery + '\uf8ff';
+            // Get all listings from cache
+            const allListings = await this.getAllListings();
 
-            // We might need a separate 'keywords' collection or 'searchTags' field for efficient consistent querying
-            // For now, let's try querying the 'title' field directly
-            const q = query(
-                listingsRef,
-                where('title', '>=', searchPrefix),
-                where('title', '<=', endPrefix),
-                limit(5)
-            );
+            const normalizedSearchText = normalizeKorean(normalizedQuery);
+            const initialConsonants = getInitialConsonants(normalizedQuery);
 
-            const snapshot = await getDocs(q);
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.title) {
-                    suggestions.add(data.title.trim());
+            // Find matching listings
+            const matchingListings = allListings.filter(listing => {
+                const listingTitle = (listing.title || '').toLowerCase();
+                const normalizedTitle = normalizeKorean(listing.title || '');
+                const titleInitials = getInitialConsonants(listing.title || '');
+
+                // Direct substring match
+                if (listingTitle.includes(normalizedQuery.toLowerCase())) {
+                    return true;
+                }
+
+                // Normalized match (no spaces)
+                if (normalizedTitle.includes(normalizedSearchText)) {
+                    return true;
+                }
+
+                // Initial consonant match (초성 검색)
+                if (titleInitials.includes(initialConsonants)) {
+                    return true;
+                }
+
+                return false;
+            });
+
+            // Add unique titles to suggestions
+            matchingListings.forEach(listing => {
+                if (listing.title) {
+                    suggestions.add(listing.title.trim());
                 }
             });
 
-            // If we have few results, maybe try category?
-            if (suggestions.size < 3) {
-                // Category logic here if needed
-            }
-
         } catch (error) {
             console.warn('Error fetching suggestions:', error);
-            // Fallback to local logic or empty
         }
 
         return Array.from(suggestions).slice(0, 8);
     }
 
-    // Phase 0: Search Listings (Firestore Fallback)
-    async searchListings(queryText: string, options?: any): Promise<Listing[]> {
-        const normalizedQuery = queryText.trim();
-        // if (!normalizedQuery) return []; <-- Old: Returned empty
+    // Fetch and cache all listings
+    private async getAllListings(): Promise<Listing[]> {
+        const now = Date.now();
+
+        // Return cache if still valid
+        if (this.listingsCache.length > 0 && (now - this.lastCacheTime) < this.CACHE_DURATION) {
+            return this.listingsCache;
+        }
 
         try {
             const listingsRef = collection(db, 'listings');
-
-            let q;
-            if (!normalizedQuery) {
-                // Return latest 20 listings if query is empty
-                q = query(listingsRef, orderBy('createdAt', 'desc'), limit(20));
-            } else {
-                // Simple prefix search
-                q = query(
-                    listingsRef,
-                    where('title', '>=', normalizedQuery),
-                    where('title', '<=', normalizedQuery + '\uf8ff'),
-                    limit(20)
-                );
-            }
+            const q = query(listingsRef, orderBy('createdAt', 'desc'), limit(500)); // Limit to prevent too much data
 
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({
+            this.listingsCache = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as Listing));
+
+            this.lastCacheTime = now;
+            return this.listingsCache;
+        } catch (error) {
+            console.error('Error fetching all listings:', error);
+            return this.listingsCache; // Return old cache on error
+        }
+    }
+
+    // Enhanced Search with Fuzzy Matching
+    async searchListings(queryText: string, options?: any): Promise<Listing[]> {
+        const normalizedQuery = queryText.trim();
+
+        try {
+            // Get all listings (from cache or Firestore)
+            const allListings = await this.getAllListings();
+
+            // If query is empty, return latest 20
+            if (!normalizedQuery) {
+                return allListings.slice(0, 20);
+            }
+
+            // Normalize query for better matching
+            const normalizedSearchText = normalizeKorean(normalizedQuery);
+            const initialConsonants = getInitialConsonants(normalizedQuery);
+
+            // Configure Fuse.js for fuzzy search
+            const fuse = new Fuse(allListings, {
+                keys: [
+                    { name: 'title', weight: 2 },
+                    { name: 'description', weight: 1 },
+                    { name: 'category', weight: 1.5 }
+                ],
+                threshold: 0.4, // 0 = perfect match, 1 = match anything
+                distance: 100,
+                ignoreLocation: true,
+                useExtendedSearch: true,
+                minMatchCharLength: 1
+            });
+
+            // Perform fuzzy search
+            let results = fuse.search(normalizedQuery).map(result => result.item);
+
+            // If fuzzy search yields few results, try additional matching strategies
+            if (results.length < 5) {
+                const additionalResults = allListings.filter(listing => {
+                    const listingTitle = normalizeKorean(listing.title || '');
+                    const listingTitleInitials = getInitialConsonants(listing.title || '');
+
+                    // Check if normalized title includes normalized query (handles spacing)
+                    if (listingTitle.includes(normalizedSearchText)) {
+                        return true;
+                    }
+
+                    // Check initial consonant matching (초성 검색)
+                    if (listingTitleInitials.includes(initialConsonants)) {
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                // Merge and deduplicate results
+                const resultIds = new Set(results.map(r => r.id));
+                additionalResults.forEach(item => {
+                    if (!resultIds.has(item.id)) {
+                        results.push(item);
+                        resultIds.add(item.id);
+                    }
+                });
+            }
+
+            return results.slice(0, 50); // Limit to 50 results
         } catch (error) {
             console.error('Error searching listings:', error);
-            // Return empty list on error to prevent crash
             return [];
         }
     }

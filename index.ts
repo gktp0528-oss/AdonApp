@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import './src/lib/polyfills';
 import { registerRootComponent } from 'expo';
 

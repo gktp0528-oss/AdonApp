@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -93,6 +94,9 @@ export function SellerScreen({ navigation, route }: Props) {
             <Image
               source={{ uri: seller.coverImage || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80' }}
               style={styles.cover}
+              contentFit="cover"
+              transition={500}
+              cachePolicy="memory-disk"
             />
             <View style={styles.coverOverlay} />
 
@@ -127,6 +131,9 @@ export function SellerScreen({ navigation, route }: Props) {
                 <Image
                   source={{ uri: seller.avatar || 'https://via.placeholder.com/200' }}
                   style={styles.avatar}
+                  contentFit="cover"
+                  transition={500}
+                  cachePolicy="memory-disk"
                 />
               </View>
               {seller.isVerified && (
@@ -226,6 +233,9 @@ export function SellerScreen({ navigation, route }: Props) {
                       <Image
                         source={{ uri: item.photos?.[0] || 'https://via.placeholder.com/150' }}
                         style={styles.productImage}
+                        contentFit="cover"
+                        transition={300}
+                        cachePolicy="memory-disk"
                       />
                       <View style={styles.productInfo}>
                         <Text numberOfLines={1} style={styles.productTitle}>{item.title}</Text>

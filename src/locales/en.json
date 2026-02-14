@@ -234,6 +234,18 @@
         "priceAi": "Price Assistant",
         "photoAi": "Photo Studio"
       },
+      "empty": {
+        "recent": "No recent searches yet.",
+        "suggestions": "No suggestions found.",
+        "title": "No results found",
+        "description": "We couldn't find any items for \"{{query}}\".\nPlease try a different search term."
+      },
+      "action": {
+        "clear": "Clear all"
+      },
+      "recent": "Recent searches",
+      "resultCount": "Found {{count}} items",
+      "loading": "Searching...",
       "accessibility": {
         "openCategory": "Open {{name}} category"
       }
@@ -253,12 +265,12 @@
         "response": "Response",
         "responseValue": {
           "fast": "Fast",
-          "hour": "Within 1 hour",
-          "12hours": "Within 12 hours",
-          "day": "Within 24 hours",
-          "fewDays": "Within a few days",
-          "fewHours": "Within a few hours",
-          "unknown": "N/A"
+          "hour": "< 1h",
+          "12hours": "< 12h",
+          "day": "< 24h",
+          "fewDays": "> 1d",
+          "fewHours": "< 6h",
+          "unknown": "-"
         }
       },
       "reliabilityLabel": "ADON Trust Label",
@@ -410,7 +422,45 @@
       },
       "system": {
         "transactionCompleted": "Transaction completed! Please leave a review to help others. 🌟",
-        "reviewSubmitted": "Review submitted! Thank you for sharing your experience. 💖"
+        "reviewSubmitted": "Review submitted! Thank you for sharing your experience. 💖",
+        "paymentCompleted": "Payment Completed! 💸",
+        "enterPin": "Enter PIN"
+      }
+    },
+    "categorySelect": {
+      "title": "Select Category",
+      "all": "All Categories",
+      "empty": "No sub-categories."
+    },
+    "aiListing": {
+      "title": "New Listing",
+      "section": {
+        "photos": "Photos"
+      },
+      "label": {
+        "title": "Title",
+        "category": "Category",
+        "price": "Price",
+        "condition": "Condition",
+        "description": "Description"
+      },
+      "placeholder": {
+        "title": "e.g. Nike Air Max 97",
+        "description": "Describe your item...",
+        "price": "0.00"
+      },
+      "submit": "Post Item",
+      "uploading": "Posting...",
+      "alert": {
+        "title": "Title",
+        "category": "Category",
+        "price": "Price",
+        "description": "Description",
+        "photo": "Photos"
+      },
+      "ad": {
+        "title": "Try Adon AI Feature",
+        "subtitle": "Auto-fill, Price Analysis, etc."
       }
     },
     "categoryList": {
@@ -489,7 +539,23 @@
       "pinInvalid": "Invalid PIN. Please try again.",
       "pinCopied": "PIN copied to clipboard.",
       "completeMsg": "The item has been successfully traded!",
-      "backHome": "Back to Home"
+      "completedTitle": "Transaction Completed",
+      "completedDesc": "The transaction has been successfully completed.",
+      "backToChat": "Back to Chat",
+      "backHome": "Back to Home",
+      "celebration": {
+        "title": "Transaction Completed! 🎉",
+        "subtitle": "You've successfully received the item.\nHow was your experience?",
+        "reviewBtn": "Leave a Review",
+        "homeBtn": "Back to Home"
+      },
+      "review": {
+        "prompt": "Your review helps the seller\nbuild trust! 💖",
+        "placeholder": "Was the seller friendly? How was the item?",
+        "submit": "Submit Review",
+        "success": "Review submitted successfully!",
+        "later": "Maybe Later"
+      }
     },
     "aiAnalysisResult": {
       "headerTitle": "ADON AI REPORT",

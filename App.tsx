@@ -12,6 +12,7 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { CategoryScreen } from './src/screens/CategoryScreen';
 import { QuerySearchScreen } from './src/screens/QuerySearchScreen';
+import { SearchResultScreen } from './src/screens/SearchResultScreen';
 import { SneakersListScreen } from './src/screens/SneakersListScreen';
 import ChatListScreen from './src/screens/ChatListScreen';
 import { ProductScreen } from './src/screens/ProductScreen';
@@ -45,7 +46,6 @@ function MainTabNavigator() {
     >
       <Tab.Screen name="HomeTab" component={HomeScreen as any} />
       <Tab.Screen name="CategoryTab" component={CategoryScreen as any} />
-      <Tab.Screen name="PostTab" component={AiListingScreen as any} />
       <Tab.Screen name="ChatTab" component={ChatListScreen as any} />
       <Tab.Screen name="ProfileTab" component={SellerScreen as any} />
     </Tab.Navigator>
@@ -108,15 +108,39 @@ export default function App() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ gestureEnabled: false }} />
+
+          {/* Modal Screens - Slide from bottom */}
+          <Stack.Screen
+            name="AiListing"
+            component={AiListingScreen}
+            options={{
+              presentation: 'fullScreenModal',
+              animation: 'slide_from_bottom'
+            }}
+          />
 
           {/* Sub Screens - Default Slide Animation */}
-          <Stack.Screen name="CategoryList" component={SneakersListScreen} />
+          <Stack.Screen
+            name="CategoryList"
+            component={SneakersListScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'card'
+            }}
+          />
           <Stack.Screen name="Product" component={ProductScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
+          <Stack.Screen
+            name="CategorySelect"
+            component={CategorySelectScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'fullScreenModal',
+            }}
+          />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
           <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
@@ -124,6 +148,14 @@ export default function App() {
           <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
           <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen
+            name="SearchResult"
+            component={SearchResultScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'card'
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

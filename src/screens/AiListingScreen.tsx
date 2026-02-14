@@ -9,17 +9,18 @@ import {
   TextInput,
   View,
   Platform,
+  Keyboard,
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
   Easing,
   Animated,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
-import { getPostExitTab, resetToTab } from '../navigation/tabRouting';
 import { TabTransitionView } from '../components/TabTransitionView';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -35,27 +36,35 @@ import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
 import { ListingCondition, UnifiedAiReport } from '../types/listing';
 import { useTranslation } from 'react-i18next';
+import { LocationPicker } from '../components/LocationPicker';
 import { aiBridge } from '../services/aiBridge';
 
-type Props = any; // Temporary fix for linting while refactoring nested navigation
+type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+
+  const { t } = useTranslation();
 
   // Temporary: get current seller ID
   const sellerId = userService.getCurrentUserId();
 
   useEffect(() => {
+    console.log('AiListing params changed:', route.params);
     if (route.params?.selectedCategory) {
+      console.log('Setting category from params:', route.params.selectedCategory);
       setCategory(route.params.selectedCategory);
+      // Clear param after consumption to prevent re-triggering and ensure clean state
+      navigation.setParams({ selectedCategory: undefined } as any);
     }
-  }, [route.params?.selectedCategory]);
+  }, [route.params?.selectedCategory, navigation]);
 
   useEffect(() => {
     if (route.params?.selectedPrice) {
       setPrice(route.params.selectedPrice);
+      navigation.setParams({ selectedPrice: undefined } as any);
     }
-  }, [route.params?.selectedPrice]);
+  }, [route.params?.selectedPrice, navigation]);
 
   const applyAiReport = (data: UnifiedAiReport) => {
     if (data.itemName) setTitle(data.itemName);
@@ -97,11 +106,8 @@ export function AiListingScreen({ navigation, route }: Props) {
   }, [route.params?.appliedReport]);
 
   const handleClose = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    resetToTab(navigation, getPostExitTab(), 'post');
+    // Since AiListing is now a Stack modal, just go back
+    navigation.goBack();
   };
 
   // Form State
@@ -113,9 +119,11 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [photos, setPhotos] = useState<string[]>([]); // Array of image URIs
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
   const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
+  const [pickupLocation, setPickupLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
 
 
   const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
@@ -125,6 +133,18 @@ export function AiListingScreen({ navigation, route }: Props) {
     Good: '양호',
     Fair: '사용감 있음',
   };
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const getRecommendedPriceFromRange = (range: { min: number; max: number } | null): string | null => {
     if (!range) return null;
@@ -208,13 +228,14 @@ export function AiListingScreen({ navigation, route }: Props) {
         currency: 'EUR',
         status: 'active',
         sellerId: sellerId,
+        pickupLocation: pickupLocation || undefined,
         // Optional fields can be added here
       });
 
       Alert.alert('등록 완료', '상품이 정상적으로 등록되었어요.', [
         {
           text: '확인',
-          onPress: () => resetToTab(navigation, getPostExitTab(), 'post'),
+          onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error: any) {
@@ -314,7 +335,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       // Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
       // addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
-      const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
+      const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash" });
 
       // Prepare all images for Gemini
       const imageParts = await Promise.all(uris.map(async (uri, idx) => {
@@ -365,12 +386,18 @@ export function AiListingScreen({ navigation, route }: Props) {
       const aiResponse = await result.response;
       const responseText = aiResponse.text();
 
+      console.log('🤖 AI Raw Response:', responseText);
+
       setAiStep('finalizing');
       // Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
       // addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
 
       try {
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        console.log('🔍 JSON Match found:', jsonMatch ? 'Yes' : 'No');
+        if (jsonMatch) {
+          console.log('📝 Extracted JSON:', jsonMatch[0].substring(0, 200) + '...');
+        }
         const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
         if (data) {
@@ -428,7 +455,11 @@ export function AiListingScreen({ navigation, route }: Props) {
 
         } else {
           // Fallback for failed JSON parse
-          Alert.alert('Analysis Failed', 'Could not structure the data.');
+          console.warn('❌ No valid JSON found in AI response');
+          Alert.alert(
+            'AI 분석 실패',
+            'AI 응답을 파싱할 수 없습니다.\n\n응답 미리보기:\n' + responseText.substring(0, 150) + '...'
+          );
           setIsAiLoading(false);
           setAiStep(null);
         }
@@ -468,9 +499,10 @@ export function AiListingScreen({ navigation, route }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <TabTransitionView style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>새 상품 등록</Text>
+            <Text style={styles.headerTitle}>{t('screen.aiListing.title')}</Text>
             <Pressable style={styles.closeBtn} onPress={handleClose}>
               <MaterialIcons name="close" size={24} color="#0f172a" />
             </Pressable>
@@ -485,20 +517,25 @@ export function AiListingScreen({ navigation, route }: Props) {
                 <MaterialIcons name="auto-awesome" size={20} color="#fff" />
               </View>
               <View>
-                <Text style={styles.aiBannerTitle}>Adon AI 기능 사용해보기</Text>
-                <Text style={styles.aiBannerSubtitle}>자동 입력, 시세 분석 등</Text>
+                <Text style={styles.aiBannerTitle}>{t('screen.aiListing.ad.title')}</Text>
+                <Text style={styles.aiBannerSubtitle}>{t('screen.aiListing.ad.subtitle')}</Text>
               </View>
             </View>
             <MaterialIcons name="chevron-right" size={24} color="#15803d" />
           </Pressable>
 
           <ScrollView
-            contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
+            contentContainerStyle={[
+              styles.content,
+              { paddingBottom: (isKeyboardVisible ? 56 : 100) + insets.bottom },
+            ]}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
             {/* Photo Section */}
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>사진</Text>
+              <Text style={styles.sectionTitle}>{t('screen.aiListing.section.photos')}</Text>
               {isAiLoading && (
                 <View style={styles.aiLoadingBadge}>
                   <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
@@ -507,10 +544,15 @@ export function AiListingScreen({ navigation, route }: Props) {
               )}
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.photoScroll}
+              keyboardShouldPersistTaps="always"
+            >
               <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
                 <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-                <Text style={styles.addPhotoText}>사진 추가 ({photos.length}/10)</Text>
+                <Text style={styles.addPhotoText}>{t('screen.aiListing.section.photos')} + ({photos.length}/10)</Text>
               </Pressable>
               {photos.map((uri, index) => (
                 <View key={index} style={styles.photoCard}>
@@ -541,22 +583,28 @@ export function AiListingScreen({ navigation, route }: Props) {
 
             {/* Title Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>상품명</Text>
+              <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="예: Nike Air Max 97"
+                placeholder={t('screen.aiListing.placeholder.title')}
                 placeholderTextColor="#64748b"
                 value={title}
                 onChangeText={setTitle}
               />
             </View>
 
-            {/* Category Selector (Mock) */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>카테고리</Text>
-              <Pressable style={styles.selector} onPress={() => navigation.navigate('CategorySelect')}>
+              <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
+              <Pressable
+                style={styles.selector}
+                onPress={() => {
+                  console.log('Category selector pressed! Navigating to CategorySelect...');
+                  Keyboard.dismiss();
+                  navigation.push('CategorySelect');
+                }}
+              >
                 <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                  {category || '카테고리 선택'}
+                  {category || t('screen.categorySelect.title')}
                 </Text>
                 <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
               </Pressable>
@@ -564,12 +612,12 @@ export function AiListingScreen({ navigation, route }: Props) {
 
             {/* Price Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>가격</Text>
+              <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
               <View style={styles.priceContainer}>
                 <Text style={styles.currencySymbol}>€</Text>
                 <TextInput
                   style={styles.priceInput}
-                  placeholder="0.00"
+                  placeholder={t('screen.aiListing.placeholder.price')}
                   placeholderTextColor="#64748b"
                   keyboardType="numeric"
                   value={price}
@@ -581,7 +629,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
             {/* Condition Selector */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>상태</Text>
+              <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
               <View style={styles.conditionRow}>
                 {conditions.map((c) => (
                   <Pressable
@@ -599,10 +647,10 @@ export function AiListingScreen({ navigation, route }: Props) {
 
             {/* Description Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>설명</Text>
+              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="상품 설명을 입력해 주세요."
+                placeholder={t('screen.aiListing.placeholder.description')}
                 placeholderTextColor="#64748b"
                 multiline
                 textAlignVertical="top"
@@ -611,19 +659,28 @@ export function AiListingScreen({ navigation, route }: Props) {
               />
             </View>
 
+            {/* Location Picker */}
+            <LocationPicker onLocationChange={setPickupLocation} />
+
           </ScrollView>
 
           {/* Footer / CTA */}
-          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-            <Pressable
-              style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-              onPress={handlePostItem}
-              disabled={isPosting}
+          {!isKeyboardVisible && (
+            <View
+              style={[styles.footer, { bottom: 0, paddingBottom: Math.max(insets.bottom, 5) }]}
+              pointerEvents="box-none"
             >
-              <Text style={styles.ctaText}>{isPosting ? '등록 중...' : '상품 등록하기'}</Text>
-            </Pressable>
-          </View>
-        </TabTransitionView>
+              <Pressable
+                style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+                onPress={handlePostItem}
+                disabled={isPosting}
+              >
+                <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -1022,6 +1079,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingTop: 16,
     paddingHorizontal: 20,
+    zIndex: 1001, // Higher than BottomTabMock (1000) to stay on top
   },
   ctaBtn: {
     backgroundColor: '#19e61b',

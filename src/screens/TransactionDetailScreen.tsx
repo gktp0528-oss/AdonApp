@@ -22,6 +22,9 @@ import { userService } from '../services/userService';
 import { chatService } from '../services/chatService';
 import { listingService } from '../services/listingService';
 import { DetailBackButton } from '../components/DetailBackButton';
+// import { TransactionCompletion } from '../components/TransactionCompletion';
+// import { ReviewModal } from '../components/ReviewModal';
+// import { reviewService } from '../services/reviewService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionDetail'>;
 
@@ -32,6 +35,7 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
     const [loading, setLoading] = useState(true);
     const [verifying, setVerifying] = useState(false);
     const [pinInput, setPinInput] = useState('');
+    // const [isReviewModalVisible, setReviewModalVisible] = useState(false);
     const currentUserId = userService.getCurrentUserId();
 
     useEffect(() => {
@@ -73,7 +77,13 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                                 updated.sellerId,
                                 { id: listing.id, title: listing.title, photo: listing.photos?.[0] || '' }
                             );
-                            await chatService.sendMessage(convId, currentUserId || 'system', t('chat.screen.system.transactionCompleted'));
+                            await chatService.sendMessage(
+                                convId,
+                                currentUserId || 'system',
+                                t('chat.screen.system.transactionCompleted'),
+                                undefined,
+                                'transaction_completed'
+                            );
                         }
                     } catch (chatError) {
                         console.error('Failed to send completion message:', chatError);
@@ -96,6 +106,32 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
         }
     };
 
+    const handleBackToChat = async () => {
+        if (!transaction) return;
+
+        // If conversationId exists, navigate to chat
+        if (transaction.conversationId) {
+            navigation.navigate('Chat', { conversationId: transaction.conversationId });
+            return;
+        }
+
+        // Otherwise, create conversation and navigate
+        try {
+            const listing = await listingService.getListingById(transaction.listingId);
+            if (listing) {
+                const convId = await chatService.getOrCreateConversation(
+                    transaction.buyerId,
+                    transaction.sellerId,
+                    { id: listing.id, title: listing.title, photo: listing.photos?.[0] || '' }
+                );
+                navigation.navigate('Chat', { conversationId: convId });
+            }
+        } catch (error) {
+            console.error('Failed to navigate to chat:', error);
+            Alert.alert(t('common.error'), t('common.error'));
+        }
+    };
+
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'paid_held': return t('screen.transaction.statusLabel.paidHeld');
@@ -104,6 +140,8 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
             default: return status.toUpperCase();
         }
     };
+
+    const isCompleted = transaction?.status === 'released' || transaction?.status === 'delivered';
 
     if (loading) {
         return (
@@ -116,7 +154,8 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <DetailBackButton onPress={() => navigation.goBack()} />
+                {!isCompleted && <DetailBackButton onPress={() => navigation.goBack()} />}
+                {isCompleted && <View style={{ width: 40 }} />}
                 <Text style={styles.headerTitle}>{t('screen.transaction.title')}</Text>
                 <View style={{ width: 40 }} />
             </View>
@@ -167,34 +206,47 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                 )}
 
                 {/* Completion Message */}
-                {(transaction?.status === 'released' || transaction?.status === 'delivered') && (
-                    <View style={[styles.section, styles.successSection]}>
-                        <MaterialIcons name="check-circle" size={48} color="#22c55e" />
-                        <Text style={styles.successTitle}>{t('common.success')}</Text>
-                        <Text style={styles.successDesc}>{t('screen.transaction.completeMsg')}</Text>
-                        <TouchableOpacity
-                            style={styles.homeBtn}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Text style={styles.homeBtnText}>{t('screen.transaction.backHome')}</Text>
+                {isCompleted && (
+                    <View style={styles.successSection}>
+                        <MaterialIcons name="check-circle-outline" size={80} color="#22c55e" />
+                        <Text style={styles.successTitle}>{t('screen.transaction.completedTitle')}</Text>
+                        <Text style={styles.successDesc}>{t('screen.transaction.completedDesc')}</Text>
+                        <TouchableOpacity style={styles.homeBtn} onPress={handleBackToChat}>
+                            <Text style={styles.homeBtnText}>{t('screen.transaction.backToChat')}</Text>
                         </TouchableOpacity>
-
-                        {transaction?.buyerId === currentUserId && !transaction?.reviewId && (
-                            <TouchableOpacity
-                                style={styles.reviewBtn}
-                                onPress={() => navigation.navigate('Review', {
-                                    transactionId,
-                                    sellerId: transaction.sellerId,
-                                    listingId: transaction.listingId
-                                })}
-                            >
-                                <MaterialIcons name="rate-review" size={20} color="#fff" />
-                                <Text style={styles.reviewBtnText}>{t('screen.review.title')}</Text>
-                            </TouchableOpacity>
-                        )}
                     </View>
                 )}
             </ScrollView>
+
+            {/* <ReviewModal
+                isVisible={isReviewModalVisible}
+                onClose={() => setReviewModalVisible(false)}
+                onSubmit={async (rating, comment) => {
+                    if (!transaction || !currentUserId) return;
+
+                    try {
+                        await reviewService.submitReview({
+                            transactionId: transaction.id,
+                            listingId: transaction.listingId,
+                            reviewerId: currentUserId,
+                            revieweeId: transaction.sellerId,
+                            rating,
+                            comment,
+                        });
+
+                        Alert.alert(t('common.success'), t('transaction.review.success'));
+                        setReviewModalVisible(false);
+
+                        // Refresh transaction to update reviewId
+                        const updated = await transactionService.getTransaction(transactionId);
+                        if (updated) setTransaction(updated);
+
+                    } catch (error) {
+                        console.error('Review submit failed', error);
+                        Alert.alert(t('common.error'), t('common.error'));
+                    }
+                }}
+            /> */}
         </SafeAreaView>
     );
 }

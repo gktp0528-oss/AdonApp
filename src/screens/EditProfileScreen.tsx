@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Image, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -178,6 +179,9 @@ export function EditProfileScreen({ navigation }: Props) {
                     <Image
                         source={{ uri: coverImage || 'https://via.placeholder.com/400x225' }}
                         style={styles.coverPreview}
+                        contentFit="cover"
+                        transition={500}
+                        cachePolicy="memory-disk"
                     />
                     {pickingCover ? (
                         <View style={styles.imageLoadingOverlay}>
@@ -197,6 +201,9 @@ export function EditProfileScreen({ navigation }: Props) {
                         <Image
                             source={{ uri: avatar || 'https://via.placeholder.com/150' }}
                             style={styles.avatar}
+                            contentFit="cover"
+                            transition={500}
+                            cachePolicy="memory-disk"
                         />
                         {pickingAvatar ? (
                             <View style={styles.avatarLoadingOverlay}>

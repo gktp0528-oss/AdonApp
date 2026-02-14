@@ -38,7 +38,16 @@ export function BottomTabMock({ state, navigation }: BottomTabBarProps) {
     });
   }, []);
 
-  const handleTabPress = (routeName: string, isFocused: boolean) => {
+  const handleTabPress = (tabKey: TabKey, routeName: string, isFocused: boolean) => {
+    // Special handling for Post - navigate to modal in Stack Navigator
+    if (tabKey === 'post') {
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.navigate('AiListing' as any);
+      }
+      return;
+    }
+
     const event = navigation.emit({
       type: 'tabPress',
       target: routeName,
@@ -60,7 +69,7 @@ export function BottomTabMock({ state, navigation }: BottomTabBarProps) {
           <Pressable
             key={tab.key}
             style={styles.tab}
-            onPress={() => handleTabPress(tab.routeName, isFocused)}
+            onPress={() => handleTabPress(tab.key, tab.routeName, isFocused)}
             accessibilityRole="button"
             accessibilityLabel={t('common.accessibility.tab', { label, defaultValue: `${label} tab` })}
             accessibilityState={{ selected: isFocused }}

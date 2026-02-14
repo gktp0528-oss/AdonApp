@@ -57,7 +57,7 @@ export const chatService = {
     /**
      * Send a message in a conversation.
      */
-    async sendMessage(conversationId: string, senderId: string, text: string, imageUrl?: string): Promise<void> {
+    async sendMessage(conversationId: string, senderId: string, text: string, imageUrl?: string, systemType?: string): Promise<void> {
         const now = Timestamp.now();
 
         // Get conversation current state to calculate response time logic BEFORE updating it
@@ -88,6 +88,7 @@ export const chatService = {
             senderId,
             text,
             ...(imageUrl ? { imageUrl } : {}),
+            ...(systemType ? { systemType } : {}),
             createdAt: now,
             read: false,
         });
