@@ -20,6 +20,10 @@ export const reviewService = {
     async submitReview(reviewData: Omit<Review, 'id' | 'createdAt'>): Promise<string> {
         try {
             return await runTransaction(db, async (transaction) => {
+                // 1. Read user data (Must be done before any writes)
+                const userRef = doc(db, 'users', reviewData.revieweeId);
+                const userDoc = await transaction.get(userRef);
+
                 const reviewRef = collection(db, COLLECTION);
                 const newReviewDoc = doc(reviewRef);
                 const createdAt = Timestamp.now();
@@ -30,17 +34,14 @@ export const reviewService = {
                     createdAt
                 };
 
-                // 1. Create review document
+                // 2. Create review document (Write)
                 transaction.set(newReviewDoc, fullReview);
 
-                // 2. Update transaction with reviewId
+                // 3. Update transaction with reviewId (Write)
                 const transRef = doc(db, 'transactions', reviewData.transactionId);
                 transaction.update(transRef, { reviewId: newReviewDoc.id });
 
-                // 3. Update reviewee (seller) rating
-                const userRef = doc(db, 'users', reviewData.revieweeId);
-                const userDoc = await transaction.get(userRef);
-
+                // 4. Update reviewee (seller) rating (Write)
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     const currentRating = userData.rating || 0;

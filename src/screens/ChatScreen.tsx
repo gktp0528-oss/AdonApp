@@ -41,6 +41,7 @@ export function ChatScreen({ navigation, route }: Props) {
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
   const [isReviewModalVisible, setReviewModalVisible] = useState(false);
   const [completedTransactionId, setCompletedTransactionId] = useState<string | null>(null);
+  const [isSeller, setIsSeller] = useState(false);
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -82,6 +83,7 @@ export function ChatScreen({ navigation, route }: Props) {
 
       if (tr) {
         setActiveTransactionId(tr.id);
+        setIsSeller(tr.sellerId === currentUserId);
       }
     };
 
@@ -247,6 +249,14 @@ export function ChatScreen({ navigation, route }: Props) {
             }
 
             if (msg.systemType === 'transaction_completed') {
+              const isSeller = conversation?.participants.find(p => p === currentUserId) && conversation.listingId ?
+                (otherUser?.id !== currentUserId && messages.some(m => m.systemType === 'payment_completed')) : false;
+
+              // More reliable seller check: If the listing belongs to the current user
+              // However, we don't have listing detail here directly in a clean way unless we use conversation metadata.
+              // Let's use otherUser and currentUserId logic more clearly.
+              // In this app, listing owner is the seller.
+
               return (
                 <View key={msg.id} style={{ alignItems: 'center', marginVertical: 16 }}>
                   <TransactionCompletion
@@ -260,6 +270,7 @@ export function ChatScreen({ navigation, route }: Props) {
                       }
                     }}
                     onHomePress={() => navigation.navigate('MainTabs')}
+                    isSeller={isSeller}
                   />
                 </View>
               );

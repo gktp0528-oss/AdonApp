@@ -15,11 +15,17 @@ interface TransactionCompletionProps {
     onReviewPress: () => void;
     onHomePress: () => void;
     isChatView?: boolean;
+    isSeller?: boolean;
 }
 
 const { width } = Dimensions.get('window');
 
-export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({ onReviewPress, onHomePress, isChatView = false }) => {
+export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
+    onReviewPress,
+    onHomePress,
+    isChatView = false,
+    isSeller = false
+}) => {
     const { t } = useTranslation();
     const scaleAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -66,23 +72,25 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({ on
                 <Text style={styles.subtitle}>{t('transaction.celebration.subtitle')}</Text>
 
                 <View style={styles.card}>
-                    <TouchableOpacity
-                        style={styles.reviewButton}
-                        onPress={onReviewPress}
-                        activeOpacity={0.8}
-                    >
-                        <LinearGradient
-                            colors={['#0f172a', '#1e293b']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.reviewGradient}
+                    {!isSeller && (
+                        <TouchableOpacity
+                            style={styles.reviewButton}
+                            onPress={onReviewPress}
+                            activeOpacity={0.8}
                         >
-                            <MaterialIcons name="star" size={20} color="#fbbf24" style={{ marginRight: 8 }} />
-                            <Text style={styles.reviewButtonText}>
-                                {t('transaction.celebration.reviewBtn')}
-                            </Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <LinearGradient
+                                colors={['#0f172a', '#1e293b']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.reviewGradient}
+                            >
+                                <MaterialIcons name="star" size={20} color="#fbbf24" style={{ marginRight: 8 }} />
+                                <Text style={styles.reviewButtonText}>
+                                    {t('transaction.celebration.reviewBtn')}
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    )}
 
                     <TouchableOpacity
                         style={styles.homeButton}
