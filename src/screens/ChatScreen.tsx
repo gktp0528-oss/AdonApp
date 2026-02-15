@@ -327,7 +327,17 @@ export function ChatScreen({ navigation, route }: Props) {
                     borderWidth: 1,
                     borderColor: '#f0fdf4'
                   }}>
-                    <MaterialIcons name="verified" size={48} color="#22c55e" style={{ marginBottom: 12 }} />
+                    <View style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      backgroundColor: '#f0fdf4',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 12,
+                    }}>
+                      <MaterialIcons name="check" size={32} color="#22c55e" />
+                    </View>
                     <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 8, textAlign: 'center' }}>
                       {t('screen.chat.messages.system.paymentCompleted')}
                     </Text>
