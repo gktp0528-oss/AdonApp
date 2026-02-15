@@ -76,16 +76,6 @@ export function SellerScreen({ navigation, route }: Props) {
     );
   }
 
-  const handleShareProfile = async () => {
-    try {
-      await Share.share({
-        message: t('screen.profile.shareMessage', { name: seller.name }),
-      });
-    } catch {
-      Alert.alert(t('screen.profile.shareErrorTitle'), t('screen.profile.shareErrorMessage'));
-    }
-  };
-
   return (
     <View style={styles.root}>
       <TabTransitionView style={{ flex: 1 }}>
@@ -251,20 +241,13 @@ export function SellerScreen({ navigation, route }: Props) {
           </View>
         </ScrollView>
       </TabTransitionView>
-
-      {sellerId !== userService.getCurrentUserId() && (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + 62 }]}>
-          <PrimaryButton label={t('screen.profile.button.share')} onPress={handleShareProfile} />
-          <PrimaryButton label={t('screen.profile.button.chat')} tone="ghost" onPress={() => navigation.navigate('ChatList')} />
-        </View>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#ffffff' },
-  content: { paddingBottom: 120 },
+  content: { paddingBottom: 40 },
   center: { alignItems: 'center', justifyContent: 'center' },
   errorTitle: { color: '#64748b', fontSize: 15, fontWeight: '600' },
   retryBtn: {
@@ -531,15 +514,5 @@ const styles = StyleSheet.create({
     color: '#2563eb',
     fontWeight: '700',
     fontSize: 13,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    padding: 16,
   },
 });

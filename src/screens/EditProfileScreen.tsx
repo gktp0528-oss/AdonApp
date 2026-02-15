@@ -8,6 +8,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import i18n from 'i18next';
 
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 import { RootStackParamList } from '../navigation/types';
 import { userService } from '../services/userService';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -95,6 +97,19 @@ export function EditProfileScreen({ navigation }: Props) {
         }
     };
 
+    const uploadImage = async (uri: string, path: string): Promise<string> => {
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const storageRef = ref(storage, path);
+            await uploadBytes(storageRef, blob);
+            return await getDownloadURL(storageRef);
+        } catch (error) {
+            console.error('Image upload failed', error);
+            throw new Error(t('screen.editProfile.uploadError') || 'Image upload failed');
+        }
+    };
+
     const handleSave = async () => {
         if (!name.trim()) {
             Alert.alert(t('screen.editProfile.validationTitle'), t('screen.editProfile.validationEmpty'));
@@ -103,16 +118,25 @@ export function EditProfileScreen({ navigation }: Props) {
 
         setSaving(true);
         try {
-            // In a real app, upload avatar to Storage first if it's a local URI
-            // For now, we just save the URI (if standard expo-image-picker local uri) 
-            // or keep existing remote URL.
-            // Note: Local URIs won't work on other devices, implementing storage upload is recommended.
+            let avatarUrl = avatar;
+            if (avatar && !avatar.startsWith('http')) {
+                // It's a local URI, upload it
+                const filename = `avatar_${Date.now()}.jpg`;
+                avatarUrl = await uploadImage(avatar, `profiles/${userId}/${filename}`);
+            }
+
+            let coverUrl = coverImage;
+            if (coverImage && !coverImage.startsWith('http')) {
+                // It's a local URI, upload it
+                const filename = `cover_${Date.now()}.jpg`;
+                coverUrl = await uploadImage(coverImage, `profiles/${userId}/${filename}`);
+            }
 
             const updates: Partial<User> = {
                 name,
                 location,
-                avatar,
-                coverImage,
+                avatar: avatarUrl,
+                coverImage: coverUrl,
                 bio,
             };
 
