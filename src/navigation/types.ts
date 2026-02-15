@@ -9,6 +9,9 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Signup: undefined;
+  Welcome: undefined;
+  NicknameSetup: undefined;
+  OnboardingFinish: undefined;
   MainTabs: undefined; // The persistent tab bar navigator
 
   // Detail Screens

@@ -103,6 +103,28 @@
         "failedMsg": "Signup failed."
       }
     },
+    "welcome": {
+      "title": "Welcome to Adon! 🎉",
+      "subtitle": "Your account has been successfully created.\nLet's set up your profile to get started.",
+      "next": "Next"
+    },
+    "nickname": {
+      "title": "What should we call you? ✨",
+      "subtitle": "This name will be visible to other users\non your profile and in chats.",
+      "label": "Profile Nickname",
+      "placeholder": "Enter your nickname",
+      "confirm": "Confirm",
+      "error": {
+        "empty": "Please enter a nickname",
+        "tooShort": "Nickname must be at least 2 characters",
+        "failed": "Failed to update nickname. Please try again."
+      }
+    },
+    "onboardingFinish": {
+      "title": "You're all set! ✨",
+      "subtitle": "Everything is ready. Now you can\nfreely explore and trade on Adon.",
+      "start": "Start Exploring"
+    },
     "home": {
       "title": "Home",
       "greet": "Good morning,",

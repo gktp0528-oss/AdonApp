@@ -50,13 +50,13 @@ export const chatService = {
         const participantsMetadata: Record<string, any> = {};
         if (buyerProfile) {
             participantsMetadata[buyerId] = {
-                name: buyerProfile.name,
+                name: buyerProfile.name || 'User',
                 avatar: buyerProfile.avatar || null
             };
         }
         if (sellerProfile) {
             participantsMetadata[sellerId] = {
-                name: sellerProfile.name,
+                name: sellerProfile.name || 'User',
                 avatar: sellerProfile.avatar || null
             };
         }

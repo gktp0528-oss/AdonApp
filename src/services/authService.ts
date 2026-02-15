@@ -60,7 +60,7 @@ export const authService = {
         } else {
             const newUser: User = {
                 id: user.uid,
-                name: name || user.displayName || 'User',
+                name: (name && name.trim()) || user.displayName || 'User',
                 email: user.email || '',
                 avatar: user.photoURL || null,
                 isVerified: false,

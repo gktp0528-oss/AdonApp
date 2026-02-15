@@ -28,6 +28,9 @@ import AiAnalysisResultScreen from './src/screens/AiAnalysisResultScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
 import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
 import ReviewScreen from './src/screens/ReviewScreen';
+import { WelcomeScreen } from './src/screens/WelcomeScreen';
+import { NicknameSetupScreen } from './src/screens/NicknameSetupScreen';
+import { OnboardingFinishScreen } from './src/screens/OnboardingFinishScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import initI18n from './src/i18n';
@@ -108,6 +111,9 @@ export default function App() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="NicknameSetup" component={NicknameSetupScreen} />
+          <Stack.Screen name="OnboardingFinish" component={OnboardingFinishScreen} />
           <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ gestureEnabled: false }} />
 
           {/* Modal Screens - Slide from bottom */}

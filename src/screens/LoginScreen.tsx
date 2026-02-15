@@ -26,7 +26,7 @@ export function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await authService.login(email, password);
-      navigation.replace('MainTabs');
+      navigation.replace('Welcome');
     } catch (error: any) {
       Alert.alert(t('screen.login.alert.failed'), error.message);
     } finally {
