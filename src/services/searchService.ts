@@ -35,6 +35,18 @@ const KEYWORD_STATS_COLLECTION = 'keyword_stats';
 const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
+// High-reliability local synonyms for common brands/terms
+const LOCAL_SYNONYMS: Record<string, string[]> = {
+    '애플': ['apple', 'iphone', 'macbook', 'ipad'],
+    '에어팟': ['airpods', 'apple', 'headphones'],
+    '아이폰': ['iphone', 'apple', 'phone'],
+    '맥북': ['macbook', 'apple', 'laptop'],
+    '나이키': ['nike', 'shoes', 'sneakers'],
+    '아디다스': ['adidas', 'shoes'],
+    '삼성': ['samsung', 'galaxy'],
+    '갤럭시': ['galaxy', 'samsung'],
+};
+
 // Multilingual normalization (Korean + Latin with accent folding)
 const normalizeSearchText = (text: string): string => {
     if (!text) return '';
@@ -210,66 +222,86 @@ class SearchServiceImpl implements SearchService {
             const allListings = await this.getAllListings();
             if (!normalizedQuery) return allListings.slice(0, 20);
 
-            // Step 1: AI-Powered Expansion (get synonyms and translations)
-            const expandedKeywords = await this.expandQueryWithAi(normalizedQuery);
+            // Step 1: Query Expansion (Local + Optional AI)
+            const lowerQuery = normalizedQuery.toLowerCase();
+            let expandedKeywords: string[] = [];
 
-            // Step 2: Prepare normalized candidates
+            // Add local synonyms first (very fast, high precision)
+            if (LOCAL_SYNONYMS[lowerQuery]) {
+                expandedKeywords.push(...LOCAL_SYNONYMS[lowerQuery]);
+            }
+
+            // AI-Powered Expansion (Optional, with timeout-like behavior if possible)
+            try {
+                const aiKeywords = await this.expandQueryWithAi(normalizedQuery);
+                aiKeywords.forEach(k => {
+                    if (!expandedKeywords.includes(k) && k !== lowerQuery) {
+                        expandedKeywords.push(k);
+                    }
+                });
+            } catch (e) {
+                console.warn('AI expansion skipped for speed/error');
+            }
+
+            // Step 2: Prepare Search Index
             const indexedListings = allListings.map((listing) => ({
                 ...listing,
                 _searchTitle: normalizeSearchText(listing.title || ''),
                 _searchDescription: normalizeSearchText(listing.description || ''),
-                _searchCategory: normalizeSearchText(listing.category || ''),
+                _searchInitials: getInitialConsonants(listing.title || ''),
             }));
 
-            // Step 3: Progressive Search
-            // We search with the original query first with high precision,
-            // then broaden to synonyms if needed.
-
+            // Step 3: Progressive Fuzzy Search
             const fuseOptions = {
                 keys: [
                     { name: 'title', weight: 4 },
                     { name: '_searchTitle', weight: 5 },
                     { name: 'description', weight: 1 },
-                    { name: 'category', weight: 2 },
                 ],
-                threshold: 0.3, // Slightly relaxed (0.2 was too surgical)
+                threshold: 0.35, // Balanced threshold
                 includeScore: true,
                 useExtendedSearch: true,
             };
 
             const fuse = new Fuse(indexedListings, fuseOptions);
-
-            // Search with original query
             let resultsMap = new Map<string, Listing>();
 
+            // A. Search original query
             const originalResults = fuse.search(normalizedQuery);
             originalResults.forEach(r => resultsMap.set(r.item.id, r.item as Listing));
 
-            // If we need more, or for specific brand matches, search with expanded terms
-            if (resultsMap.size < 10) {
-                for (const keyword of expandedKeywords) {
-                    if (keyword === normalizedQuery.toLowerCase()) continue;
-                    const synonymResults = fuse.search(keyword);
-                    synonymResults.forEach(r => {
-                        if (!resultsMap.has(r.item.id)) {
-                            resultsMap.set(r.item.id, r.item as Listing);
-                        }
-                    });
-                }
-            }
-
-            let finalResults = Array.from(resultsMap.values());
-
-            // Backup: Literal phrase matching if fuzzy failed
-            if (finalResults.length === 0) {
-                const normalizedQueryNoSpace = normalizeSearchText(normalizedQuery);
-                finalResults = allListings.filter(listing => {
-                    const title = normalizeSearchText(listing.title || '');
-                    return title.includes(normalizedQueryNoSpace);
+            // B. Search expanded synonyms
+            for (const keyword of expandedKeywords) {
+                const synonymResults = fuse.search(keyword);
+                synonymResults.forEach(r => {
+                    if (!resultsMap.has(r.item.id)) {
+                        resultsMap.set(r.item.id, r.item as Listing);
+                    }
                 });
             }
 
-            return finalResults.slice(0, 50);
+            // Step 4: Fallback Matching (Literal + Initial Consonants)
+            if (resultsMap.size === 0) {
+                const queryTextNorm = normalizeSearchText(normalizedQuery);
+                const queryInitials = getInitialConsonants(normalizedQuery);
+                const hasKo = hasKorean(normalizedQuery);
+
+                allListings.forEach(listing => {
+                    const titleText = normalizeSearchText(listing.title || '');
+                    const titleInitials = getInitialConsonants(listing.title || '');
+                    const descText = normalizeSearchText(listing.description || '');
+
+                    const isMatch = titleText.includes(queryTextNorm) ||
+                        descText.includes(queryTextNorm) ||
+                        (hasKo && titleInitials.includes(queryInitials));
+
+                    if (isMatch) {
+                        resultsMap.set(listing.id, listing);
+                    }
+                });
+            }
+
+            return Array.from(resultsMap.values()).slice(0, 50);
         } catch (error) {
             console.error('Error searching listings:', error);
             return [];
