@@ -202,30 +202,18 @@ class SearchServiceImpl implements SearchService {
         return [normalized];
     }
 
-    // Enhanced Search with Fuzzy Matching
+    // Enhanced Search with Hybrid logic
     async searchListings(queryText: string, options?: any): Promise<Listing[]> {
         const normalizedQuery = queryText.trim();
 
         try {
-            // Get all listings (from cache or Firestore)
             const allListings = await this.getAllListings();
+            if (!normalizedQuery) return allListings.slice(0, 20);
 
-            // If query is empty, return latest 20
-            if (!normalizedQuery) {
-                return allListings.slice(0, 20);
-            }
-
-            // AI-Powered Expansion (Run in parallel if possible, but for accuracy we await)
+            // Step 1: AI-Powered Expansion (get synonyms and translations)
             const expandedKeywords = await this.expandQueryWithAi(normalizedQuery);
-            const searchTerms = [normalizedQuery, ...expandedKeywords];
-            const combinedSearchText = searchTerms.join(' ');
 
-            // Normalize query for better matching
-            const normalizedSearchText = normalizeSearchText(combinedSearchText);
-            const initialConsonants = getInitialConsonants(normalizedQuery);
-            const useKoreanInitialMatch = hasKorean(normalizedQuery);
-
-            // Build normalized index fields for accent-insensitive matching
+            // Step 2: Prepare normalized candidates
             const indexedListings = allListings.map((listing) => ({
                 ...listing,
                 _searchTitle: normalizeSearchText(listing.title || ''),
@@ -233,58 +221,55 @@ class SearchServiceImpl implements SearchService {
                 _searchCategory: normalizeSearchText(listing.category || ''),
             }));
 
-            // Configure Fuse.js for fuzzy search
-            const fuse = new Fuse(indexedListings, {
+            // Step 3: Progressive Search
+            // We search with the original query first with high precision,
+            // then broaden to synonyms if needed.
+
+            const fuseOptions = {
                 keys: [
-                    { name: 'title', weight: 3 },
-                    { name: '_searchTitle', weight: 4 },
-                    { name: 'description', weight: 0.5 },
-                    { name: '_searchDescription', weight: 0.8 },
-                    { name: 'category', weight: 1 },
-                    { name: '_searchCategory', weight: 1.2 }
+                    { name: 'title', weight: 4 },
+                    { name: '_searchTitle', weight: 5 },
+                    { name: 'description', weight: 1 },
+                    { name: 'category', weight: 2 },
                 ],
-                threshold: 0.2, // Stricter match (0.4 was too loose)
-                distance: 100,
-                ignoreLocation: false, // Match position matters
+                threshold: 0.3, // Slightly relaxed (0.2 was too surgical)
+                includeScore: true,
                 useExtendedSearch: true,
-                minMatchCharLength: 1,
-                includeScore: true
-            });
+            };
 
-            // Perform fuzzy search
-            let fuseResults = fuse.search(normalizedSearchText);
-            let results = fuseResults.map(result => result.item as Listing);
+            const fuse = new Fuse(indexedListings, fuseOptions);
 
-            // If fuzzy search yields few results, try additional matching strategies
-            if (results.length < 5) {
-                const additionalResults = allListings.filter(listing => {
-                    const listingTitle = normalizeSearchText(listing.title || '');
-                    const listingTitleInitials = getInitialConsonants(listing.title || '');
+            // Search with original query
+            let resultsMap = new Map<string, Listing>();
 
-                    // Check if normalized title includes normalized query (handles spacing)
-                    if (listingTitle.includes(normalizedSearchText)) {
-                        return true;
-                    }
+            const originalResults = fuse.search(normalizedQuery);
+            originalResults.forEach(r => resultsMap.set(r.item.id, r.item as Listing));
 
-                    // Check initial consonant matching (초성 검색) only for Korean input
-                    if (useKoreanInitialMatch && listingTitleInitials.includes(initialConsonants)) {
-                        return true;
-                    }
+            // If we need more, or for specific brand matches, search with expanded terms
+            if (resultsMap.size < 10) {
+                for (const keyword of expandedKeywords) {
+                    if (keyword === normalizedQuery.toLowerCase()) continue;
+                    const synonymResults = fuse.search(keyword);
+                    synonymResults.forEach(r => {
+                        if (!resultsMap.has(r.item.id)) {
+                            resultsMap.set(r.item.id, r.item as Listing);
+                        }
+                    });
+                }
+            }
 
-                    return false;
-                });
+            let finalResults = Array.from(resultsMap.values());
 
-                // Merge and deduplicate results
-                const resultIds = new Set(results.map(r => r.id));
-                additionalResults.forEach(item => {
-                    if (!resultIds.has(item.id)) {
-                        results.push(item);
-                        resultIds.add(item.id);
-                    }
+            // Backup: Literal phrase matching if fuzzy failed
+            if (finalResults.length === 0) {
+                const normalizedQueryNoSpace = normalizeSearchText(normalizedQuery);
+                finalResults = allListings.filter(listing => {
+                    const title = normalizeSearchText(listing.title || '');
+                    return title.includes(normalizedQueryNoSpace);
                 });
             }
 
-            return results.slice(0, 50); // Limit to 50 results
+            return finalResults.slice(0, 50);
         } catch (error) {
             console.error('Error searching listings:', error);
             return [];
