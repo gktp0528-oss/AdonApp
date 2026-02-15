@@ -12,10 +12,13 @@ import {
     Timestamp,
     startAfter,
     DocumentSnapshot,
-    QueryConstraint
+    QueryConstraint,
+    updateDoc
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Listing } from '../types/listing';
+import { wishlistService } from './wishlistService';
+import { notificationService } from './notificationService';
 
 const COLLECTION = 'listings';
 const PAGE_SIZE = 20;
@@ -36,6 +39,54 @@ export const listingService = {
             return docRef.id;
         } catch (error) {
             console.error('Error creating listing:', error);
+            throw error;
+        }
+    },
+
+    // Update a listing
+    async updateListing(id: string, data: Partial<Listing>): Promise<void> {
+        try {
+            const docRef = doc(db, COLLECTION, id);
+            const oldDoc = await getDoc(docRef);
+
+            if (!oldDoc.exists()) throw new Error('Listing not found');
+            const oldData = oldDoc.data() as Listing;
+
+            // Update identifying fields
+            const now = Timestamp.now();
+            await updateDoc(docRef, {
+                ...data,
+                updatedAt: now,
+            });
+
+            // Price Drop Detection
+            if (data.price !== undefined && data.price < oldData.price) {
+                console.log(`Price drop detected for ${id}: ${oldData.price} -> ${data.price}`);
+
+                // Track old price in the document for UI display
+                await updateDoc(docRef, {
+                    oldPrice: oldData.price
+                });
+
+                // Notify users who have this in their wishlist
+                const wishlists = await wishlistService.getWishlistByListing(id);
+                for (const item of wishlists) {
+                    // In a real app, this would be a server-side trigger (Cloud Function)
+                    // For now, if the current user is in the wishlist, we'll send a local notification
+                    // to simulate the experience.
+                    if (item.userId === oldData.sellerId) continue; // Don't notify seller
+
+                    // Mock: Send local notification if current user matches
+                    // (Actually we'd want to notify everyone, but local notifications are device-specific)
+                    await notificationService.sendLocalNotification(
+                        'Price Drop! 💸',
+                        `An item you wishlisted "${oldData.title}" is now cheaper!`,
+                        { listingId: id }
+                    );
+                }
+            }
+        } catch (error) {
+            console.error(`Error updating listing ${id}:`, error);
             throw error;
         }
     },

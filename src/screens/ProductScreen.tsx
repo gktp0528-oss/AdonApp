@@ -12,6 +12,7 @@ import { MapComponent } from '../components/MapComponent';
 import { listingService } from '../services/listingService';
 import { userService } from '../services/userService';
 import { chatService } from '../services/chatService';
+import { wishlistService } from '../services/wishlistService';
 import { Listing } from '../types/listing';
 import { User } from '../types/user';
 import { formatCurrency, formatDate } from '../utils/format';
@@ -90,6 +91,17 @@ export function ProductScreen({ navigation, route }: Props) {
       return () => unsubscribeUser();
     }
   }, [listing?.sellerId]);
+
+  // Sync like status with Firestore
+  useEffect(() => {
+    const currentUserId = userService.getCurrentUserId();
+    if (currentUserId && targetId) {
+      const unsubscribeLike = wishlistService.watchLikeStatus(currentUserId, targetId, (status) => {
+        setLiked(status);
+      });
+      return () => unsubscribeLike();
+    }
+  }, [targetId]);
 
   // Loading State
   if (loading) {
@@ -267,7 +279,20 @@ export function ProductScreen({ navigation, route }: Props) {
               </Pressable>
               <Pressable
                 style={styles.iconCircle}
-                onPress={() => setLiked((prev) => !prev)}
+                onPress={async () => {
+                  const currentUserId = userService.getCurrentUserId();
+                  if (!currentUserId) {
+                    Alert.alert(t('common.loginRequired'), t('screen.product.chat.loginPrompt'));
+                    return;
+                  }
+                  if (listing) {
+                    try {
+                      await wishlistService.toggleLike(currentUserId, listing.id, listing.price);
+                    } catch (error) {
+                      console.error('Failed to toggle like:', error);
+                    }
+                  }
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={liked ? t('screen.product.accessibility.unlike') : t('screen.product.accessibility.like')}
               >

@@ -53,4 +53,5 @@ export type RootStackParamList = {
   SearchResult: { query?: string; categoryId?: string; categoryName?: string };
   Keywords: undefined;
   Notifications: undefined;
+  Wishlist: undefined;
 };

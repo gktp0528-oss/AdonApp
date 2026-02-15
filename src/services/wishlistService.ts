@@ -81,5 +81,17 @@ export const wishlistService = {
         return onSnapshot(docRef, (docSnap) => {
             callback(docSnap.exists());
         });
+    },
+
+    // Get all users who wishlisted a specific listing
+    async getWishlistByListing(listingId: string): Promise<WishlistItem[]> {
+        try {
+            const q = query(collection(db, COLLECTION), where('listingId', '==', listingId));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WishlistItem));
+        } catch (error) {
+            console.error('Error getting wishlist by listing:', error);
+            throw error;
+        }
     }
 };

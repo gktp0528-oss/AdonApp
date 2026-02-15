@@ -33,6 +33,7 @@ import { NicknameSetupScreen } from './src/screens/NicknameSetupScreen';
 import { OnboardingFinishScreen } from './src/screens/OnboardingFinishScreen';
 import { KeywordsScreen } from './src/screens/KeywordsScreen';
 import { NotificationsScreen } from './src/screens/NotificationsScreen';
+import { WishlistScreen } from './src/screens/WishlistScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import initI18n from './src/i18n';
@@ -158,6 +159,7 @@ export default function App() {
           <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="Keywords" component={KeywordsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Wishlist" component={WishlistScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen
             name="SearchResult"
