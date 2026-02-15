@@ -68,9 +68,11 @@ const normalizeSearchText = (text: string): string => {
 
     // Fold accents (e.g. á, é, ő, ű -> a, e, o, u)
     normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // Re-combine Jamo into finished characters (NFC) for regex compatibility
+    normalized = normalized.normalize('NFC');
 
-    // Keep alphanumeric and some separators, but don't collapse everything
-    normalized = normalized.replace(/[^\w\s가-힣]/g, ' ');
+    // Keep alphanumeric, spaces, and all Korean characters (including Jamo)
+    normalized = normalized.replace(/[^\w\s가-힣ㄱ-ㅎㅏ-ㅣ]/g, ' ');
 
     return normalized.trim();
 };
