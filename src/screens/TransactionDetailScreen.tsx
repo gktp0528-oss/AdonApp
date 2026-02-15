@@ -234,7 +234,7 @@ export default function TransactionDetailScreen({ route, navigation }: Props) {
                             comment,
                         });
 
-                        Alert.alert(t('common.success'), t('transaction.review.success'));
+                        Alert.alert(t('common.success'), t('screen.transaction.review.success'));
                         setReviewModalVisible(false);
 
                         // Refresh transaction to update reviewId

@@ -79,12 +79,12 @@ export const CHATS = [
     },
 ];
 
-export const CATEGORIES = [
-    { id: 'fashion', label: '패션' },
-    { id: 'tech', label: '테크' },
-    { id: 'home', label: '리빙' },
-    { id: 'kids', label: '키즈' },
-];
+import categoryData from './categories.json';
+
+export const CATEGORIES = categoryData.filter(cat => cat.parentId === null).map(cat => ({
+    id: cat.id,
+    label: cat.name
+}));
 
 export const FRESH_FINDS = [
     {

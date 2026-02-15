@@ -12,6 +12,8 @@ import {
     updateDoc,
     increment,
     limit,
+    deleteDoc,
+    getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Conversation, Message } from '../types/chat';
@@ -38,6 +40,27 @@ export const chatService = {
         const conversationId = buildConversationId(buyerId, sellerId, listing.id);
         const conversationRef = doc(db, CONVERSATIONS, conversationId);
         const now = Timestamp.now();
+
+        // Fetch participant profiles for denormalization
+        const [buyerProfile, sellerProfile] = await Promise.all([
+            userService.getUserById(buyerId),
+            userService.getUserById(sellerId)
+        ]);
+
+        const participantsMetadata: Record<string, any> = {};
+        if (buyerProfile) {
+            participantsMetadata[buyerId] = {
+                name: buyerProfile.name,
+                avatar: buyerProfile.avatar || null
+            };
+        }
+        if (sellerProfile) {
+            participantsMetadata[sellerId] = {
+                name: sellerProfile.name,
+                avatar: sellerProfile.avatar || null
+            };
+        }
+
         // Upsert without pre-read to avoid permission-denied on non-existing documents.
         await setDoc(
             conversationRef,
@@ -46,6 +69,7 @@ export const chatService = {
                 listingId: listing.id,
                 listingTitle: listing.title,
                 listingPhoto: listing.photo,
+                participantsMetadata,
                 createdAt: now,
             },
             { merge: true },
@@ -213,6 +237,26 @@ export const chatService = {
             });
         } catch (error) {
             console.error(`Error marking conversation ${conversationId} as read:`, error);
+        }
+    },
+
+    /**
+     * Delete a conversation from Firestore.
+     */
+    async deleteConversation(conversationId: string): Promise<void> {
+        try {
+            // 1. Delete all messages in the subcollection first
+            const messagesRef = collection(db, CONVERSATIONS, conversationId, MESSAGES);
+            const messagesSnap = await getDocs(messagesRef);
+
+            const deletePromises = messagesSnap.docs.map(mDoc => deleteDoc(mDoc.ref));
+            await Promise.all(deletePromises);
+
+            // 2. Delete the parent conversation document
+            await deleteDoc(doc(db, CONVERSATIONS, conversationId));
+        } catch (error) {
+            console.error(`Error deleting conversation ${conversationId}:`, error);
+            throw error;
         }
     },
 };

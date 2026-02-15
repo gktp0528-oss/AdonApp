@@ -15,19 +15,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SearchResult'>;
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop';
 
 export function SearchResultScreen({ route, navigation }: Props) {
-  const { query } = route.params;
+  const { query, categoryId, categoryName } = route.params;
   const { t } = useTranslation();
   const [results, setResults] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     void performSearch();
-  }, [query]);
+  }, [query, categoryId]);
 
   const performSearch = async () => {
     setIsLoading(true);
     try {
-      const searchResults = await searchService.searchListings(query);
+      // Pass categoryId if present, otherwise just query
+      const searchResults = await searchService.searchListings(query || '', { categoryId });
       setResults(searchResults);
     } catch (error) {
       console.error('Search failed', error);
@@ -47,6 +48,7 @@ export function SearchResultScreen({ route, navigation }: Props) {
   };
 
   const toCategoryKey = (value?: string) => {
+    // Keep existing helper
     const v = (value || '').toLowerCase();
     if (v.includes('fashion')) return 'fashion';
     if (v.includes('tech') || v.includes('electronic')) return 'tech';
@@ -59,7 +61,8 @@ export function SearchResultScreen({ route, navigation }: Props) {
     <Pressable
       style={styles.freshCard}
       onPress={() => {
-        searchService.trackClick(query, item.id, 0);
+        // Track only if query exists, or just skip
+        if (query) searchService.trackClick(query, item.id, 0);
         navigation.navigate('Product', { listingId: item.id });
       }}
     >
@@ -98,6 +101,17 @@ export function SearchResultScreen({ route, navigation }: Props) {
       <StatusBar style="dark" backgroundColor="#ffffff" />
 
       {/* Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <MaterialIcons name="arrow-back" size={24} color="#1f2937" />
+        </Pressable>
+        <View style={styles.searchBar}>
+          {/* If category search, show title. If text search, show query */}
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {categoryId ? (categoryName || t('screen.searchResult.categoryTitle')) : `"${query}"`}
+          </Text>
+        </View>
+      </View>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back-ios" size={20} color="#111827" />

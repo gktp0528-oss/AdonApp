@@ -1,0 +1,5 @@
+export const LAYOUT = {
+    HEADER_HEIGHT: 56,
+    PADDING_HORIZONTAL: 16,
+    BORDER_RADIUS: 12,
+};

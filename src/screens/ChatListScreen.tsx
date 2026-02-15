@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator, Alert } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -89,6 +89,27 @@ export default function ChatListScreen({ navigation }: Props) {
         });
     }, [showUnreadOnly, keyword, conversations, currentUserId, userCache]);
 
+    const handleDeleteConversation = (id: string, name: string) => {
+        Alert.alert(
+            t('common.confirm.delete.title', { defaultValue: 'Delete Chat' }),
+            t('common.confirm.delete.message', { name, defaultValue: `Are you sure you want to delete the chat with ${name}?` }),
+            [
+                { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+                {
+                    text: t('common.delete', { defaultValue: 'Delete' }),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await chatService.deleteConversation(id);
+                        } catch (error) {
+                            Alert.alert(t('common.error', { defaultValue: 'Error' }), t('screen.chat.delete.error', { defaultValue: 'Failed to delete chat.' }));
+                        }
+                    }
+                },
+            ]
+        );
+    };
+
     return (
         <SafeAreaView style={styles.root} edges={['top']}>
             <TabTransitionView style={{ flex: 1 }}>
@@ -124,7 +145,12 @@ export default function ChatListScreen({ navigation }: Props) {
                     <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
                         {filteredConversations.map((conv) => {
                             const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
+                            const meta = conv.participantsMetadata?.[otherUserId];
                             const otherUser = userCache[otherUserId];
+
+                            const displayName = meta?.name || otherUser?.name || '...';
+                            const displayAvatar = meta?.avatar || otherUser?.avatar || 'https://via.placeholder.com/100';
+
                             const unreadCount = conv.unreadCount?.[currentUserId] || 0;
                             const hasUnread = unreadCount > 0;
                             const isOnline = otherUser?.isOnline;
@@ -134,19 +160,20 @@ export default function ChatListScreen({ navigation }: Props) {
                                     key={conv.id}
                                     style={styles.row}
                                     onPress={() => navigation.navigate('Chat', { conversationId: conv.id })}
+                                    onLongPress={() => handleDeleteConversation(conv.id, displayName)}
                                     accessibilityRole="button"
-                                    accessibilityLabel={t('screen.chat.accessibility.openThread', { name: otherUser?.name || '' })}
+                                    accessibilityLabel={t('screen.chat.accessibility.openThread', { name: displayName })}
                                 >
                                     <View>
                                         <Image
-                                            source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
+                                            source={{ uri: displayAvatar }}
                                             style={styles.avatar}
                                         />
                                         {isOnline ? <View style={styles.onlineDot} /> : null}
                                     </View>
                                     <View style={styles.textWrap}>
                                         <View style={styles.rowTop}>
-                                            <Text style={styles.name}>{otherUser?.name || '...'}</Text>
+                                            <Text style={styles.name}>{displayName}</Text>
                                             <Text style={styles.time}>{toRelativeTime(conv.lastMessageAt)}</Text>
                                         </View>
                                         <Text numberOfLines={1} style={[styles.message, hasUnread && styles.messageUnread]}>

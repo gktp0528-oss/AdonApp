@@ -173,6 +173,31 @@ export function ChatScreen({ navigation, route }: Props) {
     return await getDownloadURL(storageRef);
   };
 
+  const handleMorePress = () => {
+    Alert.alert(
+      t('screen.chat.menu.title', 'Chat Options'),
+      undefined,
+      [
+        {
+          text: t('screen.chat.menu.delete', 'Delete Chat'),
+          onPress: () => {
+            Alert.alert(
+              t('screen.chat.menu.deleteConfirm.title', 'Delete Conversation'),
+              t('screen.chat.menu.deleteConfirm.desc', 'Are you sure you want to delete this chat? This cannot be undone.'),
+              [{ text: t('common.cancel'), style: 'cancel' }, { text: t('common.delete'), style: 'destructive', onPress: () => navigation.goBack() }]
+            );
+          },
+          style: 'destructive'
+        },
+        {
+          text: t('screen.chat.menu.report', 'Report User'),
+          onPress: () => Alert.alert(t('common.success'), t('screen.chat.menu.reportSuccess', 'User has been reported.')),
+        },
+        { text: t('common.cancel'), style: 'cancel' }
+      ]
+    );
+  };
+
   const formatTime = (timestamp: any) => {
     if (!timestamp?.toDate) return '';
     const date = timestamp.toDate();
@@ -196,28 +221,37 @@ export function ChatScreen({ navigation, route }: Props) {
       >
         <View style={styles.header}>
           <View style={styles.userRow}>
-            <DetailBackButton onPress={() => navigation.goBack()} />
+            <DetailBackButton onPress={() => navigation.goBack()} plain />
             <Image
               source={{ uri: otherUser?.avatar || 'https://via.placeholder.com/100' }}
               style={styles.avatar}
             />
             <View style={{ flex: 1 }}>
-              <Text style={styles.user}>{otherUser?.name || t('screen.chat.status.loading')}</Text>
-              {otherUser?.isVerified && (
-                <Text style={styles.online}>{t('screen.chat.status.online')}</Text>
-              )}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={styles.user}>{otherUser?.name || t('screen.chat.status.loading')}</Text>
+                {otherUser?.isVerified && (
+                  <MaterialIcons name="verified-user" size={16} color="#16a34a" />
+                )}
+              </View>
             </View>
-            {otherUser?.isVerified && (
-              <MaterialIcons name="verified-user" size={20} color="#16a34a" />
-            )}
+            <Pressable onPress={handleMorePress} style={styles.moreBtn} hitSlop={10}>
+              <MaterialIcons name="more-vert" size={24} color="#6b7280" />
+            </Pressable>
           </View>
         </View>
 
         {conversation && (
           <View style={styles.meetCard}>
+            <View style={styles.meetIconCircle}>
+              <MaterialIcons name="check" size={20} color="#22c55e" />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
-              <Text style={styles.meetPlace}>{conversation.listingTitle}</Text>
+              <Text style={styles.meetPlace}>{conversation.listingTitle || t('screen.chat.status.loading')}</Text>
+            </View>
+            <View style={styles.viewTrBtn}>
+              <Text style={styles.viewTrBtnText}>{t('screen.chat.quick.location', 'Location')}</Text>
+              <MaterialIcons name="chevron-right" size={14} color="#16a34a" />
             </View>
           </View>
         )}
@@ -268,7 +302,6 @@ export function ChatScreen({ navigation, route }: Props) {
                         Alert.alert(t('common.error'), "Transaction data missing");
                       }
                     }}
-                    onHomePress={() => navigation.navigate('MainTabs')}
                     onHomePress={() => navigation.navigate('MainTabs')}
                     isSeller={isSeller}
                     hasReview={hasReview}
@@ -363,7 +396,7 @@ export function ChatScreen({ navigation, route }: Props) {
                 comment,
               });
 
-              Alert.alert(t('common.success'), t('transaction.review.success'));
+              Alert.alert(t('common.success'), t('screen.transaction.review.success'));
               setReviewModalVisible(false);
               setHasReview(true); // Update local state immediately
 
@@ -410,11 +443,62 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20 },
   user: { fontWeight: '700', color: '#111827', fontSize: 15 },
   online: { color: '#6b7280', fontSize: 12 },
-  meetCard: { backgroundColor: '#fff', margin: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', padding: 12, flexDirection: 'row', alignItems: 'center' },
-  meetTitle: { color: '#16a34a', fontWeight: '800', fontSize: 12, textTransform: 'uppercase' },
-  meetPlace: { marginTop: 4, fontWeight: '700', color: '#111827' },
-  viewTrBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0fdf4', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#dcfce7' },
-  viewTrBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 12, marginRight: 2 },
+  meetCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    // Subtle shadow for premium feel
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  meetIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0fdf4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  meetTitle: {
+    color: '#64748b',
+    fontWeight: '700',
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase'
+  },
+  meetPlace: {
+    marginTop: 1,
+    fontWeight: '700',
+    color: '#0f172a',
+    fontSize: 13
+  },
+  viewTrBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#dcfce7'
+  },
+  viewTrBtnText: {
+    color: '#16a34a',
+    fontWeight: '700',
+    fontSize: 11,
+    marginRight: 2
+  },
   chatArea: { flex: 1 },
   chatContent: { paddingHorizontal: 12, paddingBottom: 12, gap: 10 },
   day: { alignSelf: 'center', marginVertical: 8, fontSize: 10, color: '#6b7280', fontWeight: '700' },
@@ -434,4 +518,5 @@ const styles = StyleSheet.create({
   sendDisabled: { opacity: 0.5 },
   iconBtn: { padding: 4 },
   msgImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
+  moreBtn: { padding: 4 },
 });

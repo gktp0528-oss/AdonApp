@@ -1,7 +1,7 @@
 [
   {
     "id": "fashion",
-    "name": "Fashion",
+    "name": "Fashion & Style",
     "parentId": null,
     "isLeaf": false,
     "icon": "checkroom"
@@ -13,57 +13,141 @@
     "isLeaf": false
   },
   {
-    "id": "fashion_women_outerwear",
-    "name": "Outerwear",
+    "id": "fashion_women_clothing",
+    "name": "Clothing",
     "parentId": "fashion_women",
-    "isLeaf": true
+    "isLeaf": false
   },
   {
-    "id": "fashion_women_tops__blouses",
-    "name": "Tops & Blouses",
-    "parentId": "fashion_women",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_women_dresses",
+    "id": "fashion_women_clothing_dresses",
     "name": "Dresses",
-    "parentId": "fashion_women",
+    "parentId": "fashion_women_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_skirts",
-    "name": "Skirts",
-    "parentId": "fashion_women",
+    "id": "fashion_women_clothing_tops",
+    "name": "Tops",
+    "parentId": "fashion_women_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_trousers__jeans",
-    "name": "Trousers & Jeans",
-    "parentId": "fashion_women",
+    "id": "fashion_women_clothing_coats_jackets",
+    "name": "Coats & Jackets",
+    "parentId": "fashion_women_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_knitwear",
-    "name": "Knitwear",
-    "parentId": "fashion_women",
+    "id": "fashion_women_clothing_trousers_leggings",
+    "name": "Trousers & Leggings",
+    "parentId": "fashion_women_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_activewear",
-    "name": "Activewear",
-    "parentId": "fashion_women",
+    "id": "fashion_women_clothing_other",
+    "name": "Other",
+    "parentId": "fashion_women_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_lingerie__sleepwear",
-    "name": "Lingerie & Sleepwear",
+    "id": "fashion_women_shoes",
+    "name": "Shoes",
     "parentId": "fashion_women",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_women_shoes_sneakers",
+    "name": "Sneakers",
+    "parentId": "fashion_women_shoes",
     "isLeaf": true
   },
   {
-    "id": "fashion_women_maternity",
-    "name": "Maternity",
+    "id": "fashion_women_shoes_heels",
+    "name": "Heels",
+    "parentId": "fashion_women_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_shoes_boots",
+    "name": "Boots",
+    "parentId": "fashion_women_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_shoes_sandals",
+    "name": "Sandals",
+    "parentId": "fashion_women_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_shoes_other",
+    "name": "Other",
+    "parentId": "fashion_women_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_bags",
+    "name": "Bags",
     "parentId": "fashion_women",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_women_bags_handbags",
+    "name": "Handbags",
+    "parentId": "fashion_women_bags",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_bags_backpacks",
+    "name": "Backpacks",
+    "parentId": "fashion_women_bags",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_bags_totes",
+    "name": "Totes",
+    "parentId": "fashion_women_bags",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_bags_other",
+    "name": "Other",
+    "parentId": "fashion_women_bags",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_accessories",
+    "name": "Accessories",
+    "parentId": "fashion_women",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_women_accessories_jewellery",
+    "name": "Jewellery",
+    "parentId": "fashion_women_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_accessories_purses",
+    "name": "Purses",
+    "parentId": "fashion_women_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_accessories_sunglasses",
+    "name": "Sunglasses",
+    "parentId": "fashion_women_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_accessories_scarves",
+    "name": "Scarves",
+    "parentId": "fashion_women_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_women_accessories_other",
+    "name": "Other",
+    "parentId": "fashion_women_accessories",
     "isLeaf": true
   },
   {
@@ -73,713 +157,502 @@
     "isLeaf": false
   },
   {
-    "id": "fashion_men_outerwear",
-    "name": "Outerwear",
+    "id": "fashion_men_clothing",
+    "name": "Clothing",
     "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_t_shirts__polos",
-    "name": "T-Shirts & Polos",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_shirts",
-    "name": "Shirts",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_trousers__jeans",
-    "name": "Trousers & Jeans",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_knitwear",
-    "name": "Knitwear",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_suits__formalwear",
-    "name": "Suits & Formalwear",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_activewear",
-    "name": "Activewear",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_men_underwear__sleepwear",
-    "name": "Underwear & Sleepwear",
-    "parentId": "fashion_men",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_unisex",
-    "name": "Unisex",
-    "parentId": "fashion",
     "isLeaf": false
   },
   {
-    "id": "fashion_unisex_streetwear",
-    "name": "Streetwear",
-    "parentId": "fashion_unisex",
+    "id": "fashion_men_clothing_t_shirts",
+    "name": "T-Shirts",
+    "parentId": "fashion_men_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_unisex_vintage",
-    "name": "Vintage",
-    "parentId": "fashion_unisex",
+    "id": "fashion_men_clothing_coats_jackets",
+    "name": "Coats & Jackets",
+    "parentId": "fashion_men_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_unisex_designer_basics",
-    "name": "Designer Basics",
-    "parentId": "fashion_unisex",
+    "id": "fashion_men_clothing_trousers",
+    "name": "Trousers",
+    "parentId": "fashion_men_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_unisex_workwear",
-    "name": "Workwear",
-    "parentId": "fashion_unisex",
+    "id": "fashion_men_clothing_suits",
+    "name": "Suits",
+    "parentId": "fashion_men_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_unisex_festival_outfits",
-    "name": "Festival Outfits",
-    "parentId": "fashion_unisex",
+    "id": "fashion_men_clothing_other",
+    "name": "Other",
+    "parentId": "fashion_men_clothing",
     "isLeaf": true
   },
   {
-    "id": "fashion_shoes",
+    "id": "fashion_men_shoes",
     "name": "Shoes",
-    "parentId": "fashion",
+    "parentId": "fashion_men",
     "isLeaf": false
   },
   {
-    "id": "fashion_shoes_sneakers",
-    "name": "Sneakers",
-    "parentId": "fashion_shoes",
+    "id": "fashion_men_shoes_trainers_sneakers",
+    "name": "Trainers & Sneakers",
+    "parentId": "fashion_men_shoes",
     "isLeaf": true
   },
   {
-    "id": "fashion_shoes_boots",
-    "name": "Boots",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_shoes_heels",
-    "name": "Heels",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_shoes_flats__loafers",
-    "name": "Flats & Loafers",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_shoes_sandals",
-    "name": "Sandals",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_shoes_running_shoes",
-    "name": "Running Shoes",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_shoes_formal_shoes",
-    "name": "Formal Shoes",
-    "parentId": "fashion_shoes",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags",
-    "name": "Bags",
-    "parentId": "fashion",
-    "isLeaf": false
-  },
-  {
-    "id": "fashion_bags_crossbody_bags",
-    "name": "Crossbody Bags",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags_shoulder_bags",
-    "name": "Shoulder Bags",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags_tote_bags",
-    "name": "Tote Bags",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags_backpacks",
-    "name": "Backpacks",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags_clutches",
-    "name": "Clutches",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_bags_travel_bags",
-    "name": "Travel Bags",
-    "parentId": "fashion_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories",
-    "name": "Accessories",
-    "parentId": "fashion",
-    "isLeaf": false
-  },
-  {
-    "id": "fashion_accessories_belts",
-    "name": "Belts",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_hats__caps",
-    "name": "Hats & Caps",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_scarves",
-    "name": "Scarves",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_sunglasses",
-    "name": "Sunglasses",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_jewelry",
-    "name": "Jewelry",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_watches",
-    "name": "Watches",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "fashion_accessories_wallets",
-    "name": "Wallets",
-    "parentId": "fashion_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury",
-    "name": "Luxury",
-    "parentId": null,
-    "isLeaf": false,
-    "icon": "diamond"
-  },
-  {
-    "id": "luxury_bags",
-    "name": "Luxury Bags",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_bags_top_handle_bags",
-    "name": "Top Handle Bags",
-    "parentId": "luxury_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_bags_shoulder_bags",
-    "name": "Shoulder Bags",
-    "parentId": "luxury_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_bags_crossbody_bags",
-    "name": "Crossbody Bags",
-    "parentId": "luxury_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_bags_backpacks",
-    "name": "Backpacks",
-    "parentId": "luxury_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_bags_travel_bags",
-    "name": "Travel Bags",
-    "parentId": "luxury_bags",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_wallets",
-    "name": "Small Leather Goods",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_wallets_wallets",
-    "name": "Wallets",
-    "parentId": "luxury_wallets",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_wallets_card_holders",
-    "name": "Card Holders",
-    "parentId": "luxury_wallets",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_wallets_pouches",
-    "name": "Pouches",
-    "parentId": "luxury_wallets",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_wallets_belts",
-    "name": "Belts",
-    "parentId": "luxury_wallets",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_watches",
-    "name": "Luxury Watches",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_watches_men_watches",
-    "name": "Men Watches",
-    "parentId": "luxury_watches",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_watches_women_watches",
-    "name": "Women Watches",
-    "parentId": "luxury_watches",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_watches_vintage_watches",
-    "name": "Vintage Watches",
-    "parentId": "luxury_watches",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_watches_watch_accessories",
-    "name": "Watch Accessories",
-    "parentId": "luxury_watches",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_jewelry",
-    "name": "Fine Jewelry",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_jewelry_necklaces",
-    "name": "Necklaces",
-    "parentId": "luxury_jewelry",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_jewelry_bracelets",
-    "name": "Bracelets",
-    "parentId": "luxury_jewelry",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_jewelry_rings",
-    "name": "Rings",
-    "parentId": "luxury_jewelry",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_jewelry_earrings",
-    "name": "Earrings",
-    "parentId": "luxury_jewelry",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_jewelry_brooches",
-    "name": "Brooches",
-    "parentId": "luxury_jewelry",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_clothing",
-    "name": "Designer Clothing",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_clothing_women_designer",
-    "name": "Women Designer",
-    "parentId": "luxury_clothing",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_clothing_men_designer",
-    "name": "Men Designer",
-    "parentId": "luxury_clothing",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_clothing_outerwear",
-    "name": "Outerwear",
-    "parentId": "luxury_clothing",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_clothing_knitwear",
-    "name": "Knitwear",
-    "parentId": "luxury_clothing",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_footwear",
-    "name": "Designer Footwear",
-    "parentId": "luxury",
-    "isLeaf": false
-  },
-  {
-    "id": "luxury_footwear_sneakers",
-    "name": "Sneakers",
-    "parentId": "luxury_footwear",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_footwear_boots",
-    "name": "Boots",
-    "parentId": "luxury_footwear",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_footwear_heels",
-    "name": "Heels",
-    "parentId": "luxury_footwear",
-    "isLeaf": true
-  },
-  {
-    "id": "luxury_footwear_loafers",
+    "id": "fashion_men_shoes_loafers",
     "name": "Loafers",
-    "parentId": "luxury_footwear",
+    "parentId": "fashion_men_shoes",
     "isLeaf": true
   },
   {
-    "id": "electronics",
-    "name": "Electronics",
+    "id": "fashion_men_shoes_boots",
+    "name": "Boots",
+    "parentId": "fashion_men_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_men_shoes_other",
+    "name": "Other",
+    "parentId": "fashion_men_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_men_accessories",
+    "name": "Accessories",
+    "parentId": "fashion_men",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_men_accessories_watches",
+    "name": "Watches",
+    "parentId": "fashion_men_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_men_accessories_belts",
+    "name": "Belts",
+    "parentId": "fashion_men_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_men_accessories_wallets",
+    "name": "Wallets",
+    "parentId": "fashion_men_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_men_accessories_other",
+    "name": "Other",
+    "parentId": "fashion_men_accessories",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids",
+    "name": "Kids & Baby",
+    "parentId": "fashion",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_girls",
+    "name": "Girl's Clothing",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_girls_dresses",
+    "name": "Dresses",
+    "parentId": "fashion_kids_girls",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_girls_skirts",
+    "name": "Skirts",
+    "parentId": "fashion_kids_girls",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_girls_tops",
+    "name": "Tops",
+    "parentId": "fashion_kids_girls",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_girls_other",
+    "name": "Other",
+    "parentId": "fashion_kids_girls",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_boys",
+    "name": "Boy's Clothing",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_boys_tops",
+    "name": "Tops",
+    "parentId": "fashion_kids_boys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_boys_trousers",
+    "name": "Trousers",
+    "parentId": "fashion_kids_boys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_boys_jumpers",
+    "name": "Jumpers",
+    "parentId": "fashion_kids_boys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_boys_other",
+    "name": "Other",
+    "parentId": "fashion_kids_boys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_baby",
+    "name": "Baby",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_baby_bodysuits",
+    "name": "Bodysuits",
+    "parentId": "fashion_kids_baby",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_baby_sleepsuits",
+    "name": "Sleepsuits",
+    "parentId": "fashion_kids_baby",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_baby_nappies",
+    "name": "Nappies",
+    "parentId": "fashion_kids_baby",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_baby_other",
+    "name": "Other",
+    "parentId": "fashion_kids_baby",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_shoes",
+    "name": "Shoes",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_shoes_trainers",
+    "name": "Trainers",
+    "parentId": "fashion_kids_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_shoes_boots",
+    "name": "Boots",
+    "parentId": "fashion_kids_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_shoes_sandals",
+    "name": "Sandals",
+    "parentId": "fashion_kids_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_shoes_other",
+    "name": "Other",
+    "parentId": "fashion_kids_shoes",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_prams",
+    "name": "Prams & Nursery",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_prams_pushchairs",
+    "name": "Pushchairs",
+    "parentId": "fashion_kids_prams",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_prams_car_seats",
+    "name": "Car Seats",
+    "parentId": "fashion_kids_prams",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_prams_furniture",
+    "name": "Furniture",
+    "parentId": "fashion_kids_prams",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_prams_other",
+    "name": "Other",
+    "parentId": "fashion_kids_prams",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_toys",
+    "name": "Toys",
+    "parentId": "fashion_kids",
+    "isLeaf": false
+  },
+  {
+    "id": "fashion_kids_toys_educational",
+    "name": "Educational",
+    "parentId": "fashion_kids_toys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_toys_soft_toys",
+    "name": "Soft Toys",
+    "parentId": "fashion_kids_toys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_toys_games",
+    "name": "Games",
+    "parentId": "fashion_kids_toys",
+    "isLeaf": true
+  },
+  {
+    "id": "fashion_kids_toys_other",
+    "name": "Other",
+    "parentId": "fashion_kids_toys",
+    "isLeaf": true
+  },
+  {
+    "id": "tech",
+    "name": "Digital & Tech",
     "parentId": null,
     "isLeaf": false,
     "icon": "devices"
   },
   {
-    "id": "elec_phones",
-    "name": "Phones",
-    "parentId": "electronics",
+    "id": "tech_phones",
+    "name": "Mobile Phones",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_phones_iphone",
-    "name": "iPhone",
-    "parentId": "elec_phones",
+    "id": "tech_phones_smartphones",
+    "name": "Smartphones",
+    "parentId": "tech_phones",
     "isLeaf": true
   },
   {
-    "id": "elec_phones_samsung",
-    "name": "Samsung",
-    "parentId": "elec_phones",
+    "id": "tech_phones_accessories",
+    "name": "Accessories",
+    "parentId": "tech_phones",
     "isLeaf": true
   },
   {
-    "id": "elec_phones_google_pixel",
-    "name": "Google Pixel",
-    "parentId": "elec_phones",
+    "id": "tech_phones_other",
+    "name": "Other",
+    "parentId": "tech_phones",
     "isLeaf": true
   },
   {
-    "id": "elec_phones_xiaomi",
-    "name": "Xiaomi",
-    "parentId": "elec_phones",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_phones_other_smartphones",
-    "name": "Other Smartphones",
-    "parentId": "elec_phones",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_phones_feature_phones",
-    "name": "Feature Phones",
-    "parentId": "elec_phones",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_tablets",
-    "name": "Tablets & E-Readers",
-    "parentId": "electronics",
+    "id": "tech_tablets",
+    "name": "Tablets & Readers",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_tablets_ipad",
-    "name": "iPad",
-    "parentId": "elec_tablets",
+    "id": "tech_tablets_tablets",
+    "name": "Tablets",
+    "parentId": "tech_tablets",
     "isLeaf": true
   },
   {
-    "id": "elec_tablets_android_tablets",
-    "name": "Android Tablets",
-    "parentId": "elec_tablets",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_tablets_windows_tablets",
-    "name": "Windows Tablets",
-    "parentId": "elec_tablets",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_tablets_e_readers",
+    "id": "tech_tablets_e_readers",
     "name": "E-Readers",
-    "parentId": "elec_tablets",
+    "parentId": "tech_tablets",
     "isLeaf": true
   },
   {
-    "id": "elec_computers",
+    "id": "tech_tablets_accessories",
+    "name": "Accessories",
+    "parentId": "tech_tablets",
+    "isLeaf": true
+  },
+  {
+    "id": "tech_tablets_other",
+    "name": "Other",
+    "parentId": "tech_tablets",
+    "isLeaf": true
+  },
+  {
+    "id": "tech_computers",
     "name": "Computers",
-    "parentId": "electronics",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_computers_laptops",
+    "id": "tech_computers_laptops",
     "name": "Laptops",
-    "parentId": "elec_computers",
+    "parentId": "tech_computers",
     "isLeaf": true
   },
   {
-    "id": "elec_computers_desktop_pcs",
-    "name": "Desktop PCs",
-    "parentId": "elec_computers",
+    "id": "tech_computers_desktops",
+    "name": "Desktops",
+    "parentId": "tech_computers",
     "isLeaf": true
   },
   {
-    "id": "elec_computers_monitors",
+    "id": "tech_computers_monitors",
     "name": "Monitors",
-    "parentId": "elec_computers",
+    "parentId": "tech_computers",
     "isLeaf": true
   },
   {
-    "id": "elec_computers_pc_components",
-    "name": "PC Components",
-    "parentId": "elec_computers",
+    "id": "tech_computers_components",
+    "name": "Components",
+    "parentId": "tech_computers",
     "isLeaf": true
   },
   {
-    "id": "elec_computers_keyboards__mice",
-    "name": "Keyboards & Mice",
-    "parentId": "elec_computers",
+    "id": "tech_computers_accessories",
+    "name": "Accessories",
+    "parentId": "tech_computers",
     "isLeaf": true
   },
   {
-    "id": "elec_audio",
+    "id": "tech_computers_other",
+    "name": "Other",
+    "parentId": "tech_computers",
+    "isLeaf": true
+  },
+  {
+    "id": "tech_audio",
     "name": "Audio",
-    "parentId": "electronics",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_audio_headphones",
+    "id": "tech_audio_headphones",
     "name": "Headphones",
-    "parentId": "elec_audio",
+    "parentId": "tech_audio",
     "isLeaf": true
   },
   {
-    "id": "elec_audio_earbuds",
-    "name": "Earbuds",
-    "parentId": "elec_audio",
+    "id": "tech_audio_earphones",
+    "name": "Earphones",
+    "parentId": "tech_audio",
     "isLeaf": true
   },
   {
-    "id": "elec_audio_speakers",
+    "id": "tech_audio_speakers",
     "name": "Speakers",
-    "parentId": "elec_audio",
+    "parentId": "tech_audio",
     "isLeaf": true
   },
   {
-    "id": "elec_audio_microphones",
-    "name": "Microphones",
-    "parentId": "elec_audio",
+    "id": "tech_audio_other",
+    "name": "Other",
+    "parentId": "tech_audio",
     "isLeaf": true
   },
   {
-    "id": "elec_audio_hi_fi__turntables",
-    "name": "Hi-Fi & Turntables",
-    "parentId": "elec_audio",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_photo",
-    "name": "Photo & Video",
-    "parentId": "electronics",
+    "id": "tech_cameras",
+    "name": "Cameras",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_photo_digital_cameras",
+    "id": "tech_cameras_digital_cameras",
     "name": "Digital Cameras",
-    "parentId": "elec_photo",
+    "parentId": "tech_cameras",
     "isLeaf": true
   },
   {
-    "id": "elec_photo_lenses",
+    "id": "tech_cameras_film_cameras",
+    "name": "Film Cameras",
+    "parentId": "tech_cameras",
+    "isLeaf": true
+  },
+  {
+    "id": "tech_cameras_lenses",
     "name": "Lenses",
-    "parentId": "elec_photo",
+    "parentId": "tech_cameras",
     "isLeaf": true
   },
   {
-    "id": "elec_photo_action_cameras",
-    "name": "Action Cameras",
-    "parentId": "elec_photo",
+    "id": "tech_cameras_other",
+    "name": "Other",
+    "parentId": "tech_cameras",
     "isLeaf": true
   },
   {
-    "id": "elec_photo_camcorders",
-    "name": "Camcorders",
-    "parentId": "elec_photo",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_photo_lighting",
-    "name": "Lighting",
-    "parentId": "elec_photo",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_gaming",
+    "id": "tech_gaming",
     "name": "Gaming",
-    "parentId": "electronics",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_gaming_consoles",
+    "id": "tech_gaming_consoles",
     "name": "Consoles",
-    "parentId": "elec_gaming",
+    "parentId": "tech_gaming",
     "isLeaf": true
   },
   {
-    "id": "elec_gaming_games",
-    "name": "Games",
-    "parentId": "elec_gaming",
+    "id": "tech_gaming_video_games",
+    "name": "Video Games",
+    "parentId": "tech_gaming",
     "isLeaf": true
   },
   {
-    "id": "elec_gaming_controllers",
-    "name": "Controllers",
-    "parentId": "elec_gaming",
+    "id": "tech_gaming_accessories",
+    "name": "Accessories",
+    "parentId": "tech_gaming",
     "isLeaf": true
   },
   {
-    "id": "elec_gaming_gaming_accessories",
-    "name": "Gaming Accessories",
-    "parentId": "elec_gaming",
+    "id": "tech_gaming_other",
+    "name": "Other",
+    "parentId": "tech_gaming",
     "isLeaf": true
   },
   {
-    "id": "elec_gaming_vr",
-    "name": "VR",
-    "parentId": "elec_gaming",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_wearables",
-    "name": "Wearables & Smart Home",
-    "parentId": "electronics",
+    "id": "tech_tv",
+    "name": "TV & Video",
+    "parentId": "tech",
     "isLeaf": false
   },
   {
-    "id": "elec_wearables_smartwatches",
-    "name": "Smartwatches",
-    "parentId": "elec_wearables",
+    "id": "tech_tv_tv",
+    "name": "TV",
+    "parentId": "tech_tv",
     "isLeaf": true
   },
   {
-    "id": "elec_wearables_fitness_trackers",
-    "name": "Fitness Trackers",
-    "parentId": "elec_wearables",
+    "id": "tech_tv_projectors",
+    "name": "Projectors",
+    "parentId": "tech_tv",
     "isLeaf": true
   },
   {
-    "id": "elec_wearables_smart_home_devices",
-    "name": "Smart Home Devices",
-    "parentId": "elec_wearables",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_wearables_security_cameras",
-    "name": "Security Cameras",
-    "parentId": "elec_wearables",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_accessories",
-    "name": "Tech Accessories",
-    "parentId": "electronics",
-    "isLeaf": false
-  },
-  {
-    "id": "elec_accessories_chargers",
-    "name": "Chargers",
-    "parentId": "elec_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_accessories_cables",
-    "name": "Cables",
-    "parentId": "elec_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_accessories_power_banks",
-    "name": "Power Banks",
-    "parentId": "elec_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_accessories_phone_cases",
-    "name": "Phone Cases",
-    "parentId": "elec_accessories",
-    "isLeaf": true
-  },
-  {
-    "id": "elec_accessories_storage__memory",
-    "name": "Storage & Memory",
-    "parentId": "elec_accessories",
+    "id": "tech_tv_other",
+    "name": "Other",
+    "parentId": "tech_tv",
     "isLeaf": true
   },
   {
@@ -808,26 +681,20 @@
     "isLeaf": true
   },
   {
-    "id": "home_furniture_chairs",
-    "name": "Chairs",
+    "id": "home_furniture_closets",
+    "name": "Closets",
     "parentId": "home_furniture",
     "isLeaf": true
   },
   {
-    "id": "home_furniture_beds__mattresses",
-    "name": "Beds & Mattresses",
+    "id": "home_furniture_beds",
+    "name": "Beds",
     "parentId": "home_furniture",
     "isLeaf": true
   },
   {
-    "id": "home_furniture_wardrobes",
-    "name": "Wardrobes",
-    "parentId": "home_furniture",
-    "isLeaf": true
-  },
-  {
-    "id": "home_furniture_office_furniture",
-    "name": "Office Furniture",
+    "id": "home_furniture_other",
+    "name": "Other",
     "parentId": "home_furniture",
     "isLeaf": true
   },
@@ -838,14 +705,8 @@
     "isLeaf": false
   },
   {
-    "id": "home_decor_wall_art",
-    "name": "Wall Art",
-    "parentId": "home_decor",
-    "isLeaf": true
-  },
-  {
-    "id": "home_decor_mirrors",
-    "name": "Mirrors",
+    "id": "home_decor_lighting",
+    "name": "Lighting",
     "parentId": "home_decor",
     "isLeaf": true
   },
@@ -856,20 +717,20 @@
     "isLeaf": true
   },
   {
-    "id": "home_decor_candles__holders",
-    "name": "Candles & Holders",
+    "id": "home_decor_mirrors",
+    "name": "Mirrors",
     "parentId": "home_decor",
     "isLeaf": true
   },
   {
-    "id": "home_decor_vases",
-    "name": "Vases",
+    "id": "home_decor_art",
+    "name": "Art",
     "parentId": "home_decor",
     "isLeaf": true
   },
   {
-    "id": "home_decor_decor_accessories",
-    "name": "Decor Accessories",
+    "id": "home_decor_other",
+    "name": "Other",
     "parentId": "home_decor",
     "isLeaf": true
   },
@@ -892,454 +753,304 @@
     "isLeaf": true
   },
   {
-    "id": "home_kitchen_appliances",
-    "name": "Appliances",
+    "id": "home_kitchen_small_appliances",
+    "name": "Small Appliances",
     "parentId": "home_kitchen",
     "isLeaf": true
   },
   {
-    "id": "home_kitchen_coffee_machines",
-    "name": "Coffee Machines",
+    "id": "home_kitchen_other",
+    "name": "Other",
     "parentId": "home_kitchen",
-    "isLeaf": true
-  },
-  {
-    "id": "home_kitchen_storage",
-    "name": "Storage",
-    "parentId": "home_kitchen",
-    "isLeaf": true
-  },
-  {
-    "id": "home_appliances",
-    "name": "Home Appliances",
-    "parentId": "home",
-    "isLeaf": false
-  },
-  {
-    "id": "home_appliances_vacuum_cleaners",
-    "name": "Vacuum Cleaners",
-    "parentId": "home_appliances",
-    "isLeaf": true
-  },
-  {
-    "id": "home_appliances_air_purifiers",
-    "name": "Air Purifiers",
-    "parentId": "home_appliances",
-    "isLeaf": true
-  },
-  {
-    "id": "home_appliances_fans__heaters",
-    "name": "Fans & Heaters",
-    "parentId": "home_appliances",
-    "isLeaf": true
-  },
-  {
-    "id": "home_appliances_irons",
-    "name": "Irons",
-    "parentId": "home_appliances",
-    "isLeaf": true
-  },
-  {
-    "id": "home_appliances_cleaning_devices",
-    "name": "Cleaning Devices",
-    "parentId": "home_appliances",
-    "isLeaf": true
-  },
-  {
-    "id": "home_garden",
-    "name": "Garden & Outdoor",
-    "parentId": "home",
-    "isLeaf": false
-  },
-  {
-    "id": "home_garden_garden_furniture",
-    "name": "Garden Furniture",
-    "parentId": "home_garden",
-    "isLeaf": true
-  },
-  {
-    "id": "home_garden_plants__pots",
-    "name": "Plants & Pots",
-    "parentId": "home_garden",
-    "isLeaf": true
-  },
-  {
-    "id": "home_garden_garden_tools",
-    "name": "Garden Tools",
-    "parentId": "home_garden",
-    "isLeaf": true
-  },
-  {
-    "id": "home_garden_bbq__outdoor_cooking",
-    "name": "BBQ & Outdoor Cooking",
-    "parentId": "home_garden",
     "isLeaf": true
   },
   {
     "id": "home_diy",
-    "name": "DIY & Tools",
+    "name": "DIY & Garden",
     "parentId": "home",
     "isLeaf": false
   },
   {
-    "id": "home_diy_power_tools",
-    "name": "Power Tools",
+    "id": "home_diy_tools",
+    "name": "Tools",
     "parentId": "home_diy",
     "isLeaf": true
   },
   {
-    "id": "home_diy_hand_tools",
-    "name": "Hand Tools",
+    "id": "home_diy_building_materials",
+    "name": "Building Materials",
     "parentId": "home_diy",
     "isLeaf": true
   },
   {
-    "id": "home_diy_paint_supplies",
-    "name": "Paint Supplies",
+    "id": "home_diy_plants",
+    "name": "Plants",
     "parentId": "home_diy",
     "isLeaf": true
   },
   {
-    "id": "home_diy_electrical_supplies",
-    "name": "Electrical Supplies",
+    "id": "home_diy_other",
+    "name": "Other",
     "parentId": "home_diy",
     "isLeaf": true
   },
   {
-    "id": "kids",
-    "name": "Kids & Baby",
+    "id": "hobbies",
+    "name": "Hobbies & Leisure",
     "parentId": null,
     "isLeaf": false,
-    "icon": "child-care"
-  },
-  {
-    "id": "kids_baby_essentials",
-    "name": "Baby Essentials",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_baby_essentials_strollers",
-    "name": "Strollers",
-    "parentId": "kids_baby_essentials",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_baby_essentials_car_seats",
-    "name": "Car Seats",
-    "parentId": "kids_baby_essentials",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_baby_essentials_feeding",
-    "name": "Feeding",
-    "parentId": "kids_baby_essentials",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_baby_essentials_nursing",
-    "name": "Nursing",
-    "parentId": "kids_baby_essentials",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_baby_essentials_diapers__hygiene",
-    "name": "Diapers & Hygiene",
-    "parentId": "kids_baby_essentials",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_girls",
-    "name": "Girls Clothing",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_girls_tops",
-    "name": "Tops",
-    "parentId": "kids_girls",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_girls_bottoms",
-    "name": "Bottoms",
-    "parentId": "kids_girls",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_girls_dresses",
-    "name": "Dresses",
-    "parentId": "kids_girls",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_girls_outerwear",
-    "name": "Outerwear",
-    "parentId": "kids_girls",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_girls_shoes",
-    "name": "Shoes",
-    "parentId": "kids_girls",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_boys",
-    "name": "Boys Clothing",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_boys_tops",
-    "name": "Tops",
-    "parentId": "kids_boys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_boys_bottoms",
-    "name": "Bottoms",
-    "parentId": "kids_boys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_boys_outerwear",
-    "name": "Outerwear",
-    "parentId": "kids_boys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_boys_shoes",
-    "name": "Shoes",
-    "parentId": "kids_boys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_boys_sportswear",
-    "name": "Sportswear",
-    "parentId": "kids_boys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_toys",
-    "name": "Toys",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_toys_educational_toys",
-    "name": "Educational Toys",
-    "parentId": "kids_toys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_toys_building_blocks",
-    "name": "Building Blocks",
-    "parentId": "kids_toys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_toys_dolls",
-    "name": "Dolls",
-    "parentId": "kids_toys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_toys_vehicles",
-    "name": "Vehicles",
-    "parentId": "kids_toys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_toys_outdoor_toys",
-    "name": "Outdoor Toys",
-    "parentId": "kids_toys",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_school",
-    "name": "School & Learning",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_school_school_bags",
-    "name": "School Bags",
-    "parentId": "kids_school",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_school_stationery",
-    "name": "Stationery",
-    "parentId": "kids_school",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_school_books",
-    "name": "Books",
-    "parentId": "kids_school",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_school_learning_materials",
-    "name": "Learning Materials",
-    "parentId": "kids_school",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_room",
-    "name": "Kids Room",
-    "parentId": "kids",
-    "isLeaf": false
-  },
-  {
-    "id": "kids_room_kids_furniture",
-    "name": "Kids Furniture",
-    "parentId": "kids_room",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_room_room_decor",
-    "name": "Room Decor",
-    "parentId": "kids_room",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_room_baby_monitors",
-    "name": "Baby Monitors",
-    "parentId": "kids_room",
-    "isLeaf": true
-  },
-  {
-    "id": "kids_room_safety_gates",
-    "name": "Safety Gates",
-    "parentId": "kids_room",
-    "isLeaf": true
+    "icon": "palette"
   },
   {
     "id": "sports",
-    "name": "Sports & Outdoors",
+    "name": "Sports",
     "parentId": null,
     "isLeaf": false,
-    "icon": "fitness-center"
+    "icon": "sports-soccer"
   },
   {
-    "id": "sports_fitness",
-    "name": "Fitness",
+    "id": "sports_football",
+    "name": "Football",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_fitness_weights",
-    "name": "Weights",
-    "parentId": "sports_fitness",
+    "id": "sports_football_boots",
+    "name": "Boots",
+    "parentId": "sports_football",
     "isLeaf": true
   },
   {
-    "id": "sports_fitness_mats",
-    "name": "Mats",
-    "parentId": "sports_fitness",
+    "id": "sports_football_apparel",
+    "name": "Apparel",
+    "parentId": "sports_football",
     "isLeaf": true
   },
   {
-    "id": "sports_fitness_resistance_bands",
-    "name": "Resistance Bands",
-    "parentId": "sports_fitness",
+    "id": "sports_football_equipment",
+    "name": "Equipment",
+    "parentId": "sports_football",
     "isLeaf": true
   },
   {
-    "id": "sports_fitness_cardio_machines",
-    "name": "Cardio Machines",
-    "parentId": "sports_fitness",
+    "id": "sports_football_fan",
+    "name": "Fan Merchandise",
+    "parentId": "sports_football",
     "isLeaf": true
   },
   {
-    "id": "sports_fitness_yoga__pilates",
-    "name": "Yoga & Pilates",
-    "parentId": "sports_fitness",
+    "id": "sports_football_other",
+    "name": "Other",
+    "parentId": "sports_football",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_cycling",
+    "name": "Cycling",
+    "parentId": "sports",
+    "isLeaf": false
+  },
+  {
+    "id": "sports_cycling_bikes",
+    "name": "Bicycles",
+    "parentId": "sports_cycling",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_cycling_parts",
+    "name": "Components & Parts",
+    "parentId": "sports_cycling",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_cycling_gear",
+    "name": "Clothing & Gear",
+    "parentId": "sports_cycling",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_cycling_accessories",
+    "name": "Accessories",
+    "parentId": "sports_cycling",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_cycling_other",
+    "name": "Other",
+    "parentId": "sports_cycling",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_winter",
+    "name": "Winter Sports",
+    "parentId": "sports",
+    "isLeaf": false
+  },
+  {
+    "id": "sports_winter_skiing",
+    "name": "Skiing",
+    "parentId": "sports_winter",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_winter_snowboarding",
+    "name": "Snowboarding",
+    "parentId": "sports_winter",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_winter_clothing",
+    "name": "Clothing",
+    "parentId": "sports_winter",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_winter_other",
+    "name": "Other",
+    "parentId": "sports_winter",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_racket",
+    "name": "Tennis & Racket Sports",
+    "parentId": "sports",
+    "isLeaf": false
+  },
+  {
+    "id": "sports_racket_tennis",
+    "name": "Tennis",
+    "parentId": "sports_racket",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_racket_padel",
+    "name": "Padel",
+    "parentId": "sports_racket",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_racket_badminton_squash",
+    "name": "Badminton & Squash",
+    "parentId": "sports_racket",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_racket_apparel",
+    "name": "Apparel",
+    "parentId": "sports_racket",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_racket_other",
+    "name": "Other",
+    "parentId": "sports_racket",
     "isLeaf": true
   },
   {
     "id": "sports_running",
-    "name": "Running & Cycling",
+    "name": "Running & Athletics",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_running_running_gear",
-    "name": "Running Gear",
+    "id": "sports_running_shoes",
+    "name": "Shoes",
     "parentId": "sports_running",
     "isLeaf": true
   },
   {
-    "id": "sports_running_bikes",
-    "name": "Bikes",
+    "id": "sports_running_apparel",
+    "name": "Apparel",
     "parentId": "sports_running",
     "isLeaf": true
   },
   {
-    "id": "sports_running_bike_parts",
-    "name": "Bike Parts",
+    "id": "sports_running_tech",
+    "name": "Tech",
     "parentId": "sports_running",
     "isLeaf": true
   },
   {
-    "id": "sports_running_helmets",
-    "name": "Helmets",
+    "id": "sports_running_other",
+    "name": "Other",
     "parentId": "sports_running",
     "isLeaf": true
   },
   {
-    "id": "sports_running_cycling_apparel",
-    "name": "Cycling Apparel",
-    "parentId": "sports_running",
-    "isLeaf": true
-  },
-  {
-    "id": "sports_outdoor",
-    "name": "Camping & Hiking",
+    "id": "sports_gym",
+    "name": "Gym & Fitness",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_outdoor_tents",
-    "name": "Tents",
-    "parentId": "sports_outdoor",
+    "id": "sports_gym_weights",
+    "name": "Weights",
+    "parentId": "sports_gym",
     "isLeaf": true
   },
   {
-    "id": "sports_outdoor_backpacks",
-    "name": "Backpacks",
-    "parentId": "sports_outdoor",
+    "id": "sports_gym_machines",
+    "name": "Machines",
+    "parentId": "sports_gym",
     "isLeaf": true
   },
   {
-    "id": "sports_outdoor_sleeping_bags",
-    "name": "Sleeping Bags",
-    "parentId": "sports_outdoor",
+    "id": "sports_gym_yoga",
+    "name": "Yoga & Pilates",
+    "parentId": "sports_gym",
     "isLeaf": true
   },
   {
-    "id": "sports_outdoor_hiking_boots",
-    "name": "Hiking Boots",
-    "parentId": "sports_outdoor",
+    "id": "sports_gym_apparel",
+    "name": "Apparel",
+    "parentId": "sports_gym",
     "isLeaf": true
   },
   {
-    "id": "sports_outdoor_outdoor_cooking",
-    "name": "Outdoor Cooking",
-    "parentId": "sports_outdoor",
+    "id": "sports_gym_other",
+    "name": "Other",
+    "parentId": "sports_gym",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_water",
+    "name": "Water Sports",
+    "parentId": "sports",
+    "isLeaf": false
+  },
+  {
+    "id": "sports_water_surfing",
+    "name": "Surfing & Wetsuits",
+    "parentId": "sports_water",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_water_swimming",
+    "name": "Swimming",
+    "parentId": "sports_water",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_water_sup",
+    "name": "Paddleboarding (SUP)",
+    "parentId": "sports_water",
+    "isLeaf": true
+  },
+  {
+    "id": "sports_water_other",
+    "name": "Other",
+    "parentId": "sports_water",
     "isLeaf": true
   },
   {
     "id": "sports_team",
-    "name": "Team Sports",
+    "name": "Other Team Sports",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_team_football",
-    "name": "Football",
+    "id": "sports_team_rugby",
+    "name": "Rugby",
     "parentId": "sports_team",
     "isLeaf": true
   },
@@ -1350,655 +1061,262 @@
     "isLeaf": true
   },
   {
-    "id": "sports_team_tennis",
-    "name": "Tennis",
-    "parentId": "sports_team",
-    "isLeaf": true
-  },
-  {
     "id": "sports_team_volleyball",
-    "name": "Volleyball",
+    "name": "Volleyball & Handball",
     "parentId": "sports_team",
     "isLeaf": true
   },
   {
-    "id": "sports_team_training_equipment",
-    "name": "Training Equipment",
+    "id": "sports_team_other",
+    "name": "Other",
     "parentId": "sports_team",
     "isLeaf": true
   },
   {
-    "id": "sports_winter",
-    "name": "Winter Sports",
+    "id": "sports_golf",
+    "name": "Golf",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_winter_ski",
-    "name": "Ski",
-    "parentId": "sports_winter",
+    "id": "sports_golf_clubs",
+    "name": "Clubs",
+    "parentId": "sports_golf",
     "isLeaf": true
   },
   {
-    "id": "sports_winter_snowboard",
-    "name": "Snowboard",
-    "parentId": "sports_winter",
+    "id": "sports_golf_apparel",
+    "name": "Apparel",
+    "parentId": "sports_golf",
     "isLeaf": true
   },
   {
-    "id": "sports_winter_winter_clothing",
-    "name": "Winter Clothing",
-    "parentId": "sports_winter",
+    "id": "sports_golf_accessories",
+    "name": "Accessories",
+    "parentId": "sports_golf",
     "isLeaf": true
   },
   {
-    "id": "sports_winter_goggles__helmets",
-    "name": "Goggles & Helmets",
-    "parentId": "sports_winter",
+    "id": "sports_golf_other",
+    "name": "Other",
+    "parentId": "sports_golf",
     "isLeaf": true
   },
   {
-    "id": "sports_water",
-    "name": "Water Sports",
+    "id": "sports_other_sports",
+    "name": "Other Sports",
     "parentId": "sports",
     "isLeaf": false
   },
   {
-    "id": "sports_water_surf",
-    "name": "Surf",
-    "parentId": "sports_water",
+    "id": "sports_other_boxing",
+    "name": "Boxing & Martial Arts",
+    "parentId": "sports_other_sports",
     "isLeaf": true
   },
   {
-    "id": "sports_water_swimming_gear",
-    "name": "Swimming Gear",
-    "parentId": "sports_water",
+    "id": "sports_other_cricket",
+    "name": "Cricket",
+    "parentId": "sports_other_sports",
     "isLeaf": true
   },
   {
-    "id": "sports_water_diving_equipment",
-    "name": "Diving Equipment",
-    "parentId": "sports_water",
+    "id": "sports_other_general",
+    "name": "Other",
+    "parentId": "sports_other_sports",
     "isLeaf": true
   },
   {
-    "id": "sports_water_kayak_accessories",
-    "name": "Kayak Accessories",
-    "parentId": "sports_water",
-    "isLeaf": true
-  },
-  {
-    "id": "entertainment",
-    "name": "Media & Entertainment",
-    "parentId": null,
-    "isLeaf": false,
-    "icon": "theaters"
-  },
-  {
-    "id": "media_books",
-    "name": "Books",
-    "parentId": "entertainment",
-    "isLeaf": false
-  },
-  {
-    "id": "media_books_fiction",
-    "name": "Fiction",
-    "parentId": "media_books",
-    "isLeaf": true
-  },
-  {
-    "id": "media_books_non_fiction",
-    "name": "Non-fiction",
-    "parentId": "media_books",
-    "isLeaf": true
-  },
-  {
-    "id": "media_books_children_books",
-    "name": "Children Books",
-    "parentId": "media_books",
-    "isLeaf": true
-  },
-  {
-    "id": "media_books_comics__manga",
-    "name": "Comics & Manga",
-    "parentId": "media_books",
-    "isLeaf": true
-  },
-  {
-    "id": "media_books_textbooks",
-    "name": "Textbooks",
-    "parentId": "media_books",
-    "isLeaf": true
-  },
-  {
-    "id": "media_music",
-    "name": "Music",
-    "parentId": "entertainment",
-    "isLeaf": false
-  },
-  {
-    "id": "media_music_vinyl",
-    "name": "Vinyl",
-    "parentId": "media_music",
-    "isLeaf": true
-  },
-  {
-    "id": "media_music_cds",
-    "name": "CDs",
-    "parentId": "media_music",
-    "isLeaf": true
-  },
-  {
-    "id": "media_music_cassettes",
-    "name": "Cassettes",
-    "parentId": "media_music",
-    "isLeaf": true
-  },
-  {
-    "id": "media_music_music_instruments",
-    "name": "Music Instruments",
-    "parentId": "media_music",
-    "isLeaf": true
-  },
-  {
-    "id": "media_music_dj_equipment",
-    "name": "DJ Equipment",
-    "parentId": "media_music",
-    "isLeaf": true
-  },
-  {
-    "id": "media_movies",
-    "name": "Movies & TV",
-    "parentId": "entertainment",
-    "isLeaf": false
-  },
-  {
-    "id": "media_movies_dvd__blu_ray",
-    "name": "DVD & Blu-ray",
-    "parentId": "media_movies",
-    "isLeaf": true
-  },
-  {
-    "id": "media_movies_box_sets",
-    "name": "Box Sets",
-    "parentId": "media_movies",
-    "isLeaf": true
-  },
-  {
-    "id": "media_movies_collectors_editions",
-    "name": "Collectors Editions",
-    "parentId": "media_movies",
-    "isLeaf": true
-  },
-  {
-    "id": "media_tickets",
-    "name": "Tickets",
-    "parentId": "entertainment",
-    "isLeaf": false
-  },
-  {
-    "id": "media_tickets_concert_tickets",
-    "name": "Concert Tickets",
-    "parentId": "media_tickets",
-    "isLeaf": true
-  },
-  {
-    "id": "media_tickets_sports_tickets",
-    "name": "Sports Tickets",
-    "parentId": "media_tickets",
-    "isLeaf": true
-  },
-  {
-    "id": "media_tickets_festival_tickets",
-    "name": "Festival Tickets",
-    "parentId": "media_tickets",
-    "isLeaf": true
-  },
-  {
-    "id": "media_tickets_theatre_tickets",
-    "name": "Theatre Tickets",
-    "parentId": "media_tickets",
-    "isLeaf": true
-  },
-  {
-    "id": "media_games",
-    "name": "Board & Card Games",
-    "parentId": "entertainment",
-    "isLeaf": false
-  },
-  {
-    "id": "media_games_board_games",
-    "name": "Board Games",
-    "parentId": "media_games",
-    "isLeaf": true
-  },
-  {
-    "id": "media_games_trading_card_games",
-    "name": "Trading Card Games",
-    "parentId": "media_games",
-    "isLeaf": true
-  },
-  {
-    "id": "media_games_puzzles",
-    "name": "Puzzles",
-    "parentId": "media_games",
-    "isLeaf": true
-  },
-  {
-    "id": "media_games_party_games",
-    "name": "Party Games",
-    "parentId": "media_games",
-    "isLeaf": true
-  },
-  {
-    "id": "hobbies",
-    "name": "Hobbies & Collectibles",
-    "parentId": null,
-    "isLeaf": false,
-    "icon": "toys"
-  },
-  {
-    "id": "hob_collectibles",
-    "name": "Collectibles",
+    "id": "hobbies_outdoor",
+    "name": "Outdoor",
     "parentId": "hobbies",
     "isLeaf": false
   },
   {
-    "id": "hob_collectibles_trading_cards",
-    "name": "Trading Cards",
-    "parentId": "hob_collectibles",
+    "id": "hobbies_outdoor_camping",
+    "name": "Camping",
+    "parentId": "hobbies_outdoor",
     "isLeaf": true
   },
   {
-    "id": "hob_collectibles_figures",
-    "name": "Figures",
-    "parentId": "hob_collectibles",
+    "id": "hobbies_outdoor_hiking",
+    "name": "Hiking",
+    "parentId": "hobbies_outdoor",
     "isLeaf": true
   },
   {
-    "id": "hob_collectibles_model_kits",
-    "name": "Model Kits",
-    "parentId": "hob_collectibles",
+    "id": "hobbies_outdoor_fishing",
+    "name": "Fishing",
+    "parentId": "hobbies_outdoor",
     "isLeaf": true
   },
   {
-    "id": "hob_collectibles_limited_editions",
-    "name": "Limited Editions",
-    "parentId": "hob_collectibles",
+    "id": "hobbies_outdoor_other",
+    "name": "Other",
+    "parentId": "hobbies_outdoor",
     "isLeaf": true
   },
   {
-    "id": "hob_collectibles_memorabilia",
-    "name": "Memorabilia",
-    "parentId": "hob_collectibles",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_art",
-    "name": "Art & Crafts",
+    "id": "hobbies_instruments",
+    "name": "Musical Instruments",
     "parentId": "hobbies",
     "isLeaf": false
   },
   {
-    "id": "hob_art_painting",
-    "name": "Painting",
-    "parentId": "hob_art",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_art_drawing",
-    "name": "Drawing",
-    "parentId": "hob_art",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_art_sewing",
-    "name": "Sewing",
-    "parentId": "hob_art",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_art_knitting",
-    "name": "Knitting",
-    "parentId": "hob_art",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_art_craft_tools",
-    "name": "Craft Tools",
-    "parentId": "hob_art",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_music_gear",
-    "name": "Music Gear",
-    "parentId": "hobbies",
-    "isLeaf": false
-  },
-  {
-    "id": "hob_music_gear_guitars",
+    "id": "hobbies_instruments_guitars",
     "name": "Guitars",
-    "parentId": "hob_music_gear",
+    "parentId": "hobbies_instruments",
     "isLeaf": true
   },
   {
-    "id": "hob_music_gear_keyboards",
+    "id": "hobbies_instruments_keyboards",
     "name": "Keyboards",
-    "parentId": "hob_music_gear",
+    "parentId": "hobbies_instruments",
     "isLeaf": true
   },
   {
-    "id": "hob_music_gear_drums",
-    "name": "Drums",
-    "parentId": "hob_music_gear",
+    "id": "hobbies_instruments_pro_audio",
+    "name": "Pro Audio",
+    "parentId": "hobbies_instruments",
     "isLeaf": true
   },
   {
-    "id": "hob_music_gear_studio_gear",
-    "name": "Studio Gear",
-    "parentId": "hob_music_gear",
+    "id": "hobbies_instruments_other",
+    "name": "Other",
+    "parentId": "hobbies_instruments",
     "isLeaf": true
   },
   {
-    "id": "hob_photo",
-    "name": "Photo Hobby",
+    "id": "hobbies_entertainment",
+    "name": "Entertainment",
     "parentId": "hobbies",
     "isLeaf": false
   },
   {
-    "id": "hob_photo_film_cameras",
-    "name": "Film Cameras",
-    "parentId": "hob_photo",
+    "id": "hobbies_entertainment_books",
+    "name": "Books",
+    "parentId": "hobbies_entertainment",
     "isLeaf": true
   },
   {
-    "id": "hob_photo_instant_cameras",
-    "name": "Instant Cameras",
-    "parentId": "hob_photo",
+    "id": "hobbies_entertainment_vinyl",
+    "name": "Vinyl",
+    "parentId": "hobbies_entertainment",
     "isLeaf": true
   },
   {
-    "id": "hob_photo_darkroom_supplies",
-    "name": "Darkroom Supplies",
-    "parentId": "hob_photo",
+    "id": "hobbies_entertainment_board_games",
+    "name": "Board Games",
+    "parentId": "hobbies_entertainment",
     "isLeaf": true
   },
   {
-    "id": "hob_pets",
-    "name": "Pet Supplies",
-    "parentId": "hobbies",
-    "isLeaf": false
-  },
-  {
-    "id": "hob_pets_dog_supplies",
-    "name": "Dog Supplies",
-    "parentId": "hob_pets",
+    "id": "hobbies_entertainment_other",
+    "name": "Other",
+    "parentId": "hobbies_entertainment",
     "isLeaf": true
   },
   {
-    "id": "hob_pets_cat_supplies",
-    "name": "Cat Supplies",
-    "parentId": "hob_pets",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_pets_aquarium",
-    "name": "Aquarium",
-    "parentId": "hob_pets",
-    "isLeaf": true
-  },
-  {
-    "id": "hob_pets_small_pets",
-    "name": "Small Pets",
-    "parentId": "hob_pets",
-    "isLeaf": true
-  },
-  {
-    "id": "motors",
-    "name": "Motors",
+    "id": "mobility",
+    "name": "Mobility",
     "parentId": null,
     "isLeaf": false,
     "icon": "directions-car"
   },
   {
-    "id": "motors_cars",
-    "name": "Cars",
-    "parentId": "motors",
-    "isLeaf": false
-  },
-  {
-    "id": "motors_cars_used_cars",
-    "name": "Used Cars",
-    "parentId": "motors_cars",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_cars_car_parts",
+    "id": "mobility_cars",
     "name": "Car Parts",
-    "parentId": "motors_cars",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_cars_tyres__wheels",
-    "name": "Tyres & Wheels",
-    "parentId": "motors_cars",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_cars_car_electronics",
-    "name": "Car Electronics",
-    "parentId": "motors_cars",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_cars_car_care",
-    "name": "Car Care",
-    "parentId": "motors_cars",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_motorcycles",
-    "name": "Motorcycles",
-    "parentId": "motors",
+    "parentId": "mobility",
     "isLeaf": false
   },
   {
-    "id": "motors_motorcycles_motorcycles",
-    "name": "Motorcycles",
-    "parentId": "motors_motorcycles",
+    "id": "mobility_cars_tyres",
+    "name": "Tyres",
+    "parentId": "mobility_cars",
     "isLeaf": true
   },
   {
-    "id": "motors_motorcycles_bike_parts",
-    "name": "Bike Parts",
-    "parentId": "motors_motorcycles",
+    "id": "mobility_cars_rims",
+    "name": "Rims",
+    "parentId": "mobility_cars",
     "isLeaf": true
   },
   {
-    "id": "motors_motorcycles_helmets",
-    "name": "Helmets",
-    "parentId": "motors_motorcycles",
+    "id": "mobility_cars_auto_parts",
+    "name": "Auto Parts",
+    "parentId": "mobility_cars",
     "isLeaf": true
   },
   {
-    "id": "motors_motorcycles_riding_gear",
-    "name": "Riding Gear",
-    "parentId": "motors_motorcycles",
+    "id": "mobility_cars_accessories",
+    "name": "Accessories",
+    "parentId": "mobility_cars",
     "isLeaf": true
   },
   {
-    "id": "motors_ev",
-    "name": "E-Mobility",
-    "parentId": "motors",
-    "isLeaf": false
-  },
-  {
-    "id": "motors_ev_e_scooters",
-    "name": "E-Scooters",
-    "parentId": "motors_ev",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_ev_e_bikes",
-    "name": "E-Bikes",
-    "parentId": "motors_ev",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_ev_hoverboards",
-    "name": "Hoverboards",
-    "parentId": "motors_ev",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_ev_chargers",
-    "name": "Chargers",
-    "parentId": "motors_ev",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_boats",
-    "name": "Boats & Marine",
-    "parentId": "motors",
-    "isLeaf": false
-  },
-  {
-    "id": "motors_boats_boats",
-    "name": "Boats",
-    "parentId": "motors_boats",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_boats_marine_accessories",
-    "name": "Marine Accessories",
-    "parentId": "motors_boats",
-    "isLeaf": true
-  },
-  {
-    "id": "motors_boats_safety_equipment",
-    "name": "Safety Equipment",
-    "parentId": "motors_boats",
-    "isLeaf": true
-  },
-  {
-    "id": "services",
-    "name": "Services & Other",
-    "parentId": null,
-    "isLeaf": false,
-    "icon": "miscellaneous-services"
-  },
-  {
-    "id": "services_local",
-    "name": "Local Services",
-    "parentId": "services",
-    "isLeaf": false
-  },
-  {
-    "id": "services_local_repair_services",
-    "name": "Repair Services",
-    "parentId": "services_local",
-    "isLeaf": true
-  },
-  {
-    "id": "services_local_cleaning_services",
-    "name": "Cleaning Services",
-    "parentId": "services_local",
-    "isLeaf": true
-  },
-  {
-    "id": "services_local_home_help",
-    "name": "Home Help",
-    "parentId": "services_local",
-    "isLeaf": true
-  },
-  {
-    "id": "services_local_tutoring",
-    "name": "Tutoring",
-    "parentId": "services_local",
-    "isLeaf": true
-  },
-  {
-    "id": "services_digital",
-    "name": "Digital Services",
-    "parentId": "services",
-    "isLeaf": false
-  },
-  {
-    "id": "services_digital_design_services",
-    "name": "Design Services",
-    "parentId": "services_digital",
-    "isLeaf": true
-  },
-  {
-    "id": "services_digital_it_support",
-    "name": "IT Support",
-    "parentId": "services_digital",
-    "isLeaf": true
-  },
-  {
-    "id": "services_digital_social_media_services",
-    "name": "Social Media Services",
-    "parentId": "services_digital",
-    "isLeaf": true
-  },
-  {
-    "id": "services_jobs",
-    "name": "Jobs & Gigs",
-    "parentId": "services",
-    "isLeaf": false
-  },
-  {
-    "id": "services_jobs_part_time_jobs",
-    "name": "Part-time Jobs",
-    "parentId": "services_jobs",
-    "isLeaf": true
-  },
-  {
-    "id": "services_jobs_freelance_gigs",
-    "name": "Freelance Gigs",
-    "parentId": "services_jobs",
-    "isLeaf": true
-  },
-  {
-    "id": "services_jobs_event_staff",
-    "name": "Event Staff",
-    "parentId": "services_jobs",
-    "isLeaf": true
-  },
-  {
-    "id": "services_free",
-    "name": "Free Stuff",
-    "parentId": "services",
-    "isLeaf": false
-  },
-  {
-    "id": "services_free_free_furniture",
-    "name": "Free Furniture",
-    "parentId": "services_free",
-    "isLeaf": true
-  },
-  {
-    "id": "services_free_free_electronics",
-    "name": "Free Electronics",
-    "parentId": "services_free",
-    "isLeaf": true
-  },
-  {
-    "id": "services_free_free_miscellaneous",
-    "name": "Free Miscellaneous",
-    "parentId": "services_free",
-    "isLeaf": true
-  },
-  {
-    "id": "services_other",
+    "id": "mobility_cars_other",
     "name": "Other",
-    "parentId": "services",
+    "parentId": "mobility_cars",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_motorcycles",
+    "name": "Motorcycles",
+    "parentId": "mobility",
     "isLeaf": false
   },
   {
-    "id": "services_other_miscellaneous_listings",
-    "name": "Miscellaneous Listings",
-    "parentId": "services_other",
+    "id": "mobility_motorcycles_motorbikes",
+    "name": "Motorbikes",
+    "parentId": "mobility_motorcycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_motorcycles_scooters",
+    "name": "Scooters",
+    "parentId": "mobility_motorcycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_motorcycles_gear",
+    "name": "Gear",
+    "parentId": "mobility_motorcycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_motorcycles_other",
+    "name": "Other",
+    "parentId": "mobility_motorcycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_bicycles",
+    "name": "Bicycles",
+    "parentId": "mobility",
+    "isLeaf": false
+  },
+  {
+    "id": "mobility_bicycles_road",
+    "name": "Road",
+    "parentId": "mobility_bicycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_bicycles_mtb",
+    "name": "MTB",
+    "parentId": "mobility_bicycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_bicycles_city_bikes",
+    "name": "City Bikes",
+    "parentId": "mobility_bicycles",
+    "isLeaf": true
+  },
+  {
+    "id": "mobility_bicycles_other",
+    "name": "Other",
+    "parentId": "mobility_bicycles",
     "isLeaf": true
   }
 ]

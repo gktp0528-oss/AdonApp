@@ -22,6 +22,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { TabTransitionView } from '../components/TabTransitionView';
+import { AdonHeader } from '../components/AdonHeader';
 
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -44,7 +45,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Temporary: get current seller ID
   const sellerId = userService.getCurrentUserId();
@@ -358,6 +359,13 @@ export function AiListingScreen({ navigation, route }: Props) {
         };
       }));
 
+      const languageMap: Record<string, string> = {
+        ko: '한국어 (Korean)',
+        en: 'English',
+        hu: 'Magyar (Hungarian)'
+      };
+      const targetLang = languageMap[i18n.language] || 'English';
+
       const prompt = `당신은 유럽(독일, 프랑스, 스페인 등)의 중고 마켓(eBay, Vinted, Wallapop) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
       
       [분석 지침]
@@ -365,7 +373,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       2. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
       3. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
       4. 특히 에어팟 같은 소모품은 배터리 수명과 외관 스크래치가 가격에 치명적임을 반영하세요.
-      5. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, kids.
+      5. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, hobbies, sports, mobility.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
@@ -377,7 +385,7 @@ export function AiListingScreen({ navigation, route }: Props) {
         "insights": ["감가 요인 상세 분석", "유럽 내 실제 거래 데이터 기반 분석"],
         "reasoning": "왜 이 가격인가? (어떤 흠집 때문에 가격을 깎았는지 구체적으로 명시)"
       }
-      반드시 한국어로 작성하세요.`;
+      MUST be written in ${targetLang}. Response language should match exactly ${targetLang}.`;
 
       // addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...'); 
       // Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
@@ -494,195 +502,194 @@ export function AiListingScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
+    <View style={styles.root}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>{t('screen.aiListing.title')}</Text>
-            <Pressable style={styles.closeBtn} onPress={handleClose}>
-              <MaterialIcons name="close" size={24} color="#0f172a" />
-            </Pressable>
-          </View>
+          <View style={{ flex: 1 }}>
+            <AdonHeader
+              title={t('screen.listing.title')}
+              showClose={true}
+              onClose={handleClose}
+            />
 
-          <Pressable
-            style={styles.aiBanner}
-            onPress={() => navigation.navigate('AiIntro')}
-          >
-            <View style={styles.aiBannerContent}>
-              <View style={styles.aiIconBadge}>
-                <MaterialIcons name="auto-awesome" size={20} color="#fff" />
-              </View>
-              <View>
-                <Text style={styles.aiBannerTitle}>{t('screen.aiListing.ad.title')}</Text>
-                <Text style={styles.aiBannerSubtitle}>{t('screen.aiListing.ad.subtitle')}</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color="#15803d" />
-          </Pressable>
-
-          <ScrollView
-            contentContainerStyle={[
-              styles.content,
-              { paddingBottom: (isKeyboardVisible ? 56 : 100) + insets.bottom },
-            ]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-            {/* Photo Section */}
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>{t('screen.aiListing.section.photos')}</Text>
-              {isAiLoading && (
-                <View style={styles.aiLoadingBadge}>
-                  <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
-                  <Text style={styles.aiLoadingText}>AI 분석 중...</Text>
+            <Pressable
+              style={styles.aiBanner}
+              onPress={() => navigation.navigate('AiIntro')}
+            >
+              <View style={styles.aiBannerContent}>
+                <View style={styles.aiIconBadge}>
+                  <MaterialIcons name="auto-awesome" size={20} color="#fff" />
                 </View>
-              )}
-            </View>
+                <View>
+                  <Text style={styles.aiBannerTitle}>{t('screen.aiListing.ad.title')}</Text>
+                  <Text style={styles.aiBannerSubtitle}>{t('screen.aiListing.ad.subtitle')}</Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#15803d" />
+            </Pressable>
 
             <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.photoScroll}
-              keyboardShouldPersistTaps="always"
+              contentContainerStyle={[
+                styles.content,
+                { paddingBottom: (isKeyboardVisible ? 56 : 100) + insets.bottom },
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
             >
-              <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
-                <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-                <Text style={styles.addPhotoText}>{t('screen.aiListing.section.photos')} + ({photos.length}/10)</Text>
-              </Pressable>
-              {photos.map((uri, index) => (
-                <View key={index} style={styles.photoCard}>
-                  <Image source={{ uri }} style={styles.photoImage} />
-                  <Pressable
-                    style={styles.removePhotoBtn}
-                    onPress={() => setPhotos(photos.filter((_, i) => i !== index))}
-                  >
-                    <MaterialIcons name="close" size={12} color="#fff" />
-                  </Pressable>
-                </View>
-              ))}
-            </ScrollView>
+              {/* Photo Section */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>{t('screen.aiListing.section.photos')}</Text>
+                {isAiLoading && (
+                  <View style={styles.aiLoadingBadge}>
+                    <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
+                    <Text style={styles.aiLoadingText}>AI 분석 중...</Text>
+                  </View>
+                )}
+              </View>
 
-            <View style={styles.aiActionRow}>
-              <Pressable
-                style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
-                onPress={handleRunAiAnalysis}
-                disabled={isAiLoading || photos.length === 0}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.photoScroll}
+                keyboardShouldPersistTaps="always"
               >
-                <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
-                <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
-                  {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
-                </Text>
-              </Pressable>
-              <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
-            </View>
+                <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
+                  <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
+                  <Text style={styles.addPhotoText}>{t('screen.aiListing.section.photos')} + ({photos.length}/10)</Text>
+                </Pressable>
+                {photos.map((uri, index) => (
+                  <View key={index} style={styles.photoCard}>
+                    <Image source={{ uri }} style={styles.photoImage} />
+                    <Pressable
+                      style={styles.removePhotoBtn}
+                      onPress={() => setPhotos(photos.filter((_, i) => i !== index))}
+                    >
+                      <MaterialIcons name="close" size={12} color="#fff" />
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
 
-            {/* Title Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('screen.aiListing.placeholder.title')}
-                placeholderTextColor="#64748b"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
+              <View style={styles.aiActionRow}>
+                <Pressable
+                  style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
+                  onPress={handleRunAiAnalysis}
+                  disabled={isAiLoading || photos.length === 0}
+                >
+                  <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
+                  <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
+                    {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
+                  </Text>
+                </Pressable>
+                <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
+              </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
-              <Pressable
-                style={styles.selector}
-                onPress={() => {
-                  console.log('Category selector pressed! Navigating to CategorySelect...');
-                  Keyboard.dismiss();
-                  navigation.push('CategorySelect');
-                }}
-              >
-                <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                  {category || t('screen.categorySelect.title')}
-                </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
-              </Pressable>
-            </View>
-
-            {/* Price Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.currencySymbol}>€</Text>
+              {/* Title Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
                 <TextInput
-                  style={styles.priceInput}
-                  placeholder={t('screen.aiListing.placeholder.price')}
+                  style={styles.input}
+                  placeholder={t('screen.aiListing.placeholder.title')}
                   placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  value={price}
-                  onChangeText={setPrice}
+                  value={title}
+                  onChangeText={setTitle}
                 />
               </View>
-            </View>
 
-
-            {/* Condition Selector */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-              <View style={styles.conditionRow}>
-                {conditions.map((c) => (
-                  <Pressable
-                    key={c}
-                    style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
-                    onPress={() => setCondition(c)}
-                  >
-                    <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
-                      {conditionLabelMap[c]}
-                    </Text>
-                  </Pressable>
-                ))}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
+                <Pressable
+                  style={styles.selector}
+                  onPress={() => {
+                    console.log('Category selector pressed! Navigating to CategorySelect...');
+                    Keyboard.dismiss();
+                    navigation.push('CategorySelect');
+                  }}
+                >
+                  <Text style={[styles.selectorText, !category && styles.placeholderText]}>
+                    {category || t('screen.categorySelect.title')}
+                  </Text>
+                  <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
+                </Pressable>
               </View>
-            </View>
 
-            {/* Description Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder={t('screen.aiListing.placeholder.description')}
-                placeholderTextColor="#64748b"
-                multiline
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
+              {/* Price Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.currencySymbol}>€</Text>
+                  <TextInput
+                    style={styles.priceInput}
+                    placeholder={t('screen.aiListing.placeholder.price')}
+                    placeholderTextColor="#64748b"
+                    keyboardType="numeric"
+                    value={price}
+                    onChangeText={setPrice}
+                  />
+                </View>
+              </View>
 
-            {/* Location Picker */}
-            <LocationPicker onLocationChange={setPickupLocation} />
 
-          </ScrollView>
+              {/* Condition Selector */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
+                <View style={styles.conditionRow}>
+                  {conditions.map((c) => (
+                    <Pressable
+                      key={c}
+                      style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
+                      onPress={() => setCondition(c)}
+                    >
+                      <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
+                        {conditionLabelMap[c]}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
 
-          {/* Footer / CTA */}
-          {!isKeyboardVisible && (
-            <View
-              style={[styles.footer, { bottom: 0, paddingBottom: Math.max(insets.bottom, 5) }]}
-              pointerEvents="box-none"
-            >
-              <Pressable
-                style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-                onPress={handlePostItem}
-                disabled={isPosting}
+              {/* Description Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder={t('screen.aiListing.placeholder.description')}
+                  placeholderTextColor="#64748b"
+                  multiline
+                  textAlignVertical="top"
+                  value={description}
+                  onChangeText={setDescription}
+                />
+              </View>
+
+              {/* Location Picker */}
+              <LocationPicker onLocationChange={setPickupLocation} />
+
+            </ScrollView>
+
+            {/* Footer / CTA */}
+            {!isKeyboardVisible && (
+              <View
+                style={[styles.footer, { bottom: 0, paddingBottom: Math.max(insets.bottom, 5) }]}
+                pointerEvents="box-none"
               >
-                <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
+                <Pressable
+                  style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+                  onPress={handlePostItem}
+                  disabled={isPosting}
+                >
+                  <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -858,12 +865,16 @@ function FinalizingIcon() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f6f8f6' },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#f6f8f6',
+  },
+  headerBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,

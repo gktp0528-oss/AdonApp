@@ -5,14 +5,15 @@ import { useTranslation } from 'react-i18next';
 
 type Props = {
   onPress: () => void;
+  plain?: boolean;
 };
 
-export function DetailBackButton({ onPress }: Props) {
+export function DetailBackButton({ onPress, plain }: Props) {
   const { t } = useTranslation();
 
   return (
     <Pressable
-      style={styles.button}
+      style={[styles.button, plain && styles.plainButton]}
       onPress={onPress}
       hitSlop={8}
       accessibilityRole="button"
@@ -36,5 +37,13 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  plainButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    shadowOpacity: 0,
+    elevation: 0,
+    width: 40,
+    marginLeft: -8,
   },
 });

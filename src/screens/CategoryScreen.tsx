@@ -18,6 +18,16 @@ type Props = CompositeScreenProps<
     NativeStackScreenProps<RootStackParamList>
 >;
 
+import ALL_CATEGORIES from '../data/categories.json';
+
+type CategoryItem = {
+    id: string;
+    name: string;
+    parentId: string | null;
+    isLeaf: boolean;
+    icon?: string;
+};
+
 type HubCategory = {
     id: string;
     name: string; // fallback name
@@ -39,32 +49,27 @@ const GRADIENTS = {
     soft: ['#fafafa', '#f0fdf4'] as const, // Very soft green
 };
 
-const browseCategories: HubCategory[] = [
-    { id: 'electronics', name: 'Electronics', nameKey: 'electronics', icon: 'laptop', height: 120, colors: GRADIENTS.neutral },
-    { id: 'home-decor', name: 'Home Decor', nameKey: 'homeDecor', icon: 'sofa-outline', height: 100, colors: GRADIENTS.accent },
-    { id: 'beauty', name: 'Beauty', nameKey: 'beauty', icon: 'spray-bottle', height: 110, colors: GRADIENTS.primary },
-    { id: 'baby-kids', name: 'Baby & Kids', nameKey: 'babyKids', icon: 'baby-face-outline', height: 100, colors: GRADIENTS.soft },
-    { id: 'books', name: 'Books', nameKey: 'books', icon: 'book-open-page-variant-outline', height: 110, colors: GRADIENTS.neutral },
-    { id: 'gaming', name: 'Gaming', nameKey: 'gaming', icon: 'controller-classic-outline', height: 120, colors: GRADIENTS.accent },
-    { id: 'photography', name: 'Photography', nameKey: 'photography', icon: 'camera-outline', height: 110, colors: GRADIENTS.primary },
-    { id: 'women-fashion', name: 'Women Fashion', nameKey: 'womenFashion', icon: 'human-female', height: 130, colors: GRADIENTS.soft },
-    { id: 'men-fashion', name: 'Men Fashion', nameKey: 'menFashion', icon: 'human-male', height: 130, colors: GRADIENTS.neutral },
-    { id: 'watches', name: 'Watches', nameKey: 'watches', icon: 'watch-variant', height: 100, colors: GRADIENTS.accent },
-    { id: 'sneakers', name: 'Sneakers', nameKey: 'sneakers', icon: 'shoe-sneaker', height: 110, colors: GRADIENTS.primary },
-    { id: 'bags-wallets', name: 'Bags & Wallets', nameKey: 'bags', icon: 'bag-personal-outline', height: 110, colors: GRADIENTS.soft },
-    { id: 'bicycles', name: 'Bicycles', nameKey: 'bicycles', icon: 'bicycle', height: 100, colors: GRADIENTS.neutral },
-    { id: 'collectibles', name: 'Collectibles', nameKey: 'collectibles', icon: 'toy-brick-search-outline', height: 110, colors: GRADIENTS.accent },
-    { id: 'jewelry', name: 'Jewelry', nameKey: 'jewelry', icon: 'diamond-stone', height: 100, colors: GRADIENTS.primary },
-    { id: 'vinyl', name: 'Vinyl', nameKey: 'vinyl', icon: 'album', height: 100, colors: GRADIENTS.soft },
-    { id: 'board-games', name: 'Board Games', nameKey: 'boardGames', icon: 'puzzle-outline', height: 110, colors: GRADIENTS.neutral },
-    { id: 'camping', name: 'Camping', nameKey: 'camping', icon: 'tent', height: 100, colors: GRADIENTS.accent },
-    { id: 'hiking', name: 'Hiking', nameKey: 'hiking', icon: 'hiking', height: 100, colors: GRADIENTS.primary },
-    { id: 'tennis', name: 'Tennis', nameKey: 'tennis', icon: 'tennis', height: 100, colors: GRADIENTS.soft },
-    { id: 'skiing', name: 'Skiing', nameKey: 'skiing', icon: 'ski', height: 100, colors: GRADIENTS.neutral },
-    { id: 'football', name: 'Football', nameKey: 'football', icon: 'soccer', height: 100, colors: GRADIENTS.accent },
-    { id: 'running', name: 'Running', nameKey: 'running', icon: 'run', height: 100, colors: GRADIENTS.primary },
-    { id: 'cycling', name: 'Cycling', nameKey: 'cycling', icon: 'bike', height: 100, colors: GRADIENTS.soft },
-];
+// Map real categories to HubCategory structure
+const rootCategories = (ALL_CATEGORIES as CategoryItem[])
+    .filter(cat => cat.parentId === null)
+    .map((cat, index) => {
+        // Assign random gradient for visual variety
+        const gradientKeys = Object.keys(GRADIENTS) as (keyof typeof GRADIENTS)[];
+        const gradient = GRADIENTS[gradientKeys[index % gradientKeys.length]];
+
+        // Random height for masonry effect (100-130)
+        const heights = [100, 110, 120, 130];
+        const height = heights[index % heights.length];
+
+        return {
+            id: cat.id,
+            name: cat.name,
+            nameKey: cat.id, // Use ID as key for i18n
+            icon: (cat.icon || 'shape-outline') as keyof typeof MaterialCommunityIcons.glyphMap,
+            height,
+            colors: gradient
+        };
+    });
 
 export function CategoryScreen({ navigation }: Props) {
     const { t } = useTranslation();
@@ -94,9 +99,13 @@ export function CategoryScreen({ navigation }: Props) {
                     {renderHeader()}
                     <MasonryCategorySection
                         sectionTitle={t('screen.search.section.browse', { defaultValue: 'Browse Categories' })}
-                        categories={browseCategories}
+                        categories={rootCategories}
                         onPressCategory={(item, translatedName) =>
-                            navigation.navigate('CategoryList', { categoryId: item.id, categoryName: translatedName })
+                            // Navigate to SearchResult with category filter enabled
+                            navigation.navigate('SearchResult', {
+                                categoryId: item.id,
+                                categoryName: translatedName
+                            })
                         }
                     />
                 </ScrollView>

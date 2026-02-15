@@ -21,5 +21,9 @@ export interface Conversation {
     lastSenderId: string;
     unreadCount: Record<string, number>; // { [userId]: count }
     lastReadAt?: Record<string, Timestamp>;
+    participantsMetadata?: Record<string, {
+        name: string;
+        avatar?: string | null;
+    }>;
     createdAt: Timestamp;
 }

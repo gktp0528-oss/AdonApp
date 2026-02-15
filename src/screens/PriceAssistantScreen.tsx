@@ -18,11 +18,14 @@ import { getGenerativeModel } from "firebase/ai";
 import { aiBackend } from '../firebaseConfig';
 import * as ImageManipulator from 'expo-image-manipulator';
 
+import { useTranslation } from 'react-i18next';
+
 const { width } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiPriceAssistant'>;
 
 export default function AiPriceAssistantScreen({ navigation, route }: Props) {
+    const { t, i18n } = useTranslation();
     const { imageUris, initialPrice } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [analysis, setAnalysis] = useState<any>(null);
@@ -91,6 +94,13 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 };
             }));
 
+            const languageMap: Record<string, string> = {
+                ko: '한국어 (Korean)',
+                en: 'English',
+                hu: 'Magyar (Hungarian)'
+            };
+            const targetLang = languageMap[i18n.language] || 'English';
+
             const prompt = `당신은 유럽(독일, 프랑스, 스페인 등)의 중고 마켓(eBay, Vinted, Wallapop) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
       
       [분석 지침]
@@ -108,7 +118,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         "insights": ["구체적인 감가 요인 분석", "현지 마켓 실거래가와 비교 분석"],
         "reasoning": "왜 이 가격으로 산출했는지 사진 속의 구체적인 하자를 근거로 설명"
       }
-      반드시 한국어로 작성하세요.`;
+      MUST be written in ${targetLang}. Response language should match exactly ${targetLang}.`;
 
 
             const result = await model.generateContent([prompt, ...imageParts]);

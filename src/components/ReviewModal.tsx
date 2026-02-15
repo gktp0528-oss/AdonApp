@@ -59,7 +59,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ isVisible, onClose, on
                         <View style={styles.handle} />
 
                         <View style={styles.header}>
-                            <Text style={styles.title}>{t('transaction.review.prompt')}</Text>
+                            <Text style={styles.title}>{t('screen.transaction.review.prompt')}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <MaterialIcons name="close" size={24} color="#64748b" />
                             </TouchableOpacity>
@@ -76,7 +76,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ isVisible, onClose, on
 
                         <TextInput
                             style={styles.input}
-                            placeholder={t('transaction.review.placeholder')}
+                            placeholder={t('screen.transaction.review.placeholder')}
                             placeholderTextColor="#94a3b8"
                             multiline
                             numberOfLines={4}
@@ -93,12 +93,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ isVisible, onClose, on
                             {isSubmitting ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.submitButtonText}>{t('transaction.review.submit')}</Text>
+                                <Text style={styles.submitButtonText}>{t('screen.transaction.review.submit')}</Text>
                             )}
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.laterButton} onPress={onClose}>
-                            <Text style={styles.laterButtonText}>{t('transaction.review.later')}</Text>
+                            <Text style={styles.laterButtonText}>{t('screen.transaction.review.later')}</Text>
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>

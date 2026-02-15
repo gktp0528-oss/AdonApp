@@ -36,7 +36,6 @@ const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
 // High-reliability local synonyms for common brands/terms
-// High-reliability local synonyms for common brands/terms
 const LOCAL_SYNONYMS: Record<string, string[]> = {
     '애플': ['apple', 'iphone', 'macbook', 'ipad', 'airpods'],
     '에어팟': ['airpods', 'earbuds', 'headphones'], // Removed 'apple' to prevent matching MacBooks
@@ -172,142 +171,160 @@ class SearchServiceImpl implements SearchService {
         }
     }
 
-    private async expandQueryWithAi(queryText: string): Promise<string[]> {
+    private async expandQueryWithAi(queryText: string): Promise<{ category: string | null, keywords: string[] }> {
         const normalized = queryText.toLowerCase().trim();
-        if (!normalized) return [];
+        if (!normalized) return { category: null, keywords: [] };
 
         try {
-            // 1. Check Firestore Cache first
+            // 1. Check Firestore Cache
             const cacheDoc = await getDoc(doc(db, SEARCH_CACHE_COLLECTION, normalized));
             if (cacheDoc.exists()) {
                 const data = cacheDoc.data();
-                // Cache valid for 30 days
-                if (data.keywords && (Date.now() - data.timestamp.toMillis()) < (30 * 24 * 60 * 60 * 1000)) {
-                    return data.keywords;
+                if (data.timestamp && (Date.now() - data.timestamp.toMillis()) < (30 * 24 * 60 * 60 * 1000)) {
+                    if (data.aiResult) return data.aiResult;
+                    if (data.keywords) return { category: null, keywords: data.keywords };
                 }
             }
 
-            // 2. Call AI if not cached
+            // 2. Call AI
             const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash-exp" });
-            const prompt = `You are a professional search engine optimizer for a global used-goods marketplace.
-            Translate and expand the following search query into technical English keywords, global brand names, and related categories.
-            The input language could be Korean, Hungarian, or English.
+            const prompt = `You are a search optimizer for a used-goods app.
+            Analyze the query and extract:
+            1. Target Category (strictly one of: fashion, tech, home, hobbies, sports, mobility, or null)
+            2. Keywords (synonyms, english translations)
             
-            Inputs: "${queryText}"
+            Query: "${queryText}"
             
-            Return ONLY a comma-separated list of the most relevant 3-5 keywords (lower case).
-            Example 1 (Korean): "에어팟" -> "airpods, apple, wireless earbuds"
-            Example 2 (Hungarian): "macska" -> "cat, pet, kitten"
-            Example 3 (Mixed): "나이키 신발" -> "nike, shoes, sneakers"`;
+            Return JSON only: { "category": "tech", "keywords": ["iphone", "apple"] }`;
 
             const result = await model.generateContent(prompt);
             const responseText = (await result.response).text();
-            const keywords = responseText.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
 
-            if (keywords.length > 0) {
-                // 3. Save to Cache
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            const aiData = jsonMatch ? JSON.parse(jsonMatch[0]) : { category: null, keywords: [] };
+
+            const category = ['fashion', 'tech', 'home', 'hobbies', 'sports', 'mobility'].includes(aiData.category) ? aiData.category : null;
+            const keywords = Array.isArray(aiData.keywords) ? aiData.keywords.map((s: string) => s.toLowerCase().trim()) : [];
+
+            const resultObj = { category, keywords };
+
+            // 3. Save to Cache
+            if (keywords.length > 0 || category) {
                 setDoc(doc(db, SEARCH_CACHE_COLLECTION, normalized), {
-                    keywords,
+                    aiResult: resultObj,
                     timestamp: serverTimestamp()
                 }).catch(err => console.warn('Search cache save failed:', err));
-
-                return keywords;
             }
+
+            return resultObj;
+
         } catch (error) {
             console.warn('AI Query Expansion failed:', error);
+            return { category: null, keywords: [normalized] };
         }
-
-        return [normalized];
     }
 
     // Enhanced Search with Hybrid logic
-    async searchListings(queryText: string, options?: any): Promise<Listing[]> {
+    async searchListings(queryText: string, options?: { categoryId?: string }): Promise<Listing[]> {
         const normalizedQuery = queryText.trim();
+
+        // Mode 1: Category Filter (Prefix Search)
+        if (options?.categoryId) {
+            try {
+                const listingsRef = collection(db, 'listings');
+                // Use range query for prefix matching (e.g. 'sports' matches 'sports_football')
+                const q = query(
+                    listingsRef,
+                    where('category', '>=', options.categoryId),
+                    where('category', '<', options.categoryId + '\uf8ff'),
+                    orderBy('category'),
+                    orderBy('createdAt', 'desc'),
+                    limit(50)
+                );
+
+                const snapshot = await getDocs(q);
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing));
+            } catch (error) {
+                console.error('Category search failed:', error);
+                return [];
+            }
+        }
+
+        // Mode 2: Text Search (Existing Logic)
+        if (!normalizedQuery) {
+            const all = await this.getAllListings();
+            return all.slice(0, 20);
+        }
 
         try {
             const allListings = await this.getAllListings();
-            if (!normalizedQuery) return allListings.slice(0, 20);
 
-            // Step 1: Query Expansion (Local + Optional AI)
+            // Step 1: AI Analysis
+            const { category: targetCategory, keywords: expandedKeywords } = await this.expandQueryWithAi(normalizedQuery);
+
+            // Add local synonyms
             const lowerQuery = normalizedQuery.toLowerCase();
-            let expandedKeywords: string[] = [];
-
-            // Add local synonyms first (very fast, high precision)
             if (LOCAL_SYNONYMS[lowerQuery]) {
                 expandedKeywords.push(...LOCAL_SYNONYMS[lowerQuery]);
             }
 
-            // AI-Powered Expansion (Optional, with timeout-like behavior if possible)
-            try {
-                const aiKeywords = await this.expandQueryWithAi(normalizedQuery);
-                aiKeywords.forEach(k => {
-                    if (!expandedKeywords.includes(k) && k !== lowerQuery) {
-                        expandedKeywords.push(k);
-                    }
-                });
-            } catch (e) {
-                console.warn('AI expansion skipped for speed/error');
-            }
-
-            // Step 2: Prepare Search Index
+            // Step 2: Fuse Search
             const indexedListings = allListings.map((listing) => ({
                 ...listing,
                 _searchTitle: normalizeSearchText(listing.title || ''),
                 _searchDescription: normalizeSearchText(listing.description || ''),
-                _searchInitials: getInitialConsonants(listing.title || ''),
             }));
 
-            // Step 3: Progressive Fuzzy Search
             const fuseOptions = {
                 keys: [
                     { name: 'title', weight: 4 },
                     { name: '_searchTitle', weight: 5 },
                     { name: 'description', weight: 1 },
                 ],
-                threshold: 0.35, // Balanced threshold
+                threshold: 0.35,
                 includeScore: true,
                 useExtendedSearch: true,
             };
 
             const fuse = new Fuse(indexedListings, fuseOptions);
-            let resultsMap = new Map<string, Listing>();
+            const resultsMap = new Map<string, { item: Listing, score: number }>();
 
-            // A. Search original query
-            const originalResults = fuse.search(normalizedQuery);
-            originalResults.forEach(r => resultsMap.set(r.item.id, r.item as Listing));
+            const mergeResults = (results: any[]) => {
+                results.forEach(r => {
+                    const existing = resultsMap.get(r.item.id);
+                    if (!existing || r.score < existing.score) {
+                        resultsMap.set(r.item.id, { item: r.item as Listing, score: r.score });
+                    }
+                });
+            };
 
-            // B. Search expanded synonyms
+            // A. Search original
+            mergeResults(fuse.search(normalizedQuery));
+
+            // B. Search keywords
             for (const keyword of expandedKeywords) {
-                const synonymResults = fuse.search(keyword);
-                synonymResults.forEach(r => {
-                    if (!resultsMap.has(r.item.id)) {
-                        resultsMap.set(r.item.id, r.item as Listing);
+                if (keyword !== lowerQuery) {
+                    mergeResults(fuse.search(keyword));
+                }
+            }
+
+            // Step 3: Category Boosting and Sorting
+            let finalResults = Array.from(resultsMap.values());
+
+            if (targetCategory) {
+                finalResults.forEach(r => {
+                    const cat = (r.item.category || '').toLowerCase();
+                    if (cat.startsWith(targetCategory)) {
+                        r.score = (r.score || 1) * 0.5; // Boost score
                     }
                 });
             }
 
-            // Step 4: Fallback Matching (Literal + Initial Consonants)
-            if (resultsMap.size === 0) {
-                const queryTextNorm = normalizeSearchText(normalizedQuery);
-                const queryInitials = getInitialConsonants(normalizedQuery);
-                const hasKo = hasKorean(normalizedQuery);
+            // Sort
+            finalResults.sort((a, b) => (a.score || 1) - (b.score || 1));
 
-                allListings.forEach(listing => {
-                    const titleText = normalizeSearchText(listing.title || '');
-                    const titleInitials = getInitialConsonants(listing.title || '');
-                    const descText = normalizeSearchText(listing.description || '');
+            return finalResults.map(r => r.item).slice(0, 50);
 
-                    const isMatch = titleText.includes(queryTextNorm) ||
-                        descText.includes(queryTextNorm) ||
-                        (hasKo && titleInitials.includes(queryInitials));
-
-                    if (isMatch) {
-                        resultsMap.set(listing.id, listing);
-                    }
-                });
-            }
-
-            return Array.from(resultsMap.values()).slice(0, 50);
         } catch (error) {
             console.error('Error searching listings:', error);
             return [];

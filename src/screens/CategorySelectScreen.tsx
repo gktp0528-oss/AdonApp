@@ -75,13 +75,18 @@ export function CategorySelectScreen({ navigation, route }: Props) {
 
     return (
         <SafeAreaView style={styles.root} edges={['bottom']}>
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 8) }]}>
-                <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 10), height: 60 + insets.top }]}>
+                <Pressable
+                    style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7, backgroundColor: '#f1f5f9' }]}
+                    onPress={() => navigation.goBack()}
+                >
                     <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
                 </Pressable>
                 <View style={styles.titleContainer}>
                     <Text style={styles.headerTitle}>{t('screen.categorySelect.title')}</Text>
-                    <Text style={styles.pathText} numberOfLines={1}>{currentPath}</Text>
+                    {currentPath !== t('screen.categorySelect.all') && (
+                        <Text style={styles.pathText} numberOfLines={1}>{currentPath}</Text>
+                    )}
                 </View>
                 <View style={styles.backBtn} />
             </View>
@@ -93,16 +98,20 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
                 columnWrapperStyle={isRootLevel ? styles.gridRow : undefined}
+                showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                     <Pressable
-                        style={[styles.item, isRootLevel && styles.rootItem]}
+                        style={({ pressed }) => [
+                            isRootLevel ? styles.rootItem : styles.listItem,
+                            pressed && styles.itemPressed
+                        ]}
                         onPress={() => handleSelect(item)}
                     >
                         {isRootLevel ? (
                             <View style={styles.rootItemInner}>
                                 {item.icon ? (
-                                    <View style={styles.iconBox}>
-                                        <MaterialIcons name={item.icon as any} size={20} color="#64748b" />
+                                    <View style={[styles.iconBox, styles.rootIconBox]}>
+                                        <MaterialIcons name={item.icon as any} size={28} color="#15803d" />
                                     </View>
                                 ) : null}
                                 <Text style={styles.rootItemText}>{item.name}</Text>
@@ -112,15 +121,19 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                                 <View style={styles.itemLeft}>
                                     {item.icon ? (
                                         <View style={styles.iconBox}>
-                                            <MaterialIcons name={item.icon as any} size={20} color="#64748b" />
+                                            <MaterialIcons name={item.icon as any} size={20} color="#15803d" />
                                         </View>
-                                    ) : null}
+                                    ) : (
+                                        <View style={[styles.iconBox, { backgroundColor: '#f8fafc' }]}>
+                                            <MaterialIcons name="subdirectory-arrow-right" size={18} color="#94a3b8" />
+                                        </View>
+                                    )}
                                     <Text style={styles.itemText}>{item.name}</Text>
                                 </View>
                                 <MaterialIcons
-                                    name={item.isLeaf ? "check" : "chevron-right"}
+                                    name={item.isLeaf ? "check-circle" : "chevron-right"}
                                     size={20}
-                                    color={item.isLeaf ? "#10b981" : "#cbd5e1"}
+                                    color={item.isLeaf ? "#19e61b" : "#cbd5e1"}
                                 />
                             </>
                         )}
@@ -128,6 +141,7 @@ export function CategorySelectScreen({ navigation, route }: Props) {
                 )}
                 ListEmptyComponent={
                     <View style={styles.empty}>
+                        <MaterialIcons name="search-off" size={48} color="#e2e8f0" />
                         <Text style={styles.emptyText}>{t('screen.categorySelect.empty')}</Text>
                     </View>
                 }
@@ -137,102 +151,143 @@ export function CategorySelectScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#f8fafc' },
+    root: {
+        flex: 1,
+        backgroundColor: '#f8fafc', // Slate 50
+    },
     header: {
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingBottom: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: '#ffffff',
         borderBottomWidth: 1,
         borderBottomColor: '#f1f5f9',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 2,
+        zIndex: 10,
     },
     titleContainer: {
         alignItems: 'center',
         flex: 1,
+        gap: 2,
     },
     headerTitle: {
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '700',
-        color: '#0f172a',
+        color: '#0f172a', // Slate 900
     },
     pathText: {
         fontSize: 12,
-        color: '#64748b',
-        marginTop: 2,
+        fontWeight: '500',
+        color: '#16a34a', // Green 600
     },
     backBtn: {
         width: 40,
         height: 40,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
     listContent: {
-        padding: 16,
+        padding: 20,
+        paddingBottom: 40,
     },
     gridRow: {
-        gap: 10,
+        gap: 16,
+        marginBottom: 16,
     },
-    item: {
+    // Root Item Styles (Grid)
+    rootItem: {
+        flex: 1,
+        aspectRatio: 1, // Square cards
+        backgroundColor: '#ffffff',
+        borderRadius: 24,
+        marginBottom: 0,
+        padding: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        // Premium Shadow
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    rootItemInner: {
+        alignItems: 'center',
+        gap: 12,
+    },
+    rootIconBox: {
+        width: 56,
+        height: 56,
+        borderRadius: 20,
+        backgroundColor: '#f0fdf4', // Green 50
+        borderWidth: 1,
+        borderColor: '#dcfce7', // Green 100
+        marginBottom: 4,
+    },
+    rootItemText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0f172a',
+        textAlign: 'center',
+    },
+    // List Item Styles (Nested)
+    listItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: '#ffffff',
-        padding: 18,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
         borderRadius: 16,
         marginBottom: 12,
+        // Softer List Shadow
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 2,
         borderWidth: 1,
         borderColor: '#f1f5f9',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-        elevation: 1,
-    },
-    rootItem: {
-        flex: 1,
-        minHeight: 112,
-        marginBottom: 10,
-        paddingVertical: 14,
-        paddingHorizontal: 10,
-    },
-    rootItemInner: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rootItemText: {
-        marginTop: 10,
-        fontSize: 14,
-        color: '#1e293b',
-        fontWeight: '700',
-        textAlign: 'center',
     },
     itemLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 16,
     },
     iconBox: {
-        width: 36,
-        height: 36,
+        width: 40,
+        height: 40,
         borderRadius: 12,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#f0fdf4',
         alignItems: 'center',
         justifyContent: 'center',
     },
     itemText: {
         fontSize: 16,
-        color: '#1e293b',
         fontWeight: '600',
+        color: '#334155', // Slate 700
+    },
+    itemPressed: {
+        transform: [{ scale: 0.98 }],
+        opacity: 0.9,
     },
     empty: {
-        padding: 40,
+        padding: 60,
         alignItems: 'center',
+        gap: 16,
     },
     emptyText: {
         color: '#94a3b8',
-        fontSize: 14,
+        fontSize: 15,
+        fontWeight: '500',
     }
 });

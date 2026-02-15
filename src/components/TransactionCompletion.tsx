@@ -50,28 +50,27 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
 
     return (
         <View style={[styles.container, isChatView && styles.chatContainer]}>
-            <LinearGradient
-                colors={['#f0fdf4', '#ffffff']}
-                style={styles.background}
-            />
+            <View style={styles.background} />
 
             <Animated.View
                 style={[
                     styles.iconContainer,
+                    isChatView && styles.chatIconContainer,
                     { transform: [{ scale: scaleAnim }] }
                 ]}
             >
-                <LinearGradient
-                    colors={['#22c55e', '#16a34a']}
-                    style={styles.iconCircle}
-                >
-                    <MaterialIcons name="check" size={48} color="#fff" />
-                </LinearGradient>
+                <View style={[styles.iconCircle, isChatView && styles.chatIconCircle]}>
+                    <MaterialIcons name="check" size={isChatView ? 32 : 48} color="#22c55e" />
+                </View>
             </Animated.View>
 
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-                <Text style={styles.title}>{t('transaction.celebration.title')}</Text>
-                <Text style={styles.subtitle}>{t('transaction.celebration.subtitle')}</Text>
+                <Text style={[styles.title, isChatView && styles.chatTitle]}>
+                    {t('screen.transaction.celebration.title')}
+                </Text>
+                <Text style={[styles.subtitle, isChatView && styles.chatSubtitle]}>
+                    {t('screen.transaction.celebration.subtitle')}
+                </Text>
 
                 <View style={styles.card}>
                     {!isSeller && !hasReview && (
@@ -80,26 +79,21 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
                             onPress={onReviewPress}
                             activeOpacity={0.8}
                         >
-                            <LinearGradient
-                                colors={['#0f172a', '#1e293b']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.reviewGradient}
-                            >
+                            <View style={styles.reviewContent}>
                                 <MaterialIcons name="star" size={20} color="#fbbf24" style={{ marginRight: 8 }} />
                                 <Text style={styles.reviewButtonText}>
-                                    {t('transaction.celebration.reviewBtn')}
+                                    {t('screen.transaction.celebration.reviewBtn')}
                                 </Text>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     )}
 
                     {!isSeller && hasReview && (
-                        <View style={[styles.reviewButton, { backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1' }]}>
-                            <View style={styles.reviewGradient}>
+                        <View style={[styles.reviewButton, styles.reviewDoneContainer]}>
+                            <View style={styles.reviewContent}>
                                 <MaterialIcons name="check-circle" size={20} color="#16a34a" style={{ marginRight: 8 }} />
                                 <Text style={[styles.reviewButtonText, { color: '#64748b' }]}>
-                                    {t('transaction.celebration.reviewDone')}
+                                    {t('screen.transaction.celebration.reviewDone')}
                                 </Text>
                             </View>
                         </View>
@@ -110,12 +104,12 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
                         onPress={onHomePress}
                     >
                         <Text style={styles.homeButtonText}>
-                            {t('transaction.celebration.homeBtn')}
+                            {t('screen.transaction.celebration.homeBtn')}
                         </Text>
                     </TouchableOpacity>
                 </View>
             </Animated.View>
-        </View>
+        </View >
     );
 };
 
@@ -127,82 +121,99 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     chatContainer: {
-        width: '90%',
-        padding: 16,
-        paddingTop: 24,
-        borderRadius: 20,
+        width: '85%',
+        padding: 20,
+        borderRadius: 24,
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#e2e8f0',
-        elevation: 2,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
     },
     background: {
         ...StyleSheet.absoluteFillObject,
         borderRadius: 24,
+        backgroundColor: '#fff',
     },
     iconContainer: {
-        marginBottom: 24,
+        marginBottom: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
+    chatIconContainer: {
+        marginBottom: 12,
+    },
     iconCircle: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#22c55e',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 10,
+        backgroundColor: '#f0fdf4',
+    },
+    chatIconCircle: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
     },
     content: {
         alignItems: 'center',
         width: '100%',
     },
     title: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '800',
         color: '#0f172a',
         marginBottom: 8,
         textAlign: 'center',
     },
+    chatTitle: {
+        fontSize: 18,
+        marginBottom: 4,
+    },
     subtitle: {
-        fontSize: 15,
+        fontSize: 14,
         color: '#64748b',
         textAlign: 'center',
-        marginBottom: 32,
-        lineHeight: 22,
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    chatSubtitle: {
+        fontSize: 13,
+        marginBottom: 16,
     },
     card: {
         width: '100%',
-        gap: 12,
+        gap: 10,
     },
     reviewButton: {
         width: '100%',
         borderRadius: 16,
+        backgroundColor: '#0f172a',
         overflow: 'hidden',
-        elevation: 4,
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
-    reviewGradient: {
+    reviewDoneContainer: {
+        backgroundColor: '#f8fafc',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    reviewContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 16,
+        paddingVertical: 14,
     },
     reviewButtonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '700',
     },
     homeButton: {
         width: '100%',
-        paddingVertical: 16,
+        paddingVertical: 14,
         borderRadius: 16,
         alignItems: 'center',
         borderWidth: 1,
@@ -211,7 +222,7 @@ const styles = StyleSheet.create({
     },
     homeButtonText: {
         color: '#64748b',
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '600',
     },
 });
