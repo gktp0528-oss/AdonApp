@@ -246,6 +246,7 @@
       "recent": "최근 검색어",
       "resultCount": "{{count}}개의 상품을 찾았습니다",
       "loading": "검색 중...",
+      "ai_analyzing": "Adon AI가 검색어를 똑똑하게 확장하고 있어요...",
       "accessibility": {
         "openCategory": "{{name}} 카테고리 열기"
       }

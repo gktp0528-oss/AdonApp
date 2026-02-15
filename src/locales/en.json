@@ -247,6 +247,7 @@
       "recent": "Recent searches",
       "resultCount": "Found {{count}} items",
       "loading": "Searching...",
+      "ai_analyzing": "Adon AI is expanding your search...",
       "accessibility": {
         "openCategory": "Open {{name}} category"
       }
