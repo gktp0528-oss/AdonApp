@@ -104,22 +104,27 @@ class SearchServiceImpl implements SearchService {
             const allListings = await this.getAllListings();
 
             const normalizedSearchText = normalizeSearchText(normalizedQuery);
+            const lowerQuery = normalizedQuery.toLowerCase();
             const initialConsonants = getInitialConsonants(normalizedQuery);
             const useKoreanInitialMatch = hasKorean(normalizedQuery);
+
+            // Collect synonyms for broader suggestion matching
+            const querySynonyms = LOCAL_SYNONYMS[lowerQuery] || [];
 
             // Find matching listings
             const matchingListings = allListings.filter(listing => {
                 const normalizedTitle = normalizeSearchText(listing.title || '');
                 const titleInitials = getInitialConsonants(listing.title || '');
 
-                // Normalized match (no spaces)
-                if (normalizedTitle.includes(normalizedSearchText)) {
-                    return true;
-                }
+                // 1. Precise match
+                if (normalizedTitle.includes(normalizedSearchText)) return true;
 
-                // Initial consonant match (초성 검색) only for Korean input
-                if (useKoreanInitialMatch && titleInitials.includes(initialConsonants)) {
-                    return true;
+                // 2. Initial consonant match (초성 검색)
+                if (useKoreanInitialMatch && titleInitials.includes(initialConsonants)) return true;
+
+                // 3. Synonym matching (e.g., '에어팟' matches 'AirPods')
+                for (const syn of querySynonyms) {
+                    if (normalizedTitle.includes(syn)) return true;
                 }
 
                 return false;
