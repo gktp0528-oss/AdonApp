@@ -63,7 +63,7 @@ export function SplashScreen({ navigation }: Props) {
         }
         await authService.signInWithApple();
       }
-      navigation.replace('MainTabs');
+      navigation.replace('Welcome');
     } catch (error: any) {
       if (error.message !== 'User canceled Apple Sign-In') {
         alert(t('screen.login.alert.failed') + ': ' + error.message);
