@@ -269,6 +269,16 @@ export function ProductScreen({ navigation, route }: Props) {
           <View style={[styles.topActions, { top: insets.top + 12 }]}>
             <DetailBackButton onPress={() => navigation.goBack()} />
             <View style={styles.rightActions}>
+              {listing.sellerId === userService.getCurrentUserId() && (
+                <Pressable
+                  style={styles.iconCircle}
+                  onPress={() => navigation.navigate('EditListing', { listingId: listing.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.edit')}
+                >
+                  <MaterialIcons name="edit" size={18} color="#0f172a" />
+                </Pressable>
+              )}
               <Pressable
                 style={styles.iconCircle}
                 onPress={handleShareListing}
@@ -286,10 +296,15 @@ export function ProductScreen({ navigation, route }: Props) {
                     return;
                   }
                   if (listing) {
+                    // Optimistic update
+                    const originalState = liked;
+                    setLiked(!originalState);
+
                     try {
                       await wishlistService.toggleLike(currentUserId, listing.id, listing.price);
                     } catch (error) {
                       console.error('Failed to toggle like:', error);
+                      setLiked(originalState); // Revert on failure
                     }
                   }
                 }}
@@ -329,8 +344,18 @@ export function ProductScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{priceDisplay}</Text>
-            {listing.oldPrice && <Text style={styles.oldPrice}>{formatCurrency(listing.oldPrice, listing.currency)}</Text>}
+            <View>
+              <Text style={styles.price}>{priceDisplay}</Text>
+              {listing.oldPrice && (
+                <View style={styles.oldPriceRow}>
+                  <Text style={styles.oldPrice}>{formatCurrency(listing.oldPrice, listing.currency)}</Text>
+                  <View style={styles.dropBadge}>
+                    <MaterialIcons name="trending-down" size={14} color="#fff" />
+                    <Text style={styles.dropBadgeText}>{t('screen.priceDrop.title')}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
           </View>
 
           <View style={styles.safeBox}>
@@ -563,9 +588,33 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 11,
   },
-  priceRow: { marginTop: 8, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  priceRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center' },
   price: { fontSize: 48 / 2, fontWeight: '900', color: '#111827' },
-  oldPrice: { fontSize: 16, color: '#94a3b8', textDecorationLine: 'line-through', marginBottom: 3 },
+  oldPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  oldPrice: {
+    fontSize: 16,
+    color: '#94a3b8',
+    textDecorationLine: 'line-through',
+  },
+  dropBadge: {
+    backgroundColor: '#ef4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 12,
+  },
+  dropBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '800',
+    marginLeft: 4,
+  },
 
   safeBox: {
     marginTop: 12,

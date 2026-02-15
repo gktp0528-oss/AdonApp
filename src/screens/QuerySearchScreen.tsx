@@ -27,9 +27,10 @@ export function QuerySearchScreen({ navigation }: Props) {
   // Load recents on mount
   useEffect(() => {
     loadRecents();
-    const timer = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
+    // Auto-focus removed as per user request
+    // const timer = setTimeout(() => {
+    //   inputRef.current?.focus();
+    // }, 100);
 
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -37,7 +38,7 @@ export function QuerySearchScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
 
-    return () => clearTimeout(timer);
+    // return () => clearTimeout(timer);
   }, []);
 
   const loadRecents = async () => {

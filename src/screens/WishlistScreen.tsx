@@ -28,39 +28,56 @@ export function WishlistScreen({ navigation }: Props) {
     const [wishlist, setWishlist] = useState<(WishlistItem & { product?: Listing })[]>([]);
 
     useEffect(() => {
-        loadWishlist();
-    }, []);
-
-    const loadWishlist = async () => {
         const userId = userService.getCurrentUserId();
         if (!userId) {
             setLoading(false);
             return;
         }
 
-        try {
-            const items = await wishlistService.getWishlist(userId);
-            const itemsWithDetails = await Promise.all(
-                items.map(async (item) => {
-                    const product = await listingService.getListingById(item.listingId);
-                    return { ...item, product: product || undefined };
-                })
-            );
-            setWishlist(itemsWithDetails.filter(i => i.product));
-        } catch (error) {
-            console.error('Failed to load wishlist:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        setLoading(true);
+        const unsubscribe = wishlistService.watchWishlist(userId, async (items) => {
+            // Fetch details for each item
+            // Note: For a production app, we should optimize this to fetch only missing items or use a batch query if possible.
+            // Given the likely small size of a wishlist, fetching one-by-one or via Promise.all is acceptable for now.
+
+            try {
+                const itemsWithDetails = await Promise.all(
+                    items.map(async (item) => {
+                        const product = await listingService.getListingById(item.listingId);
+                        return { ...item, product: product || undefined };
+                    })
+                );
+
+                // Sort by most recently added by default (descending)
+                // createdAt might be null instantly after local write, so handle that
+                const sorted = itemsWithDetails
+                    .filter(i => i.product)
+                    .sort((a, b) => {
+                        const timeA = a.createdAt?.seconds || 0;
+                        const timeB = b.createdAt?.seconds || 0;
+                        return timeB - timeA;
+                    });
+
+                setWishlist(sorted);
+            } catch (err) {
+                console.error("Error fetching details for wishlist:", err);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const handleToggleLike = async (listingId: string, currentPrice: number) => {
         const userId = userService.getCurrentUserId();
         if (!userId) return;
 
+        // Optimistic removal from UI could be done here, but since we have real-time listener,
+        // it might flicker if we are not careful.
+        // For WishlistScreen, allowing the snapshot to update the list is safer and "good enough" speed-wise.
         try {
             await wishlistService.toggleLike(userId, listingId, currentPrice);
-            setWishlist((prev) => prev.filter((item) => item.listingId !== listingId));
         } catch (error) {
             console.error('Failed to toggle like:', error);
         }
@@ -123,7 +140,7 @@ export function WishlistScreen({ navigation }: Props) {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <MaterialIcons name="favorite-border" size={48} color="#d1d5db" />
-                        <Text style={styles.emptyText}>{t('screen.keywords.empty')}</Text>
+                        <Text style={styles.emptyText}>{t('screen.priceDrop.empty')}</Text>
                     </View>
                 }
             />

@@ -11,6 +11,13 @@
     "manage": "관리",
     "verify": "인증",
     "success": "성공",
+    "edit": "수정",
+    "condition": {
+      "new": "새 상품",
+      "likeNew": "거의 새것",
+      "good": "양호",
+      "fair": "사용감 있음"
+    },
     "time": {
       "justNow": "방금 전",
       "ago": {
@@ -29,12 +36,6 @@
     "accessibility": {
       "back": "뒤로 가기",
       "tab": "{{label}} 탭"
-    },
-    "condition": {
-      "new": "새 상품",
-      "likeNew": "거의 새것",
-      "good": "양호",
-      "fair": "사용감 있음"
     }
   },
   "screen": {
@@ -441,7 +442,8 @@
     "priceDrop": {
       "title": "가격 하락 알림",
       "description": "찜한 상품의 가격이 떨어지면 알림을 보내드려요!",
-      "description_short": "관심 상품의 핫딜 기회를 놓치지 마세요."
+      "description_short": "관심 상품의 핫딜 기회를 놓치지 마세요.",
+      "empty": "아직 찜한 상품이 없어요. 마음에 드는 상품을 찾아보세요!"
     },
     "editProfile": {
       "title": "프로필 편집",

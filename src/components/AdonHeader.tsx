@@ -10,6 +10,8 @@ interface AdonHeaderProps {
     rightElement?: ReactNode;
     onClose?: () => void;
     showClose?: boolean;
+    showBack?: boolean;
+    onBack?: () => void;
 }
 
 export const AdonHeader = ({
@@ -18,6 +20,8 @@ export const AdonHeader = ({
     rightElement,
     onClose,
     showClose = false,
+    showBack = false,
+    onBack,
 }: AdonHeaderProps) => {
     const insets = useSafeAreaInsets();
     const topPadding = Math.max(insets.top, 16);
@@ -26,6 +30,15 @@ export const AdonHeader = ({
         <View style={[styles.container, { paddingTop: topPadding }]}>
             <View style={styles.content}>
                 <View style={styles.left}>
+                    {showBack && (
+                        <Pressable
+                            onPress={onBack}
+                            style={styles.backBtn}
+                            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                        >
+                            <MaterialIcons name="arrow-back" size={24} color="#111" />
+                        </Pressable>
+                    )}
                     {leftElement}
                 </View>
 
@@ -86,6 +99,12 @@ const styles = StyleSheet.create({
         color: '#111',
     },
     closeBtn: {
+        width: 44,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    backBtn: {
         width: 44,
         height: 44,
         alignItems: 'center',

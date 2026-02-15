@@ -11,6 +11,13 @@
     "manage": "Manage",
     "verify": "Verify",
     "success": "Success",
+    "edit": "Edit",
+    "condition": {
+      "new": "New",
+      "likeNew": "Like New",
+      "good": "Good",
+      "fair": "Fair"
+    },
     "time": {
       "justNow": "Just now",
       "ago": {
@@ -29,12 +36,6 @@
     "accessibility": {
       "back": "Go back",
       "tab": "{{label}} tab"
-    },
-    "condition": {
-      "new": "New",
-      "likeNew": "Like New",
-      "good": "Good",
-      "fair": "Fair"
     }
   },
   "screen": {
@@ -442,7 +443,8 @@
     "priceDrop": {
       "title": "Price Drop Alerts",
       "description": "Get notified when items in your wishlist drop in price!",
-      "description_short": "Never miss a deal on your favorite items."
+      "description_short": "Never miss a deal on your favorite items.",
+      "empty": "No items in your wishlist yet. Start exploring!"
     },
     "editProfile": {
       "title": "Edit Profile",

@@ -34,9 +34,11 @@ import { OnboardingFinishScreen } from './src/screens/OnboardingFinishScreen';
 import { KeywordsScreen } from './src/screens/KeywordsScreen';
 import { NotificationsScreen } from './src/screens/NotificationsScreen';
 import { WishlistScreen } from './src/screens/WishlistScreen';
+import EditListingScreen from './src/screens/EditListingScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import initI18n from './src/i18n';
+import i18next from 'i18next';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -125,7 +127,7 @@ export default function App() {
             component={AiListingScreen}
             options={{
               presentation: 'fullScreenModal',
-              animation: 'slide_from_bottom'
+              animation: 'none'
             }}
           />
 
@@ -160,7 +162,7 @@ export default function App() {
           <Stack.Screen name="Keywords" component={KeywordsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Wishlist" component={WishlistScreen} />
-          <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_right' }} />
           <Stack.Screen
             name="SearchResult"
             component={SearchResultScreen}
@@ -168,6 +170,11 @@ export default function App() {
               animation: 'slide_from_right',
               presentation: 'card'
             }}
+          />
+          <Stack.Screen
+            name="EditListing"
+            component={EditListingScreen}
+            options={{ title: i18next.t('screen.aiListing.edit.title', 'Edit Listing') }}
           />
         </Stack.Navigator>
       </NavigationContainer>

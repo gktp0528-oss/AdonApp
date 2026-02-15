@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -88,9 +89,9 @@ export function HomeScreen({ navigation }: Props) {
         return;
       }
 
-      setActiveListings((prev) => {
-        const existing = new Set(prev.map((item) => item.id));
-        const appended = listings.filter((item) => !existing.has(item.id));
+      setActiveListings((prev: Listing[]) => {
+        const existing = new Set(prev.map((item: Listing) => item.id));
+        const appended = listings.filter((item: Listing) => !existing.has(item.id));
         return [...prev, ...appended];
       });
       setLastDoc(nextLastDoc);
@@ -269,6 +270,11 @@ export function HomeScreen({ navigation }: Props) {
                 <Text style={styles.freshPrice}>
                   {formatCurrency(item.price, item.currency)}
                 </Text>
+                {item.oldPrice && (
+                  <View style={styles.hotBadge}>
+                    <Text style={styles.hotBadgeText}>HOT</Text>
+                  </View>
+                )}
                 <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
               </View>
               <View style={styles.categoryTag}>
@@ -376,5 +382,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1f2937',
     fontSize: 13,
+  },
+  hotBadge: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  hotBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '900',
   },
 });

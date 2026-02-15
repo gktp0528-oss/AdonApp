@@ -54,4 +54,5 @@ export type RootStackParamList = {
   Keywords: undefined;
   Notifications: undefined;
   Wishlist: undefined;
+  EditListing: { listingId: string };
 };

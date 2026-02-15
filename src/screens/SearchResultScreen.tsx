@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -7,6 +7,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { searchService } from '../services/searchService';
+import { listingService } from '../services/listingService';
+import { wishlistService } from '../services/wishlistService';
+import { userService } from '../services/userService';
 import { Listing } from '../types/listing';
 import { formatCurrency } from '../utils/format';
 
@@ -19,9 +22,18 @@ export function SearchResultScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const [results, setResults] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     void performSearch();
+
+    const userId = userService.getCurrentUserId();
+    if (userId) {
+      const unsubscribeWishlist = wishlistService.watchWishlist(userId, (items) => {
+        setWishlistIds(new Set(items.map(i => i.listingId)));
+      });
+      return () => unsubscribeWishlist();
+    }
   }, [query, categoryId]);
 
   const performSearch = async () => {
@@ -73,10 +85,26 @@ export function SearchResultScreen({ route, navigation }: Props) {
         />
         <Pressable
           style={styles.wishBtn}
+          onPress={async () => {
+            const userId = userService.getCurrentUserId();
+            if (!userId) {
+              Alert.alert(t('common.loginRequired'), t('screen.product.chat.loginPrompt'));
+              return;
+            }
+            try {
+              await wishlistService.toggleLike(userId, item.id, item.price);
+            } catch (error) {
+              console.error('Failed to toggle like on search results:', error);
+            }
+          }}
           accessibilityRole="button"
-          accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
+          accessibilityLabel={wishlistIds.has(item.id) ? t('screen.product.accessibility.unlike') : t('screen.product.accessibility.like')}
         >
-          <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
+          <MaterialIcons
+            name={wishlistIds.has(item.id) ? "favorite" : "favorite-border"}
+            size={18}
+            color={wishlistIds.has(item.id) ? "#ef4444" : "#4b5563"}
+          />
         </Pressable>
       </View>
       <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
@@ -84,6 +112,11 @@ export function SearchResultScreen({ route, navigation }: Props) {
         <Text style={styles.freshPrice}>
           {formatCurrency(item.price, item.currency)}
         </Text>
+        {item.oldPrice && (
+          <View style={styles.hotBadge}>
+            <Text style={styles.hotBadgeText}>HOT</Text>
+          </View>
+        )}
         <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
       </View>
       <View style={styles.categoryTag}>
@@ -256,5 +289,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: '500',
+  },
+  hotBadge: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  hotBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '900',
   },
 });

@@ -16,7 +16,10 @@ import {
   Easing,
   Animated,
   TouchableWithoutFeedback,
+  Dimensions,
 } from 'react-native';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,6 +47,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const slideUpAnim = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  // Trigger fast slide up on mount
+  useEffect(() => {
+    Animated.timing(slideUpAnim, {
+      toValue: 0,
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const { t, i18n } = useTranslation();
 
@@ -107,8 +121,15 @@ export function AiListingScreen({ navigation, route }: Props) {
   }, [route.params?.appliedReport]);
 
   const handleClose = () => {
-    // Since AiListing is now a Stack modal, just go back
-    navigation.goBack();
+    // Animate out before going back
+    Animated.timing(slideUpAnim, {
+      toValue: SCREEN_HEIGHT,
+      duration: 200,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.goBack();
+    });
   };
 
   // Form State
@@ -502,7 +523,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   }
 
   return (
-    <View style={styles.root}>
+    <Animated.View style={[styles.root, { transform: [{ translateY: slideUpAnim }] }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -689,7 +710,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </View>
+    </Animated.View>
   );
 }
 

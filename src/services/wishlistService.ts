@@ -27,13 +27,16 @@ export const wishlistService = {
     async toggleLike(userId: string, listingId: string, currentPrice: number): Promise<boolean> {
         try {
             const id = `${userId}_${listingId}`;
+            console.log(`[WishlistService] Toggling like for ${id}`);
             const docRef = doc(db, COLLECTION, id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
+                console.log(`[WishlistService] Removing like for ${id}`);
                 await deleteDoc(docRef);
                 return false; // Unliked
             } else {
+                console.log(`[WishlistService] Adding like for ${id}`);
                 await setDoc(docRef, {
                     userId,
                     listingId,
@@ -43,7 +46,7 @@ export const wishlistService = {
                 return true; // Liked
             }
         } catch (error) {
-            console.error('Error toggling like:', error);
+            console.error('[WishlistService] Error toggling like:', error);
             throw error;
         }
     },
