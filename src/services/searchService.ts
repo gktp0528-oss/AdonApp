@@ -1,4 +1,10 @@
 import {
+    addDoc,
+    setDoc,
+    doc,
+    getDoc,
+    serverTimestamp,
+    Timestamp,
     collection,
     query,
     where,
@@ -7,13 +13,11 @@ import {
     limit,
     startAt,
     endAt,
-    addDoc,
-    serverTimestamp,
-    Timestamp
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Fuse from 'fuse.js';
-import { db } from '../firebaseConfig'; // Corrected path
+import { db, aiBackend } from '../firebaseConfig';
+import { getGenerativeModel } from 'firebase/ai';
 import { Listing } from '../types/listing';
 
 export interface SearchService {
@@ -26,45 +30,16 @@ export interface SearchService {
 }
 
 const SEARCH_LOGS_COLLECTION = 'search_logs';
+const SEARCH_CACHE_COLLECTION = 'search_query_cache';
 const KEYWORD_STATS_COLLECTION = 'keyword_stats';
 const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
-
-// Brand mappings for cross-language search
-const BRAND_MAP: Record<string, string> = {
-    '애플': 'apple',
-    '아이폰': 'iphone',
-    '맥북': 'macbook',
-    '나이키': 'nike',
-    '아디다스': 'adidas',
-    '구찌': 'gucci',
-    '샤넬': 'chanel',
-    '루이비통': 'louis vuitton',
-    '프라다': 'prada',
-    '입생로랑': 'ysl',
-    '디올': 'dior',
-    '폴로': 'polo',
-    '파타고니아': 'patagonia',
-    '스투시': 'stussy',
-    '슈프림': 'supreme',
-    '조던': 'jordan',
-    '소니': 'sony',
-    '닌텐도': 'nintendo',
-    '삼성': 'samsung',
-};
 
 // Multilingual normalization (Korean + Latin with accent folding)
 const normalizeSearchText = (text: string): string => {
     if (!text) return '';
 
     let normalized = text.toLowerCase().trim();
-
-    // Brand translation
-    Object.entries(BRAND_MAP).forEach(([ko, en]) => {
-        if (normalized.includes(ko)) {
-            normalized = normalized.replace(ko, en);
-        }
-    });
 
     // Fold accents (e.g. á, é, ő, ű -> a, e, o, u)
     normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -179,6 +154,54 @@ class SearchServiceImpl implements SearchService {
         }
     }
 
+    private async expandQueryWithAi(queryText: string): Promise<string[]> {
+        const normalized = queryText.toLowerCase().trim();
+        if (!normalized) return [];
+
+        try {
+            // 1. Check Firestore Cache first
+            const cacheDoc = await getDoc(doc(db, SEARCH_CACHE_COLLECTION, normalized));
+            if (cacheDoc.exists()) {
+                const data = cacheDoc.data();
+                // Cache valid for 30 days
+                if (data.keywords && (Date.now() - data.timestamp.toMillis()) < (30 * 24 * 60 * 60 * 1000)) {
+                    return data.keywords;
+                }
+            }
+
+            // 2. Call AI if not cached
+            const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash-exp" });
+            const prompt = `You are a professional search engine optimizer for a global used-goods marketplace.
+            Translate and expand the following search query into technical English keywords, global brand names, and related categories.
+            The input language could be Korean, Hungarian, or English.
+            
+            Inputs: "${queryText}"
+            
+            Return ONLY a comma-separated list of the most relevant 3-5 keywords (lower case).
+            Example 1 (Korean): "에어팟" -> "airpods, apple, wireless earbuds"
+            Example 2 (Hungarian): "macska" -> "cat, pet, kitten"
+            Example 3 (Mixed): "나이키 신발" -> "nike, shoes, sneakers"`;
+
+            const result = await model.generateContent(prompt);
+            const responseText = (await result.response).text();
+            const keywords = responseText.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+
+            if (keywords.length > 0) {
+                // 3. Save to Cache
+                setDoc(doc(db, SEARCH_CACHE_COLLECTION, normalized), {
+                    keywords,
+                    timestamp: serverTimestamp()
+                }).catch(err => console.warn('Search cache save failed:', err));
+
+                return keywords;
+            }
+        } catch (error) {
+            console.warn('AI Query Expansion failed:', error);
+        }
+
+        return [normalized];
+    }
+
     // Enhanced Search with Fuzzy Matching
     async searchListings(queryText: string, options?: any): Promise<Listing[]> {
         const normalizedQuery = queryText.trim();
@@ -192,8 +215,13 @@ class SearchServiceImpl implements SearchService {
                 return allListings.slice(0, 20);
             }
 
+            // AI-Powered Expansion (Run in parallel if possible, but for accuracy we await)
+            const expandedKeywords = await this.expandQueryWithAi(normalizedQuery);
+            const searchTerms = [normalizedQuery, ...expandedKeywords];
+            const combinedSearchText = searchTerms.join(' ');
+
             // Normalize query for better matching
-            const normalizedSearchText = normalizeSearchText(normalizedQuery);
+            const normalizedSearchText = normalizeSearchText(combinedSearchText);
             const initialConsonants = getInitialConsonants(normalizedQuery);
             const useKoreanInitialMatch = hasKorean(normalizedQuery);
 

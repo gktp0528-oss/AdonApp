@@ -121,7 +121,9 @@ export function SearchResultScreen({ route, navigation }: Props) {
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#16a34a" />
-          <Text style={styles.loadingText}>{t('screen.search.loading')}</Text>
+          <Text style={styles.loadingText}>
+            {t('screen.search.ai_analyzing', { defaultValue: 'Adon AI is expanding your search...' })}
+          </Text>
         </View>
       ) : (
         <FlatList
