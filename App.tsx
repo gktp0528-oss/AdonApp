@@ -130,6 +130,7 @@ export default function App() {
             }}
           />
           <Stack.Screen name="Product" component={ProductScreen} />
+          <Stack.Screen name="Seller" component={SellerScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />

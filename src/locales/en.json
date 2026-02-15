@@ -145,7 +145,8 @@
         "sales": "Sales {{count}}",
         "positive": "Positive {{rate}}%",
         "follow": "Follow",
-        "following": "Following"
+        "following": "Following",
+        "visit": "Visit"
       },
       "trust": {
         "response": "Response",
@@ -271,6 +272,9 @@
           "fewDays": "> 1d",
           "fewHours": "< 6h",
           "unknown": "-"
+        },
+        "reliabilityValue": {
+          "new": "New Member"
         }
       },
       "reliabilityLabel": "ADON Trust Label",

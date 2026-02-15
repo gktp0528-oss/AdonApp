@@ -271,6 +271,9 @@
           "fewDays": "1일 이상",
           "fewHours": "6시간 이내",
           "unknown": "-"
+        },
+        "reliabilityValue": {
+          "new": "신규 회원"
         }
       },
       "reliabilityLabel": "ADON 신뢰 지표",

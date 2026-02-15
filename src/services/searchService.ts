@@ -30,18 +30,21 @@ const KEYWORD_STATS_COLLECTION = 'keyword_stats';
 const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
-// Korean text normalization utilities
-const normalizeKorean = (text: string): string => {
+// Multilingual normalization (Korean + Latin with accent folding)
+const normalizeSearchText = (text: string): string => {
     if (!text) return '';
 
-    // Remove all spaces
-    let normalized = text.replace(/\s+/g, '');
-
-    // Convert to lowercase
-    normalized = normalized.toLowerCase();
+    // Lowercase first for stable matching
+    let normalized = text.toLowerCase();
+    // Fold accents (e.g. á, é, ő, ű -> a, e, o, u)
+    normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // Remove common separators
+    normalized = normalized.replace(/[\s_-]+/g, '');
 
     return normalized;
 };
+
+const hasKorean = (text: string): boolean => /[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(text);
 
 // Extract Korean initial consonants (초성)
 const getInitialConsonants = (text: string): string => {
@@ -80,27 +83,22 @@ class SearchServiceImpl implements SearchService {
             // Get all listings from cache
             const allListings = await this.getAllListings();
 
-            const normalizedSearchText = normalizeKorean(normalizedQuery);
+            const normalizedSearchText = normalizeSearchText(normalizedQuery);
             const initialConsonants = getInitialConsonants(normalizedQuery);
+            const useKoreanInitialMatch = hasKorean(normalizedQuery);
 
             // Find matching listings
             const matchingListings = allListings.filter(listing => {
-                const listingTitle = (listing.title || '').toLowerCase();
-                const normalizedTitle = normalizeKorean(listing.title || '');
+                const normalizedTitle = normalizeSearchText(listing.title || '');
                 const titleInitials = getInitialConsonants(listing.title || '');
-
-                // Direct substring match
-                if (listingTitle.includes(normalizedQuery.toLowerCase())) {
-                    return true;
-                }
 
                 // Normalized match (no spaces)
                 if (normalizedTitle.includes(normalizedSearchText)) {
                     return true;
                 }
 
-                // Initial consonant match (초성 검색)
-                if (titleInitials.includes(initialConsonants)) {
+                // Initial consonant match (초성 검색) only for Korean input
+                if (useKoreanInitialMatch && titleInitials.includes(initialConsonants)) {
                     return true;
                 }
 
@@ -162,15 +160,27 @@ class SearchServiceImpl implements SearchService {
             }
 
             // Normalize query for better matching
-            const normalizedSearchText = normalizeKorean(normalizedQuery);
+            const normalizedSearchText = normalizeSearchText(normalizedQuery);
             const initialConsonants = getInitialConsonants(normalizedQuery);
+            const useKoreanInitialMatch = hasKorean(normalizedQuery);
+
+            // Build normalized index fields for accent-insensitive matching
+            const indexedListings = allListings.map((listing) => ({
+                ...listing,
+                _searchTitle: normalizeSearchText(listing.title || ''),
+                _searchDescription: normalizeSearchText(listing.description || ''),
+                _searchCategory: normalizeSearchText(listing.category || ''),
+            }));
 
             // Configure Fuse.js for fuzzy search
-            const fuse = new Fuse(allListings, {
+            const fuse = new Fuse(indexedListings, {
                 keys: [
                     { name: 'title', weight: 2 },
+                    { name: '_searchTitle', weight: 2.3 },
                     { name: 'description', weight: 1 },
-                    { name: 'category', weight: 1.5 }
+                    { name: '_searchDescription', weight: 1 },
+                    { name: 'category', weight: 1.5 },
+                    { name: '_searchCategory', weight: 1.5 }
                 ],
                 threshold: 0.4, // 0 = perfect match, 1 = match anything
                 distance: 100,
@@ -180,12 +190,12 @@ class SearchServiceImpl implements SearchService {
             });
 
             // Perform fuzzy search
-            let results = fuse.search(normalizedQuery).map(result => result.item);
+            let results = fuse.search(normalizedSearchText).map(result => result.item as Listing);
 
             // If fuzzy search yields few results, try additional matching strategies
             if (results.length < 5) {
                 const additionalResults = allListings.filter(listing => {
-                    const listingTitle = normalizeKorean(listing.title || '');
+                    const listingTitle = normalizeSearchText(listing.title || '');
                     const listingTitleInitials = getInitialConsonants(listing.title || '');
 
                     // Check if normalized title includes normalized query (handles spacing)
@@ -193,8 +203,8 @@ class SearchServiceImpl implements SearchService {
                         return true;
                     }
 
-                    // Check initial consonant matching (초성 검색)
-                    if (listingTitleInitials.includes(initialConsonants)) {
+                    // Check initial consonant matching (초성 검색) only for Korean input
+                    if (useKoreanInitialMatch && listingTitleInitials.includes(initialConsonants)) {
                         return true;
                     }
 

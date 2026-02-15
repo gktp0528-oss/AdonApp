@@ -10,6 +10,8 @@ import {
     orderBy,
     limit,
     getDocs,
+    increment,
+    updateDoc
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Transaction, TransactionStatus, EscrowStatus, TradeType } from '../types/transaction';
@@ -80,6 +82,25 @@ export const transactionService = {
             updates.escrowStatus = escrowStatus;
         }
         await setDoc(transactionRef, updates, { merge: true });
+
+        // Increment seller's sales count when transaction is released (e.g. PIN verified)
+        if (status === 'released') {
+            try {
+                const tDoc = await getDoc(transactionRef);
+                if (tDoc.exists()) {
+                    const { sellerId } = tDoc.data();
+                    if (sellerId) {
+                        const sellerRef = doc(db, 'users', sellerId);
+                        await updateDoc(sellerRef, {
+                            sales: increment(1)
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to increment sales count:', error);
+                // Don't throw, as the transaction status update itself succeeded
+            }
+        }
     },
 
     /**

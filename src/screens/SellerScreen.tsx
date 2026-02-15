@@ -159,7 +159,7 @@ export function SellerScreen({ navigation, route }: Props) {
                 </View>
                 <View style={styles.statContent}>
                   <Text style={styles.statValue}>
-                    {seller.positiveRate ? `${(seller.positiveRate / 20).toFixed(1)}` : '0.0'}
+                    {seller.rating ? `${seller.rating.toFixed(1)}` : '0.0'}
                   </Text>
                   <Text style={styles.statLabel}>{t('screen.profile.stats.reliability')}</Text>
                 </View>

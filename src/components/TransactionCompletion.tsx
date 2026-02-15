@@ -16,6 +16,7 @@ interface TransactionCompletionProps {
     onHomePress: () => void;
     isChatView?: boolean;
     isSeller?: boolean;
+    hasReview?: boolean;
 }
 
 const { width } = Dimensions.get('window');
@@ -24,7 +25,8 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
     onReviewPress,
     onHomePress,
     isChatView = false,
-    isSeller = false
+    isSeller = false,
+    hasReview = false
 }) => {
     const { t } = useTranslation();
     const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -72,7 +74,7 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
                 <Text style={styles.subtitle}>{t('transaction.celebration.subtitle')}</Text>
 
                 <View style={styles.card}>
-                    {!isSeller && (
+                    {!isSeller && !hasReview && (
                         <TouchableOpacity
                             style={styles.reviewButton}
                             onPress={onReviewPress}
@@ -90,6 +92,17 @@ export const TransactionCompletion: React.FC<TransactionCompletionProps> = ({
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
+                    )}
+
+                    {!isSeller && hasReview && (
+                        <View style={[styles.reviewButton, { backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1' }]}>
+                            <View style={styles.reviewGradient}>
+                                <MaterialIcons name="check-circle" size={20} color="#16a34a" style={{ marginRight: 8 }} />
+                                <Text style={[styles.reviewButtonText, { color: '#64748b' }]}>
+                                    {t('transaction.celebration.reviewDone')}
+                                </Text>
+                            </View>
+                        </View>
                     )}
 
                     <TouchableOpacity

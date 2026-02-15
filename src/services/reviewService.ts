@@ -20,9 +20,16 @@ export const reviewService = {
     async submitReview(reviewData: Omit<Review, 'id' | 'createdAt'>): Promise<string> {
         try {
             return await runTransaction(db, async (transaction) => {
-                // 1. Read user data (Must be done before any writes)
+                // 1. Read user data & transaction data (Must be done before any writes)
                 const userRef = doc(db, 'users', reviewData.revieweeId);
+                const transRef = doc(db, 'transactions', reviewData.transactionId);
+
                 const userDoc = await transaction.get(userRef);
+                const transDoc = await transaction.get(transRef);
+
+                if (transDoc.exists() && transDoc.data().reviewId) {
+                    throw new Error("Review already exists for this transaction");
+                }
 
                 const reviewRef = collection(db, COLLECTION);
                 const newReviewDoc = doc(reviewRef);
@@ -38,7 +45,6 @@ export const reviewService = {
                 transaction.set(newReviewDoc, fullReview);
 
                 // 3. Update transaction with reviewId (Write)
-                const transRef = doc(db, 'transactions', reviewData.transactionId);
                 transaction.update(transRef, { reviewId: newReviewDoc.id });
 
                 // 4. Update reviewee (seller) rating (Write)

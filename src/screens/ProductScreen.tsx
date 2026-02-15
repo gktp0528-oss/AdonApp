@@ -336,22 +336,32 @@ export function ProductScreen({ navigation, route }: Props) {
               </View>
               <Pressable
                 style={styles.followBtn}
-                onPress={() => setFollowing((prev) => !prev)}
+                onPress={() => {
+                  if (seller?.id) {
+                    navigation.push('Seller', { sellerId: seller.id });
+                  }
+                }}
                 accessibilityRole="button"
-                accessibilityLabel={following ? t('screen.product.accessibility.unfollow') : t('screen.product.accessibility.follow')}
+                accessibilityLabel={t('screen.product.seller.visit')}
               >
-                <Text style={styles.followText}>{following ? t('screen.product.seller.following') : t('screen.product.seller.follow')}</Text>
+                <Text style={styles.followText}>{t('screen.product.seller.visit')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.trustRow}>
               <View style={styles.trustCard}>
                 <Text style={styles.trustLabel}>{t('screen.product.trust.response')}</Text>
-                <Text style={styles.trustValue}>{seller?.responseTime || '-'}</Text>
+                <Text style={styles.trustValue}>{seller?.responseTime ? t(seller.responseTime) : '-'}</Text>
               </View>
               <View style={styles.trustCard}>
                 <Text style={styles.trustLabel}>{t('screen.product.trust.reliability')}</Text>
-                <Text style={styles.trustValue}>{seller?.reliabilityLabel || '-'}</Text>
+                <Text style={styles.trustValue}>
+                  {seller?.rating && seller.rating > 0
+                    ? `★ ${seller.rating.toFixed(1)}`
+                    : (seller?.reliabilityLabel === 'New Member'
+                      ? t('screen.profile.stats.reliabilityValue.new')
+                      : (seller?.reliabilityLabel ? t(seller.reliabilityLabel) : '-'))}
+                </Text>
               </View>
             </View>
           </View>

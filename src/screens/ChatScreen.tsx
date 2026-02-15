@@ -42,6 +42,7 @@ export function ChatScreen({ navigation, route }: Props) {
   const [isReviewModalVisible, setReviewModalVisible] = useState(false);
   const [completedTransactionId, setCompletedTransactionId] = useState<string | null>(null);
   const [isSeller, setIsSeller] = useState(false);
+  const [hasReview, setHasReview] = useState(false);
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -84,6 +85,7 @@ export function ChatScreen({ navigation, route }: Props) {
       if (tr) {
         setActiveTransactionId(tr.id);
         setIsSeller(tr.sellerId === currentUserId);
+        setHasReview(!!tr.reviewId);
       }
     };
 
@@ -267,7 +269,9 @@ export function ChatScreen({ navigation, route }: Props) {
                       }
                     }}
                     onHomePress={() => navigation.navigate('MainTabs')}
+                    onHomePress={() => navigation.navigate('MainTabs')}
                     isSeller={isSeller}
+                    hasReview={hasReview}
                   />
                 </View>
               );
@@ -361,6 +365,7 @@ export function ChatScreen({ navigation, route }: Props) {
 
               Alert.alert(t('common.success'), t('transaction.review.success'));
               setReviewModalVisible(false);
+              setHasReview(true); // Update local state immediately
 
             } catch (error) {
               console.error('Review submit failed', error);
