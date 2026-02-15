@@ -18,5 +18,6 @@ export interface User {
     isVerified?: boolean;
     lastActive?: any; // Timestamp
     isOnline?: boolean;
-    themePreference?: 'light' | 'dark';
+    pushToken?: string;
+    keywords?: string[];
 }

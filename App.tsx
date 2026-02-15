@@ -31,10 +31,11 @@ import ReviewScreen from './src/screens/ReviewScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { NicknameSetupScreen } from './src/screens/NicknameSetupScreen';
 import { OnboardingFinishScreen } from './src/screens/OnboardingFinishScreen';
+import { KeywordsScreen } from './src/screens/KeywordsScreen';
+import { NotificationsScreen } from './src/screens/NotificationsScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import initI18n from './src/i18n';
-import { ThemeProvider } from './src/context/ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -101,73 +102,73 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName="Splash"
-            screenOptions={{
-              headerShown: false,
-              gestureEnabled: true,
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Splash"
+          screenOptions={{
+            headerShown: false,
+            gestureEnabled: true,
+          }}
+        >
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="NicknameSetup" component={NicknameSetupScreen} />
+          <Stack.Screen name="OnboardingFinish" component={OnboardingFinishScreen} />
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ gestureEnabled: false }} />
+
+          {/* Modal Screens - Slide from bottom */}
+          <Stack.Screen
+            name="AiListing"
+            component={AiListingScreen}
+            options={{
+              presentation: 'fullScreenModal',
+              animation: 'slide_from_bottom'
             }}
-          >
-            <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="NicknameSetup" component={NicknameSetupScreen} />
-            <Stack.Screen name="OnboardingFinish" component={OnboardingFinishScreen} />
-            <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ gestureEnabled: false }} />
+          />
 
-            {/* Modal Screens - Slide from bottom */}
-            <Stack.Screen
-              name="AiListing"
-              component={AiListingScreen}
-              options={{
-                presentation: 'fullScreenModal',
-                animation: 'slide_from_bottom'
-              }}
-            />
-
-            {/* Sub Screens - Default Slide Animation */}
-            <Stack.Screen
-              name="CategoryList"
-              component={SneakersListScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card'
-              }}
-            />
-            <Stack.Screen name="Product" component={ProductScreen} />
-            <Stack.Screen name="Seller" component={SellerScreen as any} />
-            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="Chat" component={ChatScreen} />
-            <Stack.Screen
-              name="CategorySelect"
-              component={CategorySelectScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'fullScreenModal',
-              }}
-            />
-            <Stack.Screen name="AiIntro" component={AiIntroScreen} />
-            <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
-            <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="Payment" component={PaymentScreen} />
-            <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
-            <Stack.Screen name="Review" component={ReviewScreen} />
-            <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen
-              name="SearchResult"
-              component={SearchResultScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card'
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </ThemeProvider>
+          {/* Sub Screens - Default Slide Animation */}
+          <Stack.Screen
+            name="CategoryList"
+            component={SneakersListScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'card'
+            }}
+          />
+          <Stack.Screen name="Product" component={ProductScreen} />
+          <Stack.Screen name="Seller" component={SellerScreen as any} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen
+            name="CategorySelect"
+            component={CategorySelectScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'fullScreenModal',
+            }}
+          />
+          <Stack.Screen name="AiIntro" component={AiIntroScreen} />
+          <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
+          <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="Payment" component={PaymentScreen} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen name="Review" component={ReviewScreen} />
+          <Stack.Screen name="Keywords" component={KeywordsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen
+            name="SearchResult"
+            component={SearchResultScreen}
+            options={{
+              animation: 'slide_from_right',
+              presentation: 'card'
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }

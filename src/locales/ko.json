@@ -7,6 +7,8 @@
     "cancel": "취소",
     "confirm": "확인",
     "copy": "복사",
+    "add": "추가",
+    "manage": "관리",
     "verify": "인증",
     "success": "성공",
     "time": {
@@ -414,6 +416,32 @@
         "about": "앱 정보",
         "aboutMessage": "ADON v1.0.0\n프리미엄 리세일 마켓플레이스\n\n© 2025 ADON. All rights reserved."
       }
+    },
+    "keywords": {
+      "title": "키워드 알림",
+      "description": "관심 있는 상품의 키워드를 등록해보세요. 누군가 상품을 올리면 가장 먼저 알려드릴게요!",
+      "description_short": "등록한 키워드의 새 상품 알림을 받아보세요.",
+      "placeholder": "예: 아이폰 15, 빈티지 카메라",
+      "alreadyExists": "이미 등록된 키워드입니다.",
+      "maxLimit": "키워드는 최대 10개까지 등록 가능합니다.",
+      "empty": "등록된 키워드가 없습니다. 키워드를 추가해보세요!",
+      "deleteTitle": "키워드 삭제",
+      "deleteMessage": "\"{{keyword}}\" 키워드를 삭제하시겠습니까?",
+      "addError": "키워드 등록에 실패했습니다.",
+      "removeError": "키워드 삭제에 실패했습니다."
+    },
+    "notifications": {
+      "title": "알림",
+      "empty": "새로운 알림이 없습니다.",
+      "welcome": {
+        "title": "Adon에 오신 것을 환영합니다!",
+        "body": "지금 바로 프리미엄 아이템 거래를 시작해보세요."
+      }
+    },
+    "priceDrop": {
+      "title": "가격 하락 알림",
+      "description": "찜한 상품의 가격이 떨어지면 알림을 보내드려요!",
+      "description_short": "관심 상품의 핫딜 기회를 놓치지 마세요."
     },
     "editProfile": {
       "title": "프로필 편집",

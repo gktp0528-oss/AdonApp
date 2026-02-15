@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Easing, Image, Dimensions } from 'react-native';
-import { theme as defaultTheme } from '../theme';
-import { useTheme } from '../context/ThemeContext';
+import { theme } from '../theme';
 
 interface AnimatedBackgroundProps {
     children?: React.ReactNode;
@@ -12,7 +11,6 @@ const { width, height } = Dimensions.get('window');
 const PATTERN_SIZE = 1024;
 
 export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ children }) => {
-    const { theme } = useTheme();
     // Animation values
     const translateAnim = useRef(new Animated.Value(0)).current;
 
@@ -53,7 +51,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ children
     });
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.bg }]}>
+        <View style={styles.container}>
             {/* Animated Background Image Layer */}
             <Animated.View
                 style={[
@@ -74,7 +72,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ children
             </Animated.View>
 
             {/* Overlay to improve text readability */}
-            <View style={[styles.overlay, { backgroundColor: theme.colors.bg }]} />
+            <View style={styles.overlay} />
 
             {/* Content Overlay */}
             <View style={styles.content}>
@@ -87,7 +85,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ children
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: defaultTheme.colors.bg,
+        backgroundColor: theme.colors.bg,
         overflow: 'hidden', // Clip the overflowing background
     },
     imageContainer: {
@@ -106,6 +104,7 @@ const styles = StyleSheet.create({
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
+        backgroundColor: theme.colors.bg,
         opacity: 0.85, // Strong fade to make text legible
     },
     content: {

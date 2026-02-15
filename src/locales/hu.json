@@ -5,6 +5,8 @@
     "retry": "Újra",
     "save": "Mentés",
     "cancel": "Mégse",
+    "add": "Hozzáadás",
+    "manage": "Kezelés",
     "confirm": "Megerősítés",
     "time": {
       "justNow": "Épp most",
@@ -321,6 +323,32 @@
         "about": "Névjegy",
         "aboutMessage": "ADON v1.0.0\nPrémium viszonteladási piac\n\n© 2025 ADON. Minden jog fenntartva."
       }
+    },
+    "keywords": {
+      "title": "Kulcsszó értesítések",
+      "description": "Regisztráljon kulcsszavakat a keresett termékekhez. Értesítjük, amint valaki feltölti őket!",
+      "description_short": "Értesítést kap a kulcsszavainak megfelelő új termékekről.",
+      "placeholder": "pl. iPhone 15, Vintage kamera",
+      "alreadyExists": "Ez a kulcsszó már regisztrálva van.",
+      "maxLimit": "Legfeljebb 10 kulcsszót regisztrálhat.",
+      "empty": "Még nincsenek regisztrált kulcsszavak. Adjon hozzá egyet!",
+      "deleteTitle": "Kulcsszó törlése",
+      "deleteMessage": "Biztosan törölni szeretné a(z) \"{{keyword}}\" kulcsszót?",
+      "addError": "Nem sikerült hozzáadni a kulcsszót.",
+      "removeError": "Nem sikerült eltávolítani a kulcsszót."
+    },
+    "notifications": {
+      "title": "Értesítések",
+      "empty": "Még nincsenek értesítések.",
+      "welcome": {
+        "title": "Üdvözöljük az Adon-nál!",
+        "body": "Kezdje el a prémium termékek adásvételét még ma."
+      }
+    },
+    "priceDrop": {
+      "title": "Árcsökkenési riasztások",
+      "description": "Értesítést kap, ha a kívánságlistáján szereplő termékek ára csökken!",
+      "description_short": "Soha ne maradjon le kedvenc termékei akciómárkáiról."
     },
     "editProfile": {
       "title": "Profil szerkesztése",

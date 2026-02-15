@@ -103,21 +103,12 @@ export function SearchResultScreen({ route, navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="#1f2937" />
+          <MaterialIcons name="arrow-back" size={24} color="#111827" />
         </Pressable>
-        <View style={styles.searchBar}>
-          {/* If category search, show title. If text search, show query */}
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {categoryId ? (categoryName || t('screen.searchResult.categoryTitle')) : `"${query}"`}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#111827" />
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>"{query}"</Text>
-        <View style={{ width: 28 }} />
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {categoryId ? (categoryName || t('screen.searchResult.categoryTitle')) : `"${query}"`}
+        </Text>
+        <View style={{ width: 32 }} />
       </View>
 
       {/* Results Count */}

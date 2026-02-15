@@ -7,6 +7,8 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "copy": "Copy",
+    "add": "Add",
+    "manage": "Manage",
     "verify": "Verify",
     "success": "Success",
     "time": {
@@ -415,6 +417,32 @@
         "about": "About",
         "aboutMessage": "ADON v1.0.0\nPremium Resale Marketplace\n\n© 2025 ADON. All rights reserved."
       }
+    },
+    "keywords": {
+      "title": "Keyword Notifications",
+      "description": "Register keywords for items you're looking for. We'll notify you as soon as someone lists them!",
+      "description_short": "Get notified for new items matching your keywords.",
+      "placeholder": "e.g. iPhone 15, Vintage Camera",
+      "alreadyExists": "This keyword is already registered.",
+      "maxLimit": "You can register up to 10 keywords.",
+      "empty": "No keywords registered yet. Add one!",
+      "deleteTitle": "Delete Keyword",
+      "deleteMessage": "Are you sure you want to delete \"{{keyword}}\"?",
+      "addError": "Failed to add keyword.",
+      "removeError": "Failed to remove keyword."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications yet.",
+      "welcome": {
+        "title": "Welcome to Adon!",
+        "body": "Start buying and selling premium items today."
+      }
+    },
+    "priceDrop": {
+      "title": "Price Drop Alerts",
+      "description": "Get notified when items in your wishlist drop in price!",
+      "description_short": "Never miss a deal on your favorite items."
     },
     "editProfile": {
       "title": "Edit Profile",

@@ -51,4 +51,6 @@ export type RootStackParamList = {
   TransactionDetail: { transactionId: string };
   Review: { transactionId: string; sellerId: string; listingId: string };
   SearchResult: { query?: string; categoryId?: string; categoryName?: string };
+  Keywords: undefined;
+  Notifications: undefined;
 };

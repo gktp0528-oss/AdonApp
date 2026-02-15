@@ -91,5 +91,34 @@ export const userService = {
         } catch (error) {
             console.error(`Error updating response time for ${userId}:`, error);
         }
+    },
+
+    // Keyword management
+    async addKeyword(userId: string, keyword: string): Promise<void> {
+        try {
+            const user = await this.getUserById(userId);
+            const currentKeywords = user?.keywords || [];
+            if (currentKeywords.includes(keyword)) return;
+
+            await this.updateUser(userId, {
+                keywords: [...currentKeywords, keyword]
+            });
+        } catch (error) {
+            console.error('Error adding keyword:', error);
+            throw error;
+        }
+    },
+
+    async removeKeyword(userId: string, keyword: string): Promise<void> {
+        try {
+            const user = await this.getUserById(userId);
+            const currentKeywords = user?.keywords || [];
+            await this.updateUser(userId, {
+                keywords: currentKeywords.filter(k => k !== keyword)
+            });
+        } catch (error) {
+            console.error('Error removing keyword:', error);
+            throw error;
+        }
     }
 };
