@@ -43,9 +43,10 @@ const initI18n = async () => {
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
     let language = savedLanguage;
 
-    if (!isSupportedLanguage(language)) {
-        language = Localization.getLocales()[0].languageCode;
-    }
+    // Enforce English as default (ignore system locale)
+    // if (!isSupportedLanguage(language)) {
+    //     language = Localization.getLocales()[0].languageCode;
+    // }
 
     // Fallback to English if language is not supported
     if (!isSupportedLanguage(language)) {

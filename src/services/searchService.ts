@@ -30,18 +30,49 @@ const KEYWORD_STATS_COLLECTION = 'keyword_stats';
 const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
+// Brand mappings for cross-language search
+const BRAND_MAP: Record<string, string> = {
+    '애플': 'apple',
+    '아이폰': 'iphone',
+    '맥북': 'macbook',
+    '나이키': 'nike',
+    '아디다스': 'adidas',
+    '구찌': 'gucci',
+    '샤넬': 'chanel',
+    '루이비통': 'louis vuitton',
+    '프라다': 'prada',
+    '입생로랑': 'ysl',
+    '디올': 'dior',
+    '폴로': 'polo',
+    '파타고니아': 'patagonia',
+    '스투시': 'stussy',
+    '슈프림': 'supreme',
+    '조던': 'jordan',
+    '소니': 'sony',
+    '닌텐도': 'nintendo',
+    '삼성': 'samsung',
+};
+
 // Multilingual normalization (Korean + Latin with accent folding)
 const normalizeSearchText = (text: string): string => {
     if (!text) return '';
 
-    // Lowercase first for stable matching
-    let normalized = text.toLowerCase();
+    let normalized = text.toLowerCase().trim();
+
+    // Brand translation
+    Object.entries(BRAND_MAP).forEach(([ko, en]) => {
+        if (normalized.includes(ko)) {
+            normalized = normalized.replace(ko, en);
+        }
+    });
+
     // Fold accents (e.g. á, é, ő, ű -> a, e, o, u)
     normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    // Remove common separators
-    normalized = normalized.replace(/[\s_-]+/g, '');
 
-    return normalized;
+    // Keep alphanumeric and some separators, but don't collapse everything
+    normalized = normalized.replace(/[^\w\s가-힣]/g, ' ');
+
+    return normalized.trim();
 };
 
 const hasKorean = (text: string): boolean => /[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(text);
@@ -175,22 +206,24 @@ class SearchServiceImpl implements SearchService {
             // Configure Fuse.js for fuzzy search
             const fuse = new Fuse(indexedListings, {
                 keys: [
-                    { name: 'title', weight: 2 },
-                    { name: '_searchTitle', weight: 2.3 },
-                    { name: 'description', weight: 1 },
-                    { name: '_searchDescription', weight: 1 },
-                    { name: 'category', weight: 1.5 },
-                    { name: '_searchCategory', weight: 1.5 }
+                    { name: 'title', weight: 3 },
+                    { name: '_searchTitle', weight: 4 },
+                    { name: 'description', weight: 0.5 },
+                    { name: '_searchDescription', weight: 0.8 },
+                    { name: 'category', weight: 1 },
+                    { name: '_searchCategory', weight: 1.2 }
                 ],
-                threshold: 0.4, // 0 = perfect match, 1 = match anything
+                threshold: 0.2, // Stricter match (0.4 was too loose)
                 distance: 100,
-                ignoreLocation: true,
+                ignoreLocation: false, // Match position matters
                 useExtendedSearch: true,
-                minMatchCharLength: 1
+                minMatchCharLength: 1,
+                includeScore: true
             });
 
             // Perform fuzzy search
-            let results = fuse.search(normalizedSearchText).map(result => result.item as Listing);
+            let fuseResults = fuse.search(normalizedSearchText);
+            let results = fuseResults.map(result => result.item as Listing);
 
             // If fuzzy search yields few results, try additional matching strategies
             if (results.length < 5) {
