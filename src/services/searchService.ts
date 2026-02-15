@@ -36,15 +36,16 @@ const RECENT_SEARCH_KEY = 'adon_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
 // High-reliability local synonyms for common brands/terms
+// High-reliability local synonyms for common brands/terms
 const LOCAL_SYNONYMS: Record<string, string[]> = {
-    '애플': ['apple', 'iphone', 'macbook', 'ipad'],
-    '에어팟': ['airpods', 'apple', 'headphones'],
-    '아이폰': ['iphone', 'apple', 'phone'],
-    '맥북': ['macbook', 'apple', 'laptop'],
+    '애플': ['apple', 'iphone', 'macbook', 'ipad', 'airpods'],
+    '에어팟': ['airpods', 'earbuds', 'headphones'], // Removed 'apple' to prevent matching MacBooks
+    '아이폰': ['iphone', 'smartphone'], // Removed 'apple'
+    '맥북': ['macbook', 'laptop'], // Removed 'apple'
     '나이키': ['nike', 'shoes', 'sneakers'],
     '아디다스': ['adidas', 'shoes'],
     '삼성': ['samsung', 'galaxy'],
-    '갤럭시': ['galaxy', 'samsung'],
+    '갤럭시': ['galaxy', 'smartphone'], // Removed 'samsung'
 };
 
 // Multilingual normalization (Korean + Latin with accent folding)
