@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl, ActivityIndicator } from 'react-native';
+import { Alert, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,6 +10,8 @@ import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { TabTransitionView } from '../components/TabTransitionView';
 import { CATEGORIES, USERS } from '../data/mockData';
 import { listingService } from '../services/listingService';
+import { wishlistService } from '../services/wishlistService';
+import { userService } from '../services/userService';
 import { Listing } from '../types/listing';
 import { formatCurrency } from '../utils/format';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -33,6 +34,7 @@ export function HomeScreen({ navigation }: Props) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
 
   const toCategoryKey = (value?: string) => {
     const v = (value || '').toLowerCase();
@@ -45,6 +47,14 @@ export function HomeScreen({ navigation }: Props) {
 
   useEffect(() => {
     void loadInitialListings();
+
+    const userId = userService.getCurrentUserId();
+    if (userId) {
+      const unsubscribeWishlist = wishlistService.watchWishlist(userId, (items) => {
+        setWishlistIds(new Set(items.map(i => i.listingId)));
+      });
+      return () => unsubscribeWishlist();
+    }
   }, []);
 
   const loadInitialListings = async () => {
@@ -232,10 +242,26 @@ export function HomeScreen({ navigation }: Props) {
                 />
                 <Pressable
                   style={styles.wishBtn}
+                  onPress={async () => {
+                    const userId = userService.getCurrentUserId();
+                    if (!userId) {
+                      Alert.alert(t('common.loginRequired'), t('screen.product.chat.loginPrompt'));
+                      return;
+                    }
+                    try {
+                      await wishlistService.toggleLike(userId, item.id, item.price);
+                    } catch (error) {
+                      console.error('Failed to toggle like on home:', error);
+                    }
+                  }}
                   accessibilityRole="button"
-                  accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
+                  accessibilityLabel={wishlistIds.has(item.id) ? t('screen.product.accessibility.unlike') : t('screen.product.accessibility.like')}
                 >
-                  <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
+                  <MaterialIcons
+                    name={wishlistIds.has(item.id) ? "favorite" : "favorite-border"}
+                    size={18}
+                    color={wishlistIds.has(item.id) ? "#ef4444" : "#4b5563"}
+                  />
                 </Pressable>
               </View>
               <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>

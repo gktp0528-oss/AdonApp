@@ -93,5 +93,14 @@ export const wishlistService = {
             console.error('Error getting wishlist by listing:', error);
             throw error;
         }
+    },
+
+    // Watch a user's entire wishlist
+    watchWishlist(userId: string, callback: (items: WishlistItem[]) => void): () => void {
+        const q = query(collection(db, COLLECTION), where('userId', '==', userId));
+        return onSnapshot(q, (snapshot) => {
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WishlistItem));
+            callback(items);
+        });
     }
 };
