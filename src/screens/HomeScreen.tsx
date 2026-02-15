@@ -16,6 +16,9 @@ import { formatCurrency } from '../utils/format';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
+import { useTheme } from '../context/ThemeContext';
+import { theme as defaultTheme } from '../theme';
+
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'HomeTab'>,
   NativeStackScreenProps<RootStackParamList>
@@ -25,6 +28,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1
 
 export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { theme, mode } = useTheme();
   const me = USERS.me;
   const [activeListings, setActiveListings] = useState<Listing[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -126,10 +130,10 @@ export function HomeScreen({ navigation }: Props) {
     });
 
   const renderHeader = () => (
-    <View>
-      <View style={styles.header}>
+    <View style={{ backgroundColor: theme.colors.bg }}>
+      <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
         {/* Left side: Adon Text Logo */}
-        <Text style={styles.headerLogoText}>Adon</Text>
+        <Text style={[styles.headerLogoText, { color: theme.colors.primary }]}>Adon</Text>
 
         {/* Right side: Search & Notification */}
         <View style={styles.headerIcons}>
@@ -142,12 +146,12 @@ export function HomeScreen({ navigation }: Props) {
             accessibilityRole="button"
             accessibilityLabel={t('screen.home.searchPlaceholder')}
           >
-            <MaterialIcons name="search" size={26} color="#111827" />
+            <MaterialIcons name="search" size={26} color={theme.colors.text} />
           </Pressable>
 
           <View style={styles.iconButton}>
-            <MaterialIcons name="notifications" size={26} color="#111827" />
-            <View style={styles.notify} />
+            <MaterialIcons name="notifications" size={26} color={theme.colors.text} />
+            <View style={[styles.notify, { borderColor: theme.colors.card }]} />
           </View>
         </View>
       </View>
@@ -156,19 +160,23 @@ export function HomeScreen({ navigation }: Props) {
         {chips.map((cat) => (
           <Pressable
             key={cat.id}
-            style={[styles.chip, selectedCategory === cat.id && styles.chipActive]}
+            style={[
+              styles.chip,
+              { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+              selectedCategory === cat.id && styles.chipActive
+            ]}
             onPress={() => setSelectedCategory(cat.id)}
             accessibilityRole="button"
             accessibilityLabel={`${cat.label}`}
           >
-            <Text style={selectedCategory === cat.id ? styles.chipActiveText : styles.chipText}>{cat.label}</Text>
+            <Text style={selectedCategory === cat.id ? styles.chipActiveText : [styles.chipText, { color: theme.colors.muted }]}>{cat.label}</Text>
           </Pressable>
         ))}
       </ScrollView>
 
       {/* "Picked for you" Section - Currently hidden until personalized algo is ready, or shows subset of random items */}
       <View style={styles.sectionHead}>
-        <Text style={styles.sectionTitle}>{t('screen.home.section.new')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screen.home.section.new')}</Text>
         <Text style={styles.sectionTag}>{t('screen.home.section.justIn')}</Text>
       </View>
     </View>
@@ -177,8 +185,8 @@ export function HomeScreen({ navigation }: Props) {
 
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <StatusBar style="dark" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.root, { backgroundColor: theme.colors.bg }]} edges={['top', 'bottom']}>
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} backgroundColor={theme.colors.bg} />
       <TabTransitionView style={{ flex: 1 }}>
         <FlatList
           data={filteredListings}
@@ -187,7 +195,7 @@ export function HomeScreen({ navigation }: Props) {
           columnWrapperStyle={styles.freshRow}
           ListHeaderComponent={renderHeader}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, { backgroundColor: mode === 'dark' ? theme.colors.bg : '#f6f8f6' }]}
           showsVerticalScrollIndicator={false}
           onEndReached={loadMoreListings}
           onEndReachedThreshold={0.6}
@@ -205,13 +213,13 @@ export function HomeScreen({ navigation }: Props) {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
+                <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
                   {selectedCategory === 'all'
                     ? t('screen.home.empty.all')
                     : t('screen.home.empty.category')}
                 </Text>
-                <Pressable style={styles.emptyBtn} onPress={onRefresh}>
-                  <Text style={styles.emptyBtnText}>{t('screen.home.refresh')}</Text>
+                <Pressable style={[styles.emptyBtn, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]} onPress={onRefresh}>
+                  <Text style={[styles.emptyBtnText, { color: theme.colors.text }]}>{t('screen.home.refresh')}</Text>
                 </Pressable>
               </View>
             )
@@ -232,18 +240,18 @@ export function HomeScreen({ navigation }: Props) {
                   accessibilityRole="button"
                   accessibilityLabel={t('screen.home.accessibility.addToWishlist')}
                 >
-                  <MaterialIcons name="favorite-border" size={18} color="#4b5563" />
+                  <MaterialIcons name="favorite-border" size={18} color={theme.colors.muted} />
                 </Pressable>
               </View>
-              <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
+              <Text numberOfLines={1} style={[styles.freshName, { color: theme.colors.text }]}>{item.title}</Text>
               <View style={styles.freshMetaRow}>
                 <Text style={styles.freshPrice}>
                   {formatCurrency(item.price, item.currency)}
                 </Text>
                 <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
               </View>
-              <View style={styles.categoryTag}>
-                <Text style={styles.categoryText}>
+              <View style={[styles.categoryTag, { backgroundColor: mode === 'dark' ? theme.colors.surface : '#f3f4f6' }]}>
+                <Text style={[styles.categoryText, { color: theme.colors.muted }]}>
                   {toCategoryKey(item.category)
                     ? t(`screen.home.category.${toCategoryKey(item.category)}`)
                     : item.category}
@@ -258,10 +266,9 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#ffffff' }, // Changed to white for Status Bar match
-  content: { paddingBottom: 110, backgroundColor: '#f6f8f6' }, // Moved gray background here
+  root: { flex: 1 },
+  content: { paddingBottom: 110 },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
@@ -269,12 +276,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerLogoText: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#064e3b', // Brand dark green from LoginScreen
     letterSpacing: -0.5,
   },
   headerIcons: {
@@ -296,16 +301,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#ef4444',
     borderWidth: 1,
-    borderColor: '#fff'
   },
   // searchWrap, searchTextPlaceholder - Removed
   chips: { paddingHorizontal: 16, paddingTop: 16, gap: 8, paddingBottom: 8 },
-  chip: { backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' },
-  chipActive: { backgroundColor: '#19e61b', borderColor: '#19e61b' },
-  chipText: { color: '#4b5563', fontWeight: '600', fontSize: 13 },
-  chipActiveText: { color: '#111827', fontWeight: '800', fontSize: 13 },
+  chip: { borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1 },
+  chipActive: { backgroundColor: '#bef264', borderColor: '#bef264' },
+  chipText: { fontWeight: '600', fontSize: 13 },
+  chipActiveText: { color: '#000', fontWeight: '800', fontSize: 13 },
   sectionHead: { marginTop: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  sectionTitle: { fontSize: 21, fontWeight: '800', color: '#111827' },
+  sectionTitle: { fontSize: 21, fontWeight: '800' },
   sectionTag: { marginTop: 3, fontSize: 10, fontWeight: '800', color: '#166534', backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
 
   freshRow: {
@@ -325,12 +329,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  freshName: { marginTop: 8, fontWeight: '700', color: '#111827', fontSize: 13 },
+  freshName: { marginTop: 8, fontWeight: '700', fontSize: 13 },
   freshMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  freshPrice: { color: '#16a34a', fontWeight: '800', fontSize: 14 },
+  freshPrice: { color: '#bef264', fontWeight: '800', fontSize: 14 },
   freshTime: { color: '#9ca3af', fontSize: 11 },
-  categoryTag: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  categoryText: { fontSize: 10, color: '#6b7280', fontWeight: '600' },
+  categoryTag: { marginTop: 4, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  categoryText: { fontSize: 10, fontWeight: '600' },
   emptyContainer: { padding: 40, alignItems: 'center' },
   emptyText: { color: '#94a3b8', fontSize: 16 },
   loadingMoreWrap: { paddingVertical: 16 },
@@ -345,7 +349,6 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: {
     fontWeight: '700',
-    color: '#1f2937',
     fontSize: 13,
   },
 });

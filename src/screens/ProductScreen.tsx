@@ -16,10 +16,14 @@ import { Listing } from '../types/listing';
 import { User } from '../types/user';
 import { formatCurrency, formatDate } from '../utils/format';
 
+import { useTheme } from '../context/ThemeContext';
+import { theme as defaultTheme } from '../theme';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Product'>;
 
 export function ProductScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -94,8 +98,8 @@ export function ProductScreen({ navigation, route }: Props) {
   // Loading State
   if (loading) {
     return (
-      <View style={[styles.root, styles.center]}>
-        <ActivityIndicator size="large" color="#22c55e" />
+      <View style={[styles.root, styles.center, { backgroundColor: theme.colors.bg }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -103,15 +107,15 @@ export function ProductScreen({ navigation, route }: Props) {
   // Error/Empty State
   if (!listing) {
     return (
-      <View style={[styles.root, styles.center]}>
-        <MaterialIcons name="error-outline" size={48} color="#94a3b8" />
-        <Text style={styles.errorText}>{error || t('screen.product.error.load')}</Text>
+      <View style={[styles.root, styles.center, { backgroundColor: theme.colors.bg }]}>
+        <MaterialIcons name="error-outline" size={48} color={theme.colors.muted} />
+        <Text style={[styles.errorText, { color: theme.colors.muted }]}>{error || t('screen.product.error.load')}</Text>
         <View style={styles.errorBtnRow}>
-          <Pressable style={styles.retryBtn} onPress={() => setRetryCount((prev) => prev + 1)}>
-            <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+          <Pressable style={[styles.retryBtn, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]} onPress={() => setRetryCount((prev) => prev + 1)}>
+            <Text style={[styles.retryBtnText, { color: theme.colors.text }]}>{t('common.retry')}</Text>
           </Pressable>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backBtnText}>{t('screen.product.action.back')}</Text>
+          <Pressable style={[styles.backBtn, { backgroundColor: theme.colors.text }]} onPress={() => navigation.goBack()}>
+            <Text style={[styles.backBtnText, { color: theme.colors.bg }]}>{t('screen.product.action.back')}</Text>
           </Pressable>
         </View>
       </View>
@@ -220,7 +224,7 @@ export function ProductScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.colors.bg }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.heroWrap}>
           <FlatList
@@ -263,7 +267,7 @@ export function ProductScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={t('screen.product.accessibility.share')}
               >
-                <MaterialIcons name="share" size={18} color="#0f172a" />
+                <MaterialIcons name="share" size={18} color={theme.colors.text} />
               </Pressable>
               <Pressable
                 style={styles.iconCircle}
@@ -271,7 +275,7 @@ export function ProductScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={liked ? t('screen.product.accessibility.unlike') : t('screen.product.accessibility.like')}
               >
-                <MaterialIcons name={liked ? 'favorite' : 'favorite-border'} size={18} color={liked ? '#ef4444' : '#0f172a'} />
+                <MaterialIcons name={liked ? 'favorite' : 'favorite-border'} size={18} color={liked ? '#ef4444' : theme.colors.text} />
               </Pressable>
             </View>
           </View>
@@ -297,18 +301,18 @@ export function ProductScreen({ navigation, route }: Props) {
           )}
         </View>
 
-        <View style={styles.body}>
+        <View style={[styles.body, { backgroundColor: mode === 'dark' ? theme.colors.bg : '#f5f6f5' }]}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{listing.title}</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{listing.title}</Text>
             {listing.isPremium && <Text style={styles.premium}>{t('screen.product.premium')}</Text>}
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{priceDisplay}</Text>
+            <Text style={[styles.price, { color: theme.colors.text }]}>{priceDisplay}</Text>
             {listing.oldPrice && <Text style={styles.oldPrice}>{formatCurrency(listing.oldPrice, listing.currency)}</Text>}
           </View>
 
-          <View style={styles.safeBox}>
+          <View style={[styles.safeBox, { backgroundColor: mode === 'dark' ? theme.colors.surface : '#eafaf0', borderColor: mode === 'dark' ? theme.colors.border : '#bbf7d0' }]}>
             <MaterialIcons name="verified-user" size={16} color="#22c55e" />
             <Text style={styles.safeText}>{t('screen.product.safePay')}</Text>
           </View>
@@ -322,7 +326,7 @@ export function ProductScreen({ navigation, route }: Props) {
                   style={styles.avatar}
                 />
                 <View style={styles.sellerTextWrap}>
-                  <Text style={styles.sellerName}>{seller?.name || t('screen.product.seller.unknown')}</Text>
+                  <Text style={[styles.sellerName, { color: theme.colors.text }]}>{seller?.name || t('screen.product.seller.unknown')}</Text>
                   <Text style={styles.sellerMeta}>
                     {seller?.positiveRate
                       ? t('screen.product.seller.positive', { rate: seller.positiveRate })
@@ -344,18 +348,18 @@ export function ProductScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={t('screen.product.seller.visit')}
               >
-                <Text style={styles.followText}>{t('screen.product.seller.visit')}</Text>
+                <Text style={[styles.followText, { color: theme.colors.text }]}>{t('screen.product.seller.visit')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.trustRow}>
-              <View style={styles.trustCard}>
+              <View style={[styles.trustCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                 <Text style={styles.trustLabel}>{t('screen.product.trust.response')}</Text>
-                <Text style={styles.trustValue}>{seller?.responseTime ? t(seller.responseTime) : '-'}</Text>
+                <Text style={[styles.trustValue, { color: theme.colors.text }]}>{seller?.responseTime ? t(seller.responseTime) : '-'}</Text>
               </View>
-              <View style={styles.trustCard}>
+              <View style={[styles.trustCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                 <Text style={styles.trustLabel}>{t('screen.product.trust.reliability')}</Text>
-                <Text style={styles.trustValue}>
+                <Text style={[styles.trustValue, { color: theme.colors.text }]}>
                   {seller?.rating && seller.rating > 0
                     ? `★ ${seller.rating.toFixed(1)}`
                     : (seller?.reliabilityLabel === 'New Member'
@@ -370,7 +374,7 @@ export function ProductScreen({ navigation, route }: Props) {
           <View style={styles.specGrid}>
             <View style={styles.specCol}>
               <Text style={styles.specKey}>{t('screen.product.spec.category')}</Text>
-              <Text style={styles.specValue}>
+              <Text style={[styles.specValue, { color: theme.colors.text }]}>
                 {toCategoryKey(listing.category)
                   ? t(`screen.home.category.${toCategoryKey(listing.category)}`)
                   : listing.category}
@@ -379,46 +383,46 @@ export function ProductScreen({ navigation, route }: Props) {
             <View style={styles.specCol}>
               <Text style={styles.specKey}>{t('screen.product.spec.condition')}</Text>
               <View style={styles.inlineValue}>
-                <Text style={styles.specValue}>{toConditionLabel(listing.condition)}</Text>
+                <Text style={[styles.specValue, { color: theme.colors.text }]}>{toConditionLabel(listing.condition)}</Text>
                 <View style={[styles.colorDot, { backgroundColor: '#22c55e' }]} />
               </View>
             </View>
             {listing.brand && (
               <View style={styles.specCol}>
                 <Text style={styles.specKey}>{t('screen.product.spec.brand')}</Text>
-                <Text style={styles.specValue}>{listing.brand}</Text>
+                <Text style={[styles.specValue, { color: theme.colors.text }]}>{listing.brand}</Text>
               </View>
             )}
             {listing.size && (
               <View style={styles.specCol}>
                 <Text style={styles.specKey}>{t('screen.product.spec.size')}</Text>
-                <Text style={styles.specValue}>{listing.size}</Text>
+                <Text style={[styles.specValue, { color: theme.colors.text }]}>{listing.size}</Text>
               </View>
             )}
             {listing.colorName && (
               <View style={styles.specCol}>
                 <Text style={styles.specKey}>{t('screen.product.spec.color')}</Text>
                 <View style={styles.inlineValue}>
-                  <Text style={styles.specValue}>{listing.colorName}</Text>
+                  <Text style={[styles.specValue, { color: theme.colors.text }]}>{listing.colorName}</Text>
                   {listing.colorHex && <View style={[styles.colorDot, { backgroundColor: listing.colorHex }]} />}
                 </View>
               </View>
             )}
             <View style={styles.specCol}>
               <Text style={styles.specKey}>{t('screen.product.spec.date')}</Text>
-              <Text style={styles.specValue}>{listingDate ? formatDate(listingDate) : ''}</Text>
+              <Text style={[styles.specValue, { color: theme.colors.text }]}>{listingDate ? formatDate(listingDate) : ''}</Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
-          <Text style={styles.sectionTitle}>{t('screen.product.desc.title')}</Text>
-          <Text style={styles.desc}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screen.product.desc.title')}</Text>
+          <Text style={[styles.desc, { color: theme.colors.muted }]}>
             {listing.description || t('screen.product.desc.empty')}
           </Text>
 
           {/* Shipping & Location (Static/Placeholder for now as per schema optional) */}
-          <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('screen.product.location.title')}</Text>
+          <Text style={[styles.sectionTitle, styles.sectionGap, { color: theme.colors.text }]}>{t('screen.product.location.title')}</Text>
           <View style={styles.locationHead}>
             <Text style={styles.locationText}>{seller?.location || t('screen.product.location.private')}</Text>
           </View>
@@ -434,7 +438,7 @@ export function ProductScreen({ navigation, route }: Props) {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12, backgroundColor: theme.colors.card, borderTopColor: theme.colors.border }]}>
         <Pressable
           style={styles.chatBtn}
           onPress={handleStartChat}
@@ -443,9 +447,9 @@ export function ProductScreen({ navigation, route }: Props) {
           accessibilityLabel={t('screen.product.action.chat')}
         >
           {isChatStarting ? (
-            <ActivityIndicator size="small" color="#1f2937" />
+            <ActivityIndicator size="small" color={theme.colors.text} />
           ) : (
-            <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
+            <MaterialIcons name="chat-bubble-outline" size={22} color={theme.colors.text} />
           )}
         </Pressable>
         <Pressable
@@ -463,7 +467,7 @@ export function ProductScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f2f4f3' },
+  root: { flex: 1 },
   content: { paddingBottom: 140 },
   center: { justifyContent: 'center', alignItems: 'center' },
   errorText: { marginTop: 16, fontSize: 16, color: '#64748b', marginBottom: 20 },
@@ -559,10 +563,8 @@ const styles = StyleSheet.create({
 
   sellerCard: {
     marginTop: 14,
-    backgroundColor: '#eef1ef',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     padding: 12,
   },
   sellerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -573,20 +575,16 @@ const styles = StyleSheet.create({
   sellerMeta: { marginTop: 2, color: '#16a34a', fontWeight: '700', fontSize: 13 },
   followBtn: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: '#f8fafc',
   },
-  followText: { color: '#0f172a', fontWeight: '700' },
+  followText: { fontWeight: '700' },
   trustRow: { marginTop: 10, flexDirection: 'row', gap: 8 },
   trustCard: {
     flex: 1,
-    backgroundColor: '#f8fafc',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     paddingVertical: 10,
     alignItems: 'center',
   },
@@ -600,8 +598,8 @@ const styles = StyleSheet.create({
   inlineValue: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   colorDot: { width: 9, height: 9, borderRadius: 4.5, marginTop: 3 },
 
-  divider: { height: 1, backgroundColor: '#e5e7eb', marginBottom: 14, marginTop: 2 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
+  divider: { height: 1, marginBottom: 14, marginTop: 2 },
+  sectionTitle: { fontSize: 18, fontWeight: '800' },
   desc: { marginTop: 10, color: '#475569', lineHeight: 25, fontSize: 16 },
   readMore: { marginTop: 8, color: '#22c55e', fontWeight: '800', fontSize: 16 },
 
@@ -651,8 +649,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: 'rgba(245,246,245,0.98)',
   },
   chatBtn: {
     width: 54,

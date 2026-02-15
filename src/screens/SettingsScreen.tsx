@@ -8,7 +8,8 @@ import i18n from 'i18next';
 
 import { RootStackParamList } from '../navigation/types';
 import { AppLanguage, changeAppLanguage } from '../i18n';
-import { userService } from '../services/userService';
+import { authService } from '../services/authService';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -24,6 +25,7 @@ type SettingItemProps = {
 };
 
 function SettingItem({ icon, label, value, onPress, showChevron = true, isSwitch = false, switchValue = false, onSwitchChange }: SettingItemProps) {
+    const { theme } = useTheme();
     return (
         <Pressable
             style={({ pressed }) => [styles.settingItem, pressed && styles.settingItemPressed]}
@@ -34,7 +36,7 @@ function SettingItem({ icon, label, value, onPress, showChevron = true, isSwitch
                 <View style={styles.iconContainer}>
                     <MaterialIcons name={icon} size={20} color="#16a34a" />
                 </View>
-                <Text style={styles.settingLabel}>{label}</Text>
+                <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{label}</Text>
             </View>
             <View style={styles.settingItemRight}>
                 {isSwitch ? (
@@ -46,8 +48,8 @@ function SettingItem({ icon, label, value, onPress, showChevron = true, isSwitch
                     />
                 ) : (
                     <>
-                        {value && <Text style={styles.settingValue}>{value}</Text>}
-                        {showChevron && <MaterialIcons name="chevron-right" size={20} color="#9ca3af" />}
+                        {value && <Text style={[styles.settingValue, { color: theme.colors.muted }]}>{value}</Text>}
+                        {showChevron && <MaterialIcons name="chevron-right" size={20} color={theme.colors.muted} />}
                     </>
                 )}
             </View>
@@ -67,6 +69,8 @@ export function SettingsScreen({ navigation }: Props) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
 
+    const { mode, theme, toggleTheme } = useTheme();
+
     const [selectedLanguage, setSelectedLanguage] = useState<AppLanguage>(
         (i18n.language?.slice(0, 2) as AppLanguage) || 'en'
     );
@@ -74,7 +78,6 @@ export function SettingsScreen({ navigation }: Props) {
     const [pushNotifications, setPushNotifications] = useState(true);
     const [emailNotifications, setEmailNotifications] = useState(false);
     const [profilePublic, setProfilePublic] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
 
     const handleLanguagePress = () => {
         Alert.alert(
@@ -120,7 +123,7 @@ export function SettingsScreen({ navigation }: Props) {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await userService.logout();
+                            await authService.logout();
                             navigation.reset({
                                 index: 0,
                                 routes: [{ name: 'Login' }],
@@ -165,24 +168,24 @@ export function SettingsScreen({ navigation }: Props) {
     };
 
     return (
-        <View style={[styles.root, { paddingTop: insets.top }]}>
-            <View style={styles.header}>
+        <View style={[styles.root, { paddingTop: insets.top, backgroundColor: theme.colors.bg }]}>
+            <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
                 <Pressable
                     onPress={() => navigation.goBack()}
                     style={styles.backBtn}
                     accessibilityRole="button"
                     accessibilityLabel={t('common.accessibility.back')}
                 >
-                    <MaterialIcons name="arrow-back" size={24} color="#1f2937" />
+                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
                 </Pressable>
-                <Text style={styles.headerTitle}>{t('screen.settings.title')}</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{t('screen.settings.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Account Section */}
                 <SectionHeader title={t('screen.settings.sections.account')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="person"
                         label={t('screen.settings.account.editProfile')}
@@ -192,32 +195,26 @@ export function SettingsScreen({ navigation }: Props) {
 
                 {/* Preferences Section */}
                 <SectionHeader title={t('screen.settings.sections.preferences')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="language"
                         label={t('screen.settings.language.title')}
                         value={getLanguageLabel(selectedLanguage)}
                         onPress={handleLanguagePress}
                     />
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
                     <SettingItem
                         icon="dark-mode"
                         label={t('screen.settings.appearance.darkMode')}
                         isSwitch
-                        switchValue={darkMode}
-                        onSwitchChange={(value) => {
-                            setDarkMode(value);
-                            Alert.alert(
-                                t('screen.settings.appearance.comingSoon'),
-                                t('screen.settings.appearance.comingSoonMessage')
-                            );
-                        }}
+                        switchValue={mode === 'dark'}
+                        onSwitchChange={toggleTheme}
                     />
                 </View>
 
                 {/* Notifications Section */}
                 <SectionHeader title={t('screen.settings.sections.notifications')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="notifications"
                         label={t('screen.settings.notifications.push')}
@@ -225,7 +222,7 @@ export function SettingsScreen({ navigation }: Props) {
                         switchValue={pushNotifications}
                         onSwitchChange={setPushNotifications}
                     />
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
                     <SettingItem
                         icon="email"
                         label={t('screen.settings.notifications.email')}
@@ -237,7 +234,7 @@ export function SettingsScreen({ navigation }: Props) {
 
                 {/* Privacy Section */}
                 <SectionHeader title={t('screen.settings.sections.privacy')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="visibility"
                         label={t('screen.settings.privacy.publicProfile')}
@@ -249,13 +246,13 @@ export function SettingsScreen({ navigation }: Props) {
 
                 {/* Support Section */}
                 <SectionHeader title={t('screen.settings.sections.support')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="help"
                         label={t('screen.settings.support.help')}
                         onPress={() => Alert.alert(t('screen.settings.support.help'), t('screen.settings.support.helpMessage'))}
                     />
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
                     <SettingItem
                         icon="info"
                         label={t('screen.settings.support.about')}
@@ -265,25 +262,27 @@ export function SettingsScreen({ navigation }: Props) {
 
                 {/* Account Actions */}
                 <SectionHeader title={t('screen.settings.sections.accountActions')} />
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                     <SettingItem
                         icon="logout"
                         label={t('screen.settings.account.logout')}
                         onPress={handleLogout}
                         showChevron={false}
                     />
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
                     <Pressable
                         style={({ pressed }) => [styles.settingItem, pressed && styles.settingItemPressed]}
                         onPress={handleDeleteAccount}
                     >
-                        <View style={styles.settingItemLeft}>
-                            <View style={[styles.iconContainer, styles.iconContainerDanger]}>
-                                <MaterialIcons name="delete-forever" size={20} color="#dc2626" />
+                        <View style={[styles.settingItem, { borderBottomLeftRadius: 12, borderBottomRightRadius: 12, backgroundColor: theme.colors.card }]}>
+                            <View style={styles.settingItemLeft}>
+                                <View style={[styles.iconContainer, styles.iconContainerDanger]}>
+                                    <MaterialIcons name="delete-forever" size={20} color="#dc2626" />
+                                </View>
+                                <Text style={[styles.settingLabel, styles.settingLabelDanger]}>
+                                    {t('screen.settings.account.delete')}
+                                </Text>
                             </View>
-                            <Text style={[styles.settingLabel, styles.settingLabelDanger]}>
-                                {t('screen.settings.account.delete')}
-                            </Text>
                         </View>
                     </Pressable>
                 </View>
@@ -297,7 +296,7 @@ export function SettingsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#f9fafb' },
+    root: { flex: 1 },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -305,10 +304,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f3f4f6',
-        backgroundColor: '#fff',
     },
-    headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+    headerTitle: { fontSize: 18, fontWeight: '700' },
     backBtn: { padding: 4 },
     content: { paddingBottom: 40 },
     sectionHeader: {
@@ -322,12 +319,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
     },
     section: {
-        backgroundColor: '#fff',
         marginHorizontal: 16,
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#f3f4f6',
     },
     settingItem: {
         flexDirection: 'row',
@@ -335,7 +330,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 14,
         paddingHorizontal: 16,
-        backgroundColor: '#fff',
     },
     settingItemPressed: {
         backgroundColor: '#f9fafb',
@@ -365,7 +359,6 @@ const styles = StyleSheet.create({
     settingLabel: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#111827',
     },
     settingLabelDanger: {
         color: '#dc2626',
@@ -377,7 +370,6 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: '#f3f4f6',
         marginLeft: 64,
     },
     versionContainer: {
