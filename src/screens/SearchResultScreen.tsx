@@ -112,7 +112,10 @@ export function SearchResultScreen({ route, navigation }: Props) {
         <Text style={styles.freshPrice}>
           {formatCurrency(item.price, item.currency)}
         </Text>
-        {item.oldPrice && (
+        {item.hotUntil && (() => {
+          const hotUntilDate = (item.hotUntil as any).toDate ? (item.hotUntil as any).toDate() : new Date(item.hotUntil as any);
+          return hotUntilDate.getTime() > Date.now();
+        })() && (
           <View style={styles.hotBadge}>
             <Text style={styles.hotBadgeText}>HOT</Text>
           </View>

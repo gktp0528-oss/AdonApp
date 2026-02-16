@@ -86,3 +86,24 @@ export const formatNumber = (number: number): string => {
         return number.toString();
     }
 };
+
+// Relative time formatter
+export const formatRelativeTime = (date: Date | Timestamp): string => {
+    const d = date instanceof Date ? date : date.toDate();
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return i18n.t('common.time.justNow');
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return i18n.t('common.time.ago.m', { count: diffInMinutes });
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return i18n.t('common.time.ago.h', { count: diffInHours });
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    return i18n.t('common.time.ago.d', { count: diffInDays });
+};
+
+// Need this for the type
+import { Timestamp } from 'firebase/firestore';

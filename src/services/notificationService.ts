@@ -1,6 +1,32 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    updateDoc,
+    doc,
+    Timestamp,
+    getDocs
+} from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { userService } from './userService';
+
+const NOTIFICATIONS_COLLECTION = 'notifications';
+
+export interface AdonNotification {
+    id?: string;
+    userId: string;
+    type: 'system' | 'keyword' | 'priceDrop';
+    title: string;
+    body: string;
+    data?: any;
+    read: boolean;
+    createdAt: Timestamp;
+}
 
 // Configure how notifications should be handled when the app is foregrounded
 Notifications.setNotificationHandler({
@@ -8,6 +34,8 @@ Notifications.setNotificationHandler({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
     }),
 });
 
@@ -59,7 +87,69 @@ export const notificationService = {
     },
 
     /**
-     * Send a notification locally (for testing)
+     * Send a notification locally AND save to database
+     */
+    async sendNotification(userId: string, type: AdonNotification['type'], title: string, body: string, data = {}) {
+        try {
+            // 1. Save to Firestore
+            await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+                userId,
+                type,
+                title,
+                body,
+                data,
+                read: false,
+                createdAt: Timestamp.now(),
+            });
+
+            // 2. If it's the current user, also send a local notification for immediate feedback
+            const currentUserId = userService.getCurrentUserId();
+            if (userId === currentUserId) {
+                await Notifications.scheduleNotificationAsync({
+                    content: { title, body, data },
+                    trigger: null,
+                });
+            }
+        } catch (error) {
+            console.error('[NotificationService] Error sending notification:', error);
+        }
+    },
+
+    /**
+     * Watch notifications for a user
+     */
+    watchNotifications(userId: string, callback: (notifications: AdonNotification[]) => void): () => void {
+        const q = query(
+            collection(db, NOTIFICATIONS_COLLECTION),
+            where('userId', '==', userId),
+            orderBy('createdAt', 'desc')
+        );
+
+        return onSnapshot(q, (snapshot) => {
+            const notifications = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as AdonNotification));
+            callback(notifications);
+        }, (error) => {
+            console.error('[NotificationService] Error watching notifications:', error);
+        });
+    },
+
+    /**
+     * Mark a notification as read
+     */
+    async markAsRead(notificationId: string) {
+        try {
+            const docRef = doc(db, NOTIFICATIONS_COLLECTION, notificationId);
+            await updateDoc(docRef, { read: true });
+        } catch (error) {
+            console.error('[NotificationService] Error marking as read:', error);
+        }
+    },
+
+    /**
+     * Send a notification locally (for testing/immediate feedback only)
      */
     async sendLocalNotification(title: string, body: string, data = {}) {
         await Notifications.scheduleNotificationAsync({

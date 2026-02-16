@@ -8,7 +8,9 @@ import {
     query,
     where,
     onSnapshot,
-    Timestamp
+    Timestamp,
+    updateDoc,
+    increment
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
@@ -31,10 +33,17 @@ export const wishlistService = {
             const docRef = doc(db, COLLECTION, id);
             const docSnap = await getDoc(docRef);
 
+            const listingRef = doc(db, 'listings', listingId);
+            let isLiked = false;
+
             if (docSnap.exists()) {
                 console.log(`[WishlistService] Removing like for ${id}`);
                 await deleteDoc(docRef);
-                return false; // Unliked
+                // Decrement likes count
+                await updateDoc(listingRef, {
+                    likes: increment(-1)
+                });
+                isLiked = false; // Unliked
             } else {
                 console.log(`[WishlistService] Adding like for ${id}`);
                 await setDoc(docRef, {
@@ -43,11 +52,50 @@ export const wishlistService = {
                     priceAtWhishlist: currentPrice,
                     createdAt: Timestamp.now()
                 });
-                return true; // Liked
+                // Increment likes count
+                await updateDoc(listingRef, {
+                    likes: increment(1)
+                });
+                isLiked = true; // Liked
             }
+
+            // Calculate 24-hour likes count and update HOT status
+            await this.updateHotStatus(listingId);
+
+            return isLiked;
         } catch (error) {
             console.error('[WishlistService] Error toggling like:', error);
             throw error;
+        }
+    },
+
+    // Update HOT badge status based on 24-hour likes
+    async updateHotStatus(listingId: string): Promise<void> {
+        try {
+            const wishlists = await this.getWishlistByListing(listingId);
+            const now = Date.now();
+            const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+
+            // Count likes in the last 24 hours
+            const recentLikesCount = wishlists.filter(item => {
+                const createdAt = item.createdAt.toDate().getTime();
+                return createdAt >= twentyFourHoursAgo;
+            }).length;
+
+            const listingRef = doc(db, 'listings', listingId);
+
+            if (recentLikesCount >= 10) {
+                // Set HOT badge to expire 24 hours from now
+                const hotUntil = Timestamp.fromMillis(now + (24 * 60 * 60 * 1000));
+                await updateDoc(listingRef, { hotUntil });
+                console.log(`[WishlistService] Listing ${listingId} is HOT with ${recentLikesCount} likes in 24h`);
+            } else {
+                // Remove HOT badge if less than 10 likes in 24h
+                await updateDoc(listingRef, { hotUntil: null });
+            }
+        } catch (error) {
+            console.error('[WishlistService] Error updating hot status:', error);
+            // Don't throw - this is a non-critical operation
         }
     },
 

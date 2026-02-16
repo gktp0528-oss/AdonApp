@@ -8,6 +8,15 @@ export interface Message {
     systemType?: string;
     createdAt: Timestamp;
     read: boolean;
+
+    // Translation fields
+    senderLanguage?: string; // ISO code: 'ko', 'en', 'hu'
+    translations?: {
+        [languageCode: string]: {
+            text: string;
+            translatedAt: Timestamp;
+        }
+    };
 }
 
 export interface Conversation {

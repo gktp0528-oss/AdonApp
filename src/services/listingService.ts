@@ -36,7 +36,48 @@ export const listingService = {
                 status: listingData.status || 'active',
                 currency: listingData.currency || 'EUR',
             });
-            return docRef.id;
+
+            const listingId = docRef.id;
+
+            // Keyword Matching Logic
+            // In a large app, this should be done in a Cloud Function.
+            // For now, we fetch all users with keywords (limited to small set for performance)
+            // or just iterate if number of users is small.
+            try {
+                const usersRef = collection(db, 'users');
+                // Fetch users who have at least one keyword
+                const q = query(usersRef, where('keywords', '!=', []));
+                const userSnapshots = await getDocs(q);
+
+                const normalizedTitle = (listingData.title || '').toLowerCase();
+
+                for (const userDoc of userSnapshots.docs) {
+                    const userData = userDoc.data();
+                    const userId = userDoc.id;
+
+                    // Skip the seller
+                    if (userId === listingData.sellerId) continue;
+
+                    const userKeywords = userData.keywords || [];
+                    const matchedKeyword = userKeywords.find((kw: string) =>
+                        normalizedTitle.includes(kw.toLowerCase())
+                    );
+
+                    if (matchedKeyword) {
+                        await notificationService.sendNotification(
+                            userId,
+                            'keyword',
+                            'New item matched! ✨',
+                            `A new item matching your keyword "${matchedKeyword}" was just listed: ${listingData.title}`,
+                            { listingId }
+                        );
+                    }
+                }
+            } catch (err) {
+                console.warn('[ListingService] Keyword matching failed:', err);
+            }
+
+            return listingId;
         } catch (error) {
             console.error('Error creating listing:', error);
             throw error;
@@ -77,7 +118,9 @@ export const listingService = {
                     const wishlists = await wishlistService.getWishlistByListing(id);
                     for (const item of wishlists) {
                         if (item.userId === oldData.sellerId) continue;
-                        await notificationService.sendLocalNotification(
+                        await notificationService.sendNotification(
+                            item.userId,
+                            'priceDrop',
                             'Price Drop! 💸',
                             `An item you wishlisted "${oldData.title}" is now cheaper!`,
                             { listingId: id }

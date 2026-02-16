@@ -94,6 +94,14 @@
         "failedMsg": "A regisztráció sikertelen."
       }
     },
+    "landing": {
+      "subtitle": "A prémium viszonteladás új standardja",
+      "google": "Folytatás Google-lal",
+      "apple": "Folytatás Apple-lel",
+      "email": "Folytatás e-maillel",
+      "or": "vagy",
+      "signup": "Nincs még fiókja? Regisztráció"
+    },
     "home": {
       "title": "Kezdőlap",
       "greet": "Jó reggelt,",
@@ -114,7 +122,9 @@
         "fashion": "Divat",
         "tech": "Tech",
         "home": "Otthon",
-        "kids": "Gyerek"
+        "kids": "Gyerek",
+        "hobbies": "Hobbi",
+        "sports": "Sport"
       },
       "accessibility": {
         "addToWishlist": "Hozzáadás a kívánságlistához"

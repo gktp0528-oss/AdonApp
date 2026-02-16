@@ -35,6 +35,7 @@ import { KeywordsScreen } from './src/screens/KeywordsScreen';
 import { NotificationsScreen } from './src/screens/NotificationsScreen';
 import { WishlistScreen } from './src/screens/WishlistScreen';
 import EditListingScreen from './src/screens/EditListingScreen';
+import { UserListingsScreen } from './src/screens/UserListingsScreen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import initI18n from './src/i18n';
@@ -175,6 +176,11 @@ export default function App() {
             name="EditListing"
             component={EditListingScreen}
             options={{ title: i18next.t('screen.aiListing.edit.title', 'Edit Listing') }}
+          />
+          <Stack.Screen
+            name="UserListings"
+            component={UserListingsScreen}
+            options={{ animation: 'slide_from_right' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

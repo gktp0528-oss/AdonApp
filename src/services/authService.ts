@@ -13,6 +13,7 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { User } from '../types/user';
+import { notificationService } from './notificationService';
 
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
@@ -71,6 +72,15 @@ export const authService = {
                 reliabilityLabel: 'New Member'
             };
             await setDoc(docRef, newUser);
+
+            // Send real welcome notification
+            await notificationService.sendNotification(
+                user.uid,
+                'system',
+                'Welcome to Adon! 🎉',
+                'Start buying and selling premium items today. Complete your profile to get started!'
+            );
+
             return newUser;
         }
     },

@@ -132,10 +132,13 @@ export function HomeScreen({ navigation }: Props) {
       }
     }
 
-    // HOT Badge Logic (10+ likes)
-    // Heuristic: If likes >= 10, consider it HOT.
-    if ((item.likes || 0) >= 10) {
-      result.isHot = true;
+    // HOT Badge Logic (10+ likes in 24 hours)
+    // Check if hotUntil timestamp is in the future
+    if (item.hotUntil) {
+      const hotUntilDate = (item.hotUntil as any).toDate ? (item.hotUntil as any).toDate() : new Date(item.hotUntil as any);
+      if (hotUntilDate.getTime() > Date.now()) {
+        result.isHot = true;
+      }
     }
 
     return result;

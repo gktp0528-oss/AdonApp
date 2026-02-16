@@ -10,6 +10,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export function SplashScreen({ navigation }: Props) {
@@ -77,6 +79,11 @@ export function SplashScreen({ navigation }: Props) {
     <AnimatedBackground>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style="light" />
+
+        {/* Top Header Section */}
+        <View style={styles.topHeader}>
+          <LanguageSwitcher />
+        </View>
 
         {/* Hero Section */}
         <View style={styles.heroContainer}>
@@ -153,6 +160,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
+  },
+  topHeader: {
+    paddingVertical: 10,
+    zIndex: 100,
+    height: 50,
   },
   heroContainer: {
     flex: 1,

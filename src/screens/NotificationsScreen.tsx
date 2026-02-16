@@ -1,29 +1,47 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, FlatList } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { RootStackParamList } from '../navigation/types';
+import { notificationService, AdonNotification } from '../services/notificationService';
+import { userService } from '../services/userService';
+import { formatRelativeTime } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notifications'>;
 
 export function NotificationsScreen({ navigation }: Props) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const [notifications, setNotifications] = React.useState<AdonNotification[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const userId = userService.getCurrentUserId();
 
-    // Mock notifications for now
-    const notifications = [
-        {
-            id: '1',
-            type: 'system',
-            title: t('screen.notifications.welcome.title'),
-            body: t('screen.notifications.welcome.body'),
-            time: '2h',
-            read: false,
+    React.useEffect(() => {
+        if (!userId) {
+            setLoading(false);
+            return;
         }
-    ];
+
+        const unsubscribe = notificationService.watchNotifications(userId, (data) => {
+            setNotifications(data);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [userId]);
+
+    const handleNotiPress = (item: AdonNotification) => {
+        if (!item.read && item.id) {
+            notificationService.markAsRead(item.id);
+        }
+
+        if (item.data?.listingId) {
+            navigation.navigate('Product', { listingId: item.data.listingId });
+        }
+    };
 
     return (
         <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -67,32 +85,46 @@ export function NotificationsScreen({ navigation }: Props) {
                 </Pressable>
             </View>
 
+            {loading && (
+                <View style={{ padding: 20 }}>
+                    <ActivityIndicator color="#16a34a" />
+                </View>
+            )}
+
             <FlatList
                 data={notifications}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id || ''}
                 contentContainerStyle={styles.listContent}
                 renderItem={({ item }) => (
-                    <View style={[styles.notiItem, !item.read && styles.notiUnread]}>
+                    <Pressable
+                        style={[styles.notiItem, !item.read && styles.notiUnread]}
+                        onPress={() => handleNotiPress(item)}
+                    >
                         <View style={styles.notiIcon}>
                             <MaterialIcons
-                                name={item.type === 'system' ? 'info' : 'notifications'}
+                                name={
+                                    item.type === 'system' ? 'info' :
+                                        item.type === 'keyword' ? 'notifications-active' : 'trending-down'
+                                }
                                 size={20}
-                                color="#6b7280"
+                                color={item.type === 'system' ? '#6b7280' : item.type === 'keyword' ? '#16a34a' : '#3b82f6'}
                             />
                         </View>
                         <View style={styles.notiContent}>
                             <Text style={styles.notiTitle}>{item.title}</Text>
                             <Text style={styles.notiBody}>{item.body}</Text>
-                            <Text style={styles.notiTime}>{item.time}</Text>
+                            <Text style={styles.notiTime}>{formatRelativeTime(item.createdAt)}</Text>
                         </View>
                         {!item.read && <View style={styles.unreadDot} />}
-                    </View>
+                    </Pressable>
                 )}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <MaterialIcons name="notifications-none" size={48} color="#d1d5db" />
-                        <Text style={styles.emptyText}>{t('screen.notifications.empty')}</Text>
-                    </View>
+                    !loading ? (
+                        <View style={styles.emptyContainer}>
+                            <MaterialIcons name="notifications-none" size={48} color="#d1d5db" />
+                            <Text style={styles.emptyText}>{t('screen.notifications.empty')}</Text>
+                        </View>
+                    ) : null
                 }
             />
         </View>

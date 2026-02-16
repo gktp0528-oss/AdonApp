@@ -33,6 +33,7 @@ export interface Listing {
     };
     views?: number;
     likes?: number;
+    hotUntil?: Timestamp; // HOT badge active until this timestamp (24h from 10th like)
 }
 
 export type UnifiedAiReport = {
