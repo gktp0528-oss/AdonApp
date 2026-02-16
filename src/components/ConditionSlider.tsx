@@ -14,6 +14,7 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
     const sliderPageX = useRef(0);
     const isInteracting = useRef(false);
     const animatedValue = useRef(new Animated.Value(value)).current;
+    const thumbScale = useRef(new Animated.Value(1)).current;
 
     // Keep animated value in sync with prop for smooth transitions when AI or parent updates it
     useEffect(() => {
@@ -52,9 +53,20 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
         PanResponder.create({
             onStartShouldSetPanResponder: () => !disabled,
             onMoveShouldSetPanResponder: () => !disabled,
+            onStartShouldSetPanResponderCapture: () => !disabled,
+            onMoveShouldSetPanResponderCapture: () => !disabled,
             onPanResponderGrant: (evt, gestureState) => {
                 if (disabled) return;
                 isInteracting.current = true;
+
+                // Visual feedback: grow thumb
+                Animated.spring(thumbScale, {
+                    toValue: 1.4,
+                    friction: 8,
+                    tension: 100,
+                    useNativeDriver: false,
+                }).start();
+
                 handleTouch(evt.nativeEvent.pageX);
             },
             onPanResponderMove: (evt, gestureState) => {
@@ -63,6 +75,15 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             },
             onPanResponderRelease: () => {
                 isInteracting.current = false;
+
+                // Visual feedback: shrink thumb back
+                Animated.spring(thumbScale, {
+                    toValue: 1,
+                    friction: 8,
+                    tension: 100,
+                    useNativeDriver: false,
+                }).start();
+
                 // Ensure value is snapped and parent informed
                 const currentValue = (animatedValue as any)._value;
                 const snappedValue = Math.round(currentValue / 10) * 10;
@@ -70,7 +91,13 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             },
             onPanResponderTerminate: () => {
                 isInteracting.current = false;
-            }
+                Animated.spring(thumbScale, {
+                    toValue: 1,
+                    useNativeDriver: false,
+                }).start();
+            },
+            // CRITICAL: Block parent ScrollView from stealing the touch
+            onPanResponderTerminationRequest: () => false,
         })
     ).current;
 
@@ -147,7 +174,8 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
                         styles.thumb,
                         {
                             left: leftPosition,
-                            backgroundColor: activeColor
+                            backgroundColor: activeColor,
+                            transform: [{ scale: thumbScale }]
                         }
                     ]}
                 />
@@ -207,34 +235,36 @@ const styles = StyleSheet.create({
         letterSpacing: -1,
     },
     sliderInteractArea: {
-        height: 44,
+        height: 60, // Much larger hit area vertically
         justifyContent: 'center',
-        marginHorizontal: -4,
+        marginHorizontal: -20, // Horizontal spill for easier catching from edges
+        paddingHorizontal: 20,
     },
     track: {
-        height: 6,
+        height: 8, // Slightly thicker track for better visibility
         backgroundColor: '#f1f5f9',
-        borderRadius: 3,
+        borderRadius: 4,
         overflow: 'hidden',
     },
     trackFilled: {
-        height: 6,
-        borderRadius: 3,
+        height: 8,
+        borderRadius: 4,
     },
     thumb: {
         position: 'absolute',
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        marginLeft: -12,
+        width: 32, // Larger default thumb
+        height: 32,
+        borderRadius: 16,
+        marginLeft: -16,
         backgroundColor: '#19e61b',
-        borderWidth: 3,
+        borderWidth: 4, // Stronger border
         borderColor: '#fff',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
+        zIndex: 10,
     },
     footer: {
         marginTop: 4,
