@@ -251,22 +251,6 @@ export function ChatScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {conversation && (
-          <View style={styles.meetCard}>
-            <View style={styles.meetIconCircle}>
-              <MaterialIcons name="check" size={20} color="#22c55e" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.meetTitle}>{t('screen.chat.meet.title')}</Text>
-              <Text style={styles.meetPlace}>{conversation.listingTitle || t('screen.chat.status.loading')}</Text>
-            </View>
-            <View style={styles.viewTrBtn}>
-              <Text style={styles.viewTrBtnText}>{t('screen.chat.quick.location', 'Location')}</Text>
-              <MaterialIcons name="chevron-right" size={14} color="#16a34a" />
-            </View>
-          </View>
-        )}
-
         <ScrollView
           ref={scrollRef}
           style={styles.chatArea}
