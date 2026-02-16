@@ -345,14 +345,20 @@ export function ProductScreen({ navigation, route }: Props) {
 
           <View style={styles.priceRow}>
             <View>
-              <Text style={styles.price}>{priceDisplay}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
+                <Text style={[styles.price, listing.oldPrice ? { color: '#ef4444' } : null]}>
+                  {priceDisplay}
+                </Text>
+                {listing.oldPrice && (
+                  <Text style={styles.oldPriceText}>
+                    {formatCurrency(listing.oldPrice, listing.currency)}
+                  </Text>
+                )}
+              </View>
               {listing.oldPrice && (
-                <View style={styles.oldPriceRow}>
-                  <Text style={styles.oldPrice}>{formatCurrency(listing.oldPrice, listing.currency)}</Text>
-                  <View style={styles.dropBadge}>
-                    <MaterialIcons name="trending-down" size={14} color="#fff" />
-                    <Text style={styles.dropBadgeText}>{t('screen.priceDrop.title')}</Text>
-                  </View>
+                <View style={[styles.dropBadge, { alignSelf: 'flex-start', marginTop: 6, marginLeft: 0 }]}>
+                  <MaterialIcons name="trending-down" size={14} color="#fff" />
+                  <Text style={styles.dropBadgeText}>{t('screen.priceDrop.title')}</Text>
                 </View>
               )}
             </View>
@@ -478,6 +484,7 @@ export function ProductScreen({ navigation, route }: Props) {
               latitude={listing.pickupLocation?.latitude}
               longitude={listing.pickupLocation?.longitude}
               height={180}
+              label={listing.title}
             />
           </View>
 
@@ -595,7 +602,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  oldPrice: {
+  oldPriceText: {
     fontSize: 16,
     color: '#94a3b8',
     textDecorationLine: 'line-through',

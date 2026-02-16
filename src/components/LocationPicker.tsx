@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, Platform, ActivityIndicator } from 'react-native';
-import MapView, { UrlTile, Region, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { UrlTile, Region, PROVIDER_GOOGLE } from 'react-native-maps';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 
 interface LocationPickerProps {
     onLocationChange: (location: { latitude: number; longitude: number; address: string }) => void;
@@ -17,6 +18,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
     initialLocation,
 }) => {
+    const { t } = useTranslation();
     const [region, setRegion] = useState<Region>({
         latitude: initialLocation?.latitude || DEFAULT_LATITUDE,
         longitude: initialLocation?.longitude || DEFAULT_LONGITUDE,
@@ -46,18 +48,17 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>거래 희망 장소</Text>
+            <Text style={styles.label}>{t('screen.locationPicker.label')}</Text>
 
             <View style={styles.mapContainer}>
                 <MapView
-                    provider={PROVIDER_DEFAULT}
+                    provider={PROVIDER_GOOGLE}
                     style={styles.map}
                     initialRegion={region}
                     onRegionChangeComplete={onRegionChangeComplete}
                     onMapReady={() => setIsMapReady(true)}
-                    mapType={Platform.OS === 'android' ? 'none' : 'standard'}
                     rotateEnabled={false}
-                    showsUserLocation={true} // Optional: requires permissions in real app
+                    showsUserLocation={true}
                 >
                     <UrlTile
                         urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -68,7 +69,22 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                 {/* Fixed Center Marker */}
                 <View style={styles.markerFixed}>
-                    <MaterialIcons name="location-on" size={36} color="#22c55e" />
+                    <MaterialIcons name="location-on" size={38} color="#22c55e" />
+                </View>
+
+                {/* Floating Input Card */}
+                <View style={styles.floatingCard}>
+                    <Text style={styles.hint}>{t('screen.locationPicker.hint')}</Text>
+                    <View style={styles.inputContainer}>
+                        <MaterialIcons name="edit-location" size={20} color="#16a34a" style={styles.icon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder={t('screen.locationPicker.placeholder')}
+                            placeholderTextColor="#94a3b8"
+                            value={address}
+                            onChangeText={setAddress}
+                        />
+                    </View>
                 </View>
 
                 {!isMapReady && (
@@ -77,44 +93,29 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                     </View>
                 )}
             </View>
-
-            <Text style={styles.hint}>지도를 움직여 핀의 위치를 조정해주세요.</Text>
-
-            <View style={styles.inputContainer}>
-                <MaterialIcons name="edit-location" size={20} color="#64748b" style={styles.icon} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="장소 이름 (예: 강남역 10번 출구)"
-                    placeholderTextColor="#94a3b8"
-                    value={address}
-                    onChangeText={setAddress}
-                />
-            </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 10,
+        marginVertical: 12,
     },
     label: {
         fontSize: 16,
-        fontWeight: '700',
-        color: '#0f172a',
-        marginBottom: 8,
+        fontWeight: '800',
+        color: '#1e293b',
+        marginBottom: 10,
     },
     mapContainer: {
-        height: 200,
+        height: 300,
         width: '100%',
-        borderRadius: 14,
+        borderRadius: 20,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: '#f1f5f9',
         backgroundColor: '#e5e7eb',
         position: 'relative',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     map: {
         ...StyleSheet.absoluteFillObject,
@@ -123,19 +124,36 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: '50%',
         left: '50%',
-        marginLeft: -18,
-        marginTop: -36,
+        marginLeft: -19,
+        marginTop: -38, // Adjusted for slightly larger icon
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#e5e7eb',
+        backgroundColor: '#f1f5f9',
         justifyContent: 'center',
         alignItems: 'center',
     },
+    floatingCard: {
+        position: 'absolute',
+        bottom: 12,
+        left: 12,
+        right: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 16,
+        padding: 12,
+        // Premium Shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
     hint: {
-        marginTop: 6,
-        marginBottom: 10,
+        marginBottom: 8,
         fontSize: 12,
+        fontWeight: '600',
         color: '#64748b',
         textAlign: 'center',
     },
@@ -145,7 +163,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8fafc',
         borderWidth: 1,
         borderColor: '#e2e8f0',
-        borderRadius: 10,
+        borderRadius: 12,
         paddingHorizontal: 12,
     },
     icon: {
@@ -153,8 +171,9 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        height: 48,
-        fontSize: 15,
+        height: 44,
+        fontSize: 14,
         color: '#0f172a',
+        fontWeight: '500',
     },
 });

@@ -441,7 +441,7 @@
       }
     },
     "priceDrop": {
-      "title": "Price Drop Alerts",
+      "title": "Price Drop",
       "description": "Get notified when items in your wishlist drop in price!",
       "description_short": "Never miss a deal on your favorite items.",
       "empty": "No items in your wishlist yet. Start exploring!"
@@ -689,6 +689,11 @@
       "commentPlaceholder": "Tell us about the seller...",
       "submit": "Submit Review",
       "success": "Review submitted! Thank you."
+    },
+    "locationPicker": {
+      "label": "Preferred Location",
+      "hint": "Move the map to adjust the pin's location.",
+      "placeholder": "Place name (e.g. Gellért Hill Entrance)"
     }
   }
 }

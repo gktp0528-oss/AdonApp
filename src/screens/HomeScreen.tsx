@@ -119,6 +119,28 @@ export function HomeScreen({ navigation }: Props) {
   };
 
   const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'home');
+
+  const getBadges = (item: Listing) => {
+    const result = { isNew: false, isHot: false };
+
+    // NEW Badge Logic (48 hours / 2 days)
+    if (item.createdAt) {
+      const createdDate = (item.createdAt as any).toDate ? (item.createdAt as any).toDate() : new Date(item.createdAt as any);
+      const diffHours = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60);
+      if (diffHours <= 48) {
+        result.isNew = true;
+      }
+    }
+
+    // HOT Badge Logic (10+ likes)
+    // Heuristic: If likes >= 10, consider it HOT.
+    if ((item.likes || 0) >= 10) {
+      result.isHot = true;
+    }
+
+    return result;
+  };
+
   const chips = [
     { id: 'all', label: t('screen.home.chip.all') },
     ...CATEGORIES.map((cat) => ({
@@ -236,7 +258,7 @@ export function HomeScreen({ navigation }: Props) {
               style={styles.freshCard}
               onPress={() => navigation.navigate('Product', { listingId: item.id })}
             >
-              <View>
+              <View style={styles.imageContainer}>
                 <Image
                   source={{ uri: item.photos?.[0] || FALLBACK_IMAGE }}
                   style={styles.freshImage}
@@ -264,25 +286,33 @@ export function HomeScreen({ navigation }: Props) {
                     color={wishlistIds.has(item.id) ? "#ef4444" : "#4b5563"}
                   />
                 </Pressable>
+
+                <View style={styles.badgeList}>
+                  {getBadges(item).isNew && (
+                    <View style={styles.badgeNew}>
+                      <Text style={styles.badgeText}>NEW</Text>
+                    </View>
+                  )}
+                  {getBadges(item).isHot && (
+                    <View style={styles.badgeHot}>
+                      <Text style={styles.badgeText}>HOT</Text>
+                    </View>
+                  )}
+                </View>
               </View>
-              <Text numberOfLines={1} style={styles.freshName}>{item.title}</Text>
-              <View style={styles.freshMetaRow}>
-                <Text style={styles.freshPrice}>
-                  {formatCurrency(item.price, item.currency)}
-                </Text>
-                {item.oldPrice && (
-                  <View style={styles.hotBadge}>
-                    <Text style={styles.hotBadgeText}>HOT</Text>
-                  </View>
-                )}
+              <View style={styles.infoContainer}>
+                <Text numberOfLines={2} style={styles.freshName}>{item.title}</Text>
+                <View style={styles.priceContainer}>
+                  {item.oldPrice && (
+                    <Text style={styles.oldPrice}>
+                      {formatCurrency(item.oldPrice, item.currency)}
+                    </Text>
+                  )}
+                  <Text style={item.oldPrice ? styles.discountedPrice : styles.freshPrice}>
+                    {formatCurrency(item.price, item.currency)}
+                  </Text>
+                </View>
                 <Text style={styles.freshTime}>{toRelativeTime(item.createdAt)}</Text>
-              </View>
-              <View style={styles.categoryTag}>
-                <Text style={styles.categoryText}>
-                  {toCategoryKey(item.category)
-                    ? t(`screen.home.category.${toCategoryKey(item.category)}`)
-                    : item.category}
-                </Text>
               </View>
             </Pressable>
           )}
@@ -344,28 +374,86 @@ const styles = StyleSheet.create({
   sectionTag: { marginTop: 3, fontSize: 10, fontWeight: '800', color: '#166534', backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
 
   freshRow: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     justifyContent: 'space-between',
   },
-  freshCard: { width: '48%', marginBottom: 12 },
-  freshImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: '#eee' },
+  freshCard: {
+    width: '48%',
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    // iOS Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    // Android Shadow
+    elevation: 3,
+    overflow: 'hidden', // Ensures shadow/rounding interaction is clean
+  },
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    position: 'relative',
+  },
+  freshImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#f3f4f6',
+  },
   wishBtn: {
     position: 'absolute',
-    right: 8,
-    top: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    right: 10,
+    top: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  freshName: { marginTop: 8, fontWeight: '700', color: '#111827', fontSize: 13 },
-  freshMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  freshPrice: { color: '#16a34a', fontWeight: '800', fontSize: 14 },
-  freshTime: { color: '#9ca3af', fontSize: 11 },
-  categoryTag: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  categoryText: { fontSize: 10, color: '#6b7280', fontWeight: '600' },
+  infoContainer: {
+    padding: 12,
+  },
+  freshName: {
+    fontWeight: '600',
+    color: '#1f2937',
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 40,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginTop: 6,
+  },
+  oldPrice: {
+    color: '#9ca3af', // Gray 400
+    fontSize: 12,
+    fontWeight: '500',
+    textDecorationLine: 'line-through',
+  },
+  freshPrice: {
+    color: '#059669', // Emerald 600 (Normal)
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  discountedPrice: {
+    color: '#ef4444', // Red 500 (Discounted)
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  freshTime: {
+    color: '#9ca3af',
+    fontSize: 11,
+    marginTop: 4,
+  },
   emptyContainer: { padding: 40, alignItems: 'center' },
   emptyText: { color: '#94a3b8', fontSize: 16 },
   loadingMoreWrap: { paddingVertical: 16 },
@@ -383,16 +471,40 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     fontSize: 13,
   },
-  hotBadge: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-    marginLeft: 4,
+  badgeList: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
   },
-  hotBadgeText: {
+  badgeNew: {
+    backgroundColor: '#10b981', // Emerald 500
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  badgeHot: {
+    backgroundColor: '#ef4444', // Red 500
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  badgeText: {
     color: '#fff',
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '900',
+    letterSpacing: 0.5,
   },
 });

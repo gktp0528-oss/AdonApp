@@ -59,30 +59,34 @@ export const listingService = {
                 updatedAt: now,
             });
 
-            // Price Drop Detection
-            if (data.price !== undefined && data.price < oldData.price) {
-                console.log(`Price drop detected for ${id}: ${oldData.price} -> ${data.price}`);
+            // Price Drop Detection & Original Price Preservation
+            if (data.price !== undefined) {
+                const currentPrice = oldData.price;
+                const initialPrice = oldData.oldPrice || currentPrice;
 
-                // Track old price in the document for UI display
-                await updateDoc(docRef, {
-                    oldPrice: oldData.price
-                });
+                if (data.price < currentPrice) {
+                    console.log(`Price drop detected for ${id}: ${currentPrice} -> ${data.price}`);
 
-                // Notify users who have this in their wishlist
-                const wishlists = await wishlistService.getWishlistByListing(id);
-                for (const item of wishlists) {
-                    // In a real app, this would be a server-side trigger (Cloud Function)
-                    // For now, if the current user is in the wishlist, we'll send a local notification
-                    // to simulate the experience.
-                    if (item.userId === oldData.sellerId) continue; // Don't notify seller
+                    // If we don't have an oldPrice yet, save the current price as the original.
+                    // If we already have one, keep it (preserve the FIRST original price).
+                    if (!oldData.oldPrice) {
+                        await updateDoc(docRef, { oldPrice: currentPrice });
+                    }
 
-                    // Mock: Send local notification if current user matches
-                    // (Actually we'd want to notify everyone, but local notifications are device-specific)
-                    await notificationService.sendLocalNotification(
-                        'Price Drop! 💸',
-                        `An item you wishlisted "${oldData.title}" is now cheaper!`,
-                        { listingId: id }
-                    );
+                    // Notify users who have this in their wishlist
+                    const wishlists = await wishlistService.getWishlistByListing(id);
+                    for (const item of wishlists) {
+                        if (item.userId === oldData.sellerId) continue;
+                        await notificationService.sendLocalNotification(
+                            'Price Drop! 💸',
+                            `An item you wishlisted "${oldData.title}" is now cheaper!`,
+                            { listingId: id }
+                        );
+                    }
+                } else if (data.price >= initialPrice) {
+                    // If price goes back up to or above the initial original price, remove the discount badge/price
+                    console.log(`Price recovered or increased for ${id}. Removing oldPrice.`);
+                    await updateDoc(docRef, { oldPrice: null });
                 }
             }
         } catch (error) {
