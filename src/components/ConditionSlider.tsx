@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Slider from '@react-native-community/slider';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 interface ConditionSliderProps {
@@ -11,6 +10,7 @@ interface ConditionSliderProps {
 
 export function ConditionSlider({ value, onValueChange, disabled = false }: ConditionSliderProps) {
     const { t } = useTranslation();
+    const sliderWidth = useRef(0);
 
     // Determine dynamic color based on value
     const getColor = (val: number) => {
@@ -32,6 +32,29 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
 
     const statusInfo = getStatusInfo(value);
 
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => !disabled,
+            onMoveShouldSetPanResponder: () => !disabled,
+            onPanResponderGrant: (evt) => {
+                if (disabled) return;
+                const locationX = evt.nativeEvent.locationX;
+                updateValue(locationX);
+            },
+            onPanResponderMove: (evt) => {
+                if (disabled) return;
+                const locationX = evt.nativeEvent.locationX;
+                updateValue(locationX);
+            },
+        })
+    ).current;
+
+    const updateValue = (locationX: number) => {
+        const percentage = Math.max(0, Math.min(100, (locationX / sliderWidth.current) * 100));
+        const steppedValue = Math.round(percentage / 10) * 10;
+        onValueChange(steppedValue);
+    };
+
     return (
         <View style={styles.container}>
             {/* Header with Label and Percentage */}
@@ -47,19 +70,19 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
                 </Text>
             </View>
 
-            {/* Slider */}
-            <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={100}
-                step={10}
-                value={value}
-                onValueChange={onValueChange}
-                minimumTrackTintColor={activeColor}
-                maximumTrackTintColor="#e2e8f0"
-                thumbTintColor={activeColor}
-                disabled={disabled}
-            />
+            {/* Custom Slider */}
+            <View
+                style={styles.sliderContainer}
+                onLayout={(e) => {
+                    sliderWidth.current = e.nativeEvent.layout.width;
+                }}
+                {...panResponder.panHandlers}
+            >
+                <View style={styles.track}>
+                    <View style={[styles.trackFilled, { width: `${value}%`, backgroundColor: activeColor }]} />
+                </View>
+                <View style={[styles.thumb, { left: `${value}%`, backgroundColor: activeColor }]} />
+            </View>
 
             {/* Footer with Description and Scale */}
             <View style={styles.footer}>
@@ -98,11 +121,33 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         fontVariant: ['tabular-nums'],
     },
-    slider: {
-        width: '100%',
+    sliderContainer: {
         height: 40,
-        marginTop: -8, // Pull slider up slightly to reduce gap
+        justifyContent: 'center',
+        marginTop: -8,
         marginBottom: -4,
+    },
+    track: {
+        height: 4,
+        backgroundColor: '#e2e8f0',
+        borderRadius: 2,
+    },
+    trackFilled: {
+        height: 4,
+        borderRadius: 2,
+    },
+    thumb: {
+        position: 'absolute',
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        marginLeft: -10,
+        backgroundColor: '#30e86e',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
     },
     footer: {
         marginTop: 4,

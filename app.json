@@ -16,7 +16,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.adonapp.adon",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -40,6 +43,12 @@
       "@react-native-google-signin/google-signin",
       "expo-apple-authentication",
       "expo-notifications"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "94600924-2d94-4689-9717-1d6e2042dc2f"
+      }
+    },
+    "owner": "haeuni"
   }
 }
