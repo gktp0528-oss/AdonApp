@@ -243,7 +243,7 @@ export function AiListingScreen({ navigation, route }: Props) {
         condition,
         description: normalizedDescription,
         photos: uploadedPhotos,
-        currency: 'EUR',
+        currency: 'HUF', // Default to HUF for Hungary market
         status: 'active',
         sellerId: sellerId,
         pickupLocation: pickupLocation || undefined,
@@ -388,24 +388,25 @@ export function AiListingScreen({ navigation, route }: Props) {
       };
       const targetLang = languageMap[i18n.language] || 'English';
 
-      const prompt = `당신은 유럽(독일, 프랑스, 스페인 등)의 중고 마켓(eBay, Vinted, Wallapop) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
+      const prompt = `당신은 헝가리(Hungary)의 중고 마켓(Arukereso.hu, Jofogas.hu, Vinted.hu) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
       
       [분석 지침]
       1. 제품의 정확한 모델명을 식별하세요.
-      2. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
-      3. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
-      4. 특히 에어팟 같은 소모품은 배터리 수명과 외관 스크래치가 가격에 치명적임을 반영하세요.
-      5. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, hobbies, sports, mobility.
+      2. 헝가리 현지 최저가 비교 사이트인 'arukereso.hu'의 신제품 가격을 반드시 참고하되, 중고 시장 상황(Jofogas, Vinted)을 함께 고려하세요.
+      3. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
+      4. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
+      5. 화폐 단위는 반드시 'HUF (Hungarian Forint)'를 기준으로 합니다. 숫자가 작지 않도록 주의하세요 (예: 15 EUR가 아니라 6,000 HUF 수준).
+      6. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, hobbies, sports, mobility.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
         "itemName": "식별된 정확한 모델명",
         "category": "상기 분류 중 하나",
         "conditionScore": 1~10 사이 점수 (흠집이 하나라도 보이면 7점 이하로 책정),
-        "marketDemand": "유럽 내 수요 (High/Medium/Low)",
-        "priceRange": { "min": 보수적 최소유로, "max": 현실적 최대유로 },
-        "insights": ["감가 요인 상세 분석", "유럽 내 실제 거래 데이터 기반 분석"],
-        "reasoning": "왜 이 가격인가? (어떤 흠집 때문에 가격을 깎았는지 구체적으로 명시)"
+        "marketDemand": "헝가리 내 수요 (High/Medium/Low)",
+        "priceRange": { "min": 보수적 최소 포린트(HUF) 숫자만, "max": 현실적 최대 포린트(HUF) 숫자만 },
+        "insights": ["헝가리 시장가 대비 분석", "arukereso.hu 등 로컬 데이터 기반 감가 분석"],
+        "reasoning": "왜 이 가격인가? (어떤 흠집 때문에 가격을 깎았는지, 헝가리 시장가와 비교하여 구체적으로 명시)"
       }
       MUST be written in ${targetLang}. Response language should match exactly ${targetLang}.`;
 
@@ -808,56 +809,6 @@ function AiLoadingOverlay({ step }: { step: 'uploading' | 'analyzing' | 'finaliz
         ]}
       />
     </View>
-  );
-}
-
-// -------------------------------------------------------------------------
-// AI LOADING ICONS
-// -------------------------------------------------------------------------
-
-function UploadingIcon() {
-  const y = React.useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(y, { toValue: -10, duration: 600, useNativeDriver: true }),
-        Animated.timing(y, { toValue: 0, duration: 600, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <Animated.View style={{ transform: [{ translateY: y }] }}>
-      <MaterialIcons name="cloud-upload" size={64} color="#19e61b" />
-    </Animated.View>
-  );
-}
-
-function AnalyzingIcon() {
-  const rotate = React.useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(rotate, { toValue: 1, duration: 2000, easing: Easing.linear, useNativeDriver: true })
-    ).start();
-  }, []);
-  const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  return (
-    <Animated.View style={{ transform: [{ rotate: spin }] }}>
-      <MaterialIcons name="auto-awesome" size={64} color="#19e61b" />
-    </Animated.View>
-  );
-}
-
-function FinalizingIcon() {
-  const scale = React.useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.spring(scale, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }).start();
-  }, []);
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#19e61b', alignItems: 'center', justifyContent: 'center' }}>
-        <MaterialIcons name="check" size={56} color="#fff" />
-      </View>
-    </Animated.View>
   );
 }
 
