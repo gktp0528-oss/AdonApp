@@ -27,15 +27,9 @@ const FEATURES = [
     },
     {
         id: 'price',
-        icon: 'candlestick-chart', // or query-stats
+        icon: 'candlestick-chart',
         title: '실시간 시세 분석',
-        description: '거래 데이터를 기반으로 판매 가능한 가격 범위를 추천합니다.',
-    },
-    {
-        id: 'studio',
-        icon: 'photo-camera-back',
-        title: 'AI 사진 보정',
-        description: '배경 정리와 이미지 보정으로 상품 사진을 더 선명하게 개선합니다.',
+        description: 'AI가 유사 상품을 분석하여 적정 판매 가격을 추천합니다.',
     },
 ];
 
@@ -45,7 +39,6 @@ export function AiIntroScreen({ navigation }: Props) {
     // Animations
     const scanAnim = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(1)).current;
-    const shimmerAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         // 1. Scanning Line Animation (Loop)
@@ -83,31 +76,16 @@ export function AiIntroScreen({ navigation }: Props) {
                 })
             ])
         ).start();
-
-        // 3. Shimmer/Rotate Animation (Loop)
-        Animated.loop(
-            Animated.timing(shimmerAnim, {
-                toValue: 1,
-                duration: 3000,
-                easing: Easing.linear,
-                useNativeDriver: true,
-            })
-        ).start();
     }, []);
-
-    const handleStartTrial = () => {
-        navigation.goBack();
-    };
-
-    const spin = shimmerAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg']
-    });
 
     const scanTranslateY = scanAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [0, 48] // Height of icon box
     });
+
+    const handleStartTrial = () => {
+        navigation.goBack();
+    };
 
     return (
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -158,26 +136,7 @@ export function AiIntroScreen({ navigation }: Props) {
                             <Text style={styles.featureDesc}>{FEATURES[1].description}</Text>
                         </View>
                     </View>
-
-                    {/* Studio AI Card */}
-                    <View style={styles.featureCard}>
-                        <View style={[styles.iconBox, { overflow: 'hidden' }]}>
-                            <MaterialIcons name="photo-camera-back" size={32} color="#0f172a" />
-                            {/* Shimmer/Sparkle */}
-                            <Animated.View style={[
-                                styles.sparkle,
-                                { transform: [{ rotate: spin }] }
-                            ]}>
-                                <MaterialIcons name="auto-awesome" size={16} color="#19e61b" />
-                            </Animated.View>
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{FEATURES[2].title}</Text>
-                            <Text style={styles.featureDesc}>{FEATURES[2].description}</Text>
-                        </View>
-                    </View>
                 </View>
-
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
