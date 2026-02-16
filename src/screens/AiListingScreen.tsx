@@ -543,9 +543,10 @@ export function AiListingScreen({ navigation, route }: Props) {
           />
 
           <ScrollView
+            scrollEnabled={!isSliderInteracting}
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: (isKeyboardVisible ? 500 : 100) + insets.bottom },
+              { paddingBottom: (isKeyboardVisible ? 550 : 100) + insets.bottom },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -671,6 +672,7 @@ export function AiListingScreen({ navigation, route }: Props) {
               <ConditionSlider
                 value={condition}
                 onValueChange={setCondition}
+                onInteractionChange={setIsSliderInteracting}
               />
             </View>
 
@@ -692,7 +694,7 @@ export function AiListingScreen({ navigation, route }: Props) {
             </View>
 
             {/* Extra spacer when keyboard is active to allow scrolling above the keyboard */}
-            {isKeyboardVisible && <View style={{ height: 200 }} />}
+            {isKeyboardVisible && <View style={{ height: 350 }} />}
           </ScrollView>
 
           {/* Footer / CTA - Hidden when keyboard is visible to avoid blocking inputs */}
