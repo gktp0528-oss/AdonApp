@@ -1,0 +1,76 @@
+# Sports Category Expansion Plan (Europe Focus) 🌍⚽️
+Europeans love their sports! Here is a proposed sub-category structure tailored for the European market.
+
+## 1. Football (The King 👑)
+*Europe's most popular sport. Needs deep granularity.*
+- **Football Boots**: Soft Ground, Firm Ground, Artificial Grass, Indoor
+- **Apparel**: Replica Kits (Jerseys), Training Wear, Tracksuits
+- **Equipment**: Balls, Shin Pads, Goalkeeper Gloves
+- **Fan Merchandise**: Scarves, Memorabilia
+- **Other**: Miscellaneous Football Items
+
+## 2. Cycling (Daily Life & Pro 🚲)
+*Huge in Netherlands, Denmark, France, Italy.*
+- **Bicycles**: Road Bikes, Mountain Bikes (MTB), Gravel Bikes, City/Commuter Bikes, E-Bikes
+- **Components & Parts**: Groupsets, Wheels, Tyres, Pedals, Saddles
+- **Clothing & Gear**: Jerseys, Bib Shorts, Helmets, Shoes (Cleats)
+- **Accessories**: Lights, Locks, Computers (Garmin/Wahoo)
+- **Other**: Miscellaneous Cycling Items
+
+## 3. Winter Sports (The Alps Influence ⛷️)
+*Essential for DACH region (Germany, Austria, Switzerland), France, Italy.*
+- **Skiing**: Skis, Boots, Poles, Bindings, Helmets
+- **Snowboarding**: Boards, Boots, Bindings
+- **Clothing**: Ski Jackets, Salopettes/Pants, Thermals, Gloves/Mittens
+- **Other**: Miscellaneous Winter Sports Items
+
+## 4. Tennis & Racket Sports 🎾
+*Tennis is massive; Padel is the fastest growing sport in Spain/Southern Europe.*
+- **Tennis**: Rackets, Bags, Balls
+- **Padel**: Bat/Racket, Balls, Accessories
+- **Badminton & Squash**: Rackets, Shuttlecocks
+- **Apparel**: Skirts, Polos, Court Shoes
+- **Other**: Miscellaneous Racket Sports Items
+
+## 5. Running & Athletics 🏃
+- **Shoes**: Road Running, Trail Running, Track Spikes
+- **Apparel**: Running Jackets, Tights, Shorts
+- **Tech**: GPS Watches, Heart Rate Monitors
+- **Other**: Miscellaneous Running Items
+
+## 6. Gym & Fitness 🏋️‍♀️
+- **Weights**: Dumbbells, Kettlebells, Plates
+- **Machines**: Treadmills, Rowing Machines, Exercise Bikes
+- **Yoga & Pilates**: Mats, Blocks, Bands
+- **Apparel**: Leggings, Sports Bras, Gym Tops
+- **Other**: Miscellaneous Gym Items
+
+## 7. Water Sports 🏄
+- **Surfing & Wetsuits**: Boards, Wetsuits (Summer/Winter)
+- **Swimming**: Swimwear, Goggles, Caps
+- **Paddleboarding (SUP)**: Boards, Paddles
+- **Other**: Miscellaneous Water Sports Items
+
+## 8. Other Team Sports 🏉🏀
+- **Rugby**: Boots, Balls, Protective Gear
+- **Basketball**: Shoes, Balls, Jerseys
+- **Volleyball & Handball**: Balls, Knee Pads
+- **Other**: Miscellaneous Team Sports Items
+
+## 9. Golf ⛳️
+- **Clubs**: Drivers, Irons, Putters, Sets
+- **Apparel**: Shoes, Polos
+- **Accessories**: Bags, Trolleys, Balls
+- **Other**: Miscellaneous Golf Items
+
+## 10. Other Sports 🏹
+- **Boxing & Martial Arts**: Gloves, Pads
+- **Cricket**: Bats, Pads
+- **Other**: Everything else
+
+---
+
+## implementation Details
+- **IDs**: Use `sports_` prefix (e.g., `sports_cycling_road`).
+- **Icons**: Assign distinct icons for top-level sub-categories where possible.
+- **Locales**: Ensure translations for EN, KO (and future DE/FR/ES).
