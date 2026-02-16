@@ -145,7 +145,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
             return (
                 <View style={styles.center}>
                     <ActivityIndicator size="large" color="#30e86e" />
-                    <Text style={styles.loadingText}>모든 상품 사진을 정밀 분석 중이에요... ✨{"\n"}전담 AI 팀이 시세를 확인하고 있어요.</Text>
+                    <Text style={styles.loadingText}>{t('screen.priceAssistant.loading')}</Text>
                 </View>
             );
         }
@@ -153,12 +153,12 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         if (!analysis) {
             return (
                 <View style={styles.center}>
-                    <Text style={styles.errorText}>분석 정보를 가져오지 못했어요.</Text>
+                    <Text style={styles.errorText}>{t('screen.priceAssistant.error')}</Text>
                     <Pressable
                         style={styles.retryBtn}
                         onPress={() => imageUris && imageUris.length > 0 && runDeepAnalysis(imageUris)}
                     >
-                        <Text style={styles.retryBtnText}>다시 시도</Text>
+                        <Text style={styles.retryBtnText}>{t('screen.priceAssistant.retry')}</Text>
                     </Pressable>
                 </View>
             );
@@ -176,16 +176,16 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                     <Text style={styles.itemName}>{analysis.itemName}</Text>
                     <View style={styles.badgeRow}>
                         <View style={styles.demandBadge}>
-                            <Text style={styles.demandText}>수요: {analysis.marketDemand}</Text>
+                            <Text style={styles.demandText}>{t('screen.priceAssistant.demand')}: {analysis.marketDemand}</Text>
                         </View>
                         <View style={styles.conditionBadge}>
-                            <Text style={styles.conditionText}>상태 점수: {analysis.conditionScore}/10</Text>
+                            <Text style={styles.conditionText}>{t('screen.priceAssistant.conditionScore')}: {analysis.conditionScore}/10</Text>
                         </View>
                     </View>
                 </View>
 
                 <View style={styles.priceCard}>
-                    <Text style={styles.cardTitle}>Adon Vision 시세 예측 범위 🎯</Text>
+                    <Text style={styles.cardTitle}>{t('screen.priceAssistant.priceRangeTitle')}</Text>
                     <Text style={styles.priceRange}>
                         €{analysis.priceRange.min} — €{analysis.priceRange.max}
                     </Text>
@@ -197,7 +197,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 </View>
 
                 <View style={styles.insightSection}>
-                    <Text style={styles.sectionTitle}>Adon Vision 마켓 리포트 ✨</Text>
+                    <Text style={styles.sectionTitle}>{t('screen.priceAssistant.insightsTitle')}</Text>
                     {analysis.insights.map((insight: string, idx: number) => (
                         <View key={idx} style={styles.insightRow}>
                             <MaterialIcons name="insights" size={16} color="#30e86e" />
@@ -208,7 +208,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
 
                 <View style={styles.actionRow}>
                     <Pressable style={styles.applyBtn} onPress={handleApplyPrice}>
-                        <Text style={styles.applyBtnText}>이 가격으로 확정하기</Text>
+                        <Text style={styles.applyBtnText}>{t('screen.priceAssistant.applyBtn')}</Text>
                     </Pressable>
                 </View>
             </ScrollView>
@@ -221,7 +221,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialIcons name="arrow-back" size={24} color="#1e293b" />
                 </Pressable>
-                <Text style={styles.headerTitle}>Adon Vision AI</Text>
+                <Text style={styles.headerTitle}>{t('screen.priceAssistant.headerTitle')}</Text>
                 <View style={{ width: 44 }} />
             </View>
             {renderContent()}

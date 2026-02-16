@@ -709,6 +709,34 @@
       "label": "Preferált hely",
       "hint": "Mozgassa a térképet a tű helyének beállításához.",
       "placeholder": "Hely neve (pl. Gellért-hegy Bejárat)"
+    },
+    "aiIntro": {
+      "badge": "Béta",
+      "title": "Adon AI",
+      "titlePro": "Pro",
+      "subtitle": "Gyorsabb és okosabb értékesítési asszisztens",
+      "features": {
+        "vision": {
+          "title": "Vision AI Azonnali Hirdetés",
+          "description": "Csak töltse fel a fotókat, és az AI elemzi a márkát, modellt és állapotot, hogy létrehozza a hirdetés vázlatát."
+        },
+        "price": {
+          "title": "Valós idejű árelemzés",
+          "description": "Az AI hasonló termékeket elemez, hogy ajánlja az optimális eladási árat."
+        }
+      },
+      "cta": "Próbálja ki"
+    },
+    "priceAssistant": {
+      "headerTitle": "Adon Vision AI",
+      "loading": "Minden termékfotó részletes elemzése... ✨\nAI csapatunk ellenőrzi a piaci árakat.",
+      "error": "Nem sikerült lekérni az elemzési információkat.",
+      "retry": "Újra",
+      "demand": "Kereslet",
+      "conditionScore": "Állapot pontszám",
+      "priceRangeTitle": "Adon Vision Árbecslés 🎯",
+      "insightsTitle": "Adon Vision Piaci Jelentés ✨",
+      "applyBtn": "Megerősítés ezen az áron"
     }
   }
 }

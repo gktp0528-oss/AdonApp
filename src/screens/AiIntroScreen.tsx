@@ -12,6 +12,7 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiIntro'>;
@@ -22,18 +23,15 @@ const FEATURES = [
     {
         id: 'vision',
         icon: 'center-focus-strong',
-        title: '비전 AI 즉시 등록',
-        description: '사진만 올리면 브랜드, 모델, 상태를 빠르게 분석해 등록 초안을 만듭니다.',
     },
     {
         id: 'price',
         icon: 'candlestick-chart',
-        title: '실시간 시세 분석',
-        description: 'AI가 유사 상품을 분석하여 적정 판매 가격을 추천합니다.',
     },
 ];
 
 export function AiIntroScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
 
     // Animations
@@ -98,10 +96,10 @@ export function AiIntroScreen({ navigation }: Props) {
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.titleContainer}>
                     <View style={styles.badge}>
-                        <Text style={styles.badgeText}>베타</Text>
+                        <Text style={styles.badgeText}>{t('screen.aiIntro.badge')}</Text>
                     </View>
-                    <Text style={styles.title}>Adon AI <Text style={{ color: '#16a34a' }}>Pro</Text></Text>
-                    <Text style={styles.subtitle}>더 빠르고 정확한 판매 도우미</Text>
+                    <Text style={styles.title}>{t('screen.aiIntro.title')} <Text style={{ color: '#16a34a' }}>{t('screen.aiIntro.titlePro')}</Text></Text>
+                    <Text style={styles.subtitle}>{t('screen.aiIntro.subtitle')}</Text>
                 </View>
 
                 <View style={styles.featuresList}>
@@ -116,8 +114,8 @@ export function AiIntroScreen({ navigation }: Props) {
                             ]} />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{FEATURES[0].title}</Text>
-                            <Text style={styles.featureDesc}>{FEATURES[0].description}</Text>
+                            <Text style={styles.featureTitle}>{t('screen.aiIntro.features.vision.title')}</Text>
+                            <Text style={styles.featureDesc}>{t('screen.aiIntro.features.vision.description')}</Text>
                         </View>
                     </View>
 
@@ -132,8 +130,8 @@ export function AiIntroScreen({ navigation }: Props) {
                             <MaterialIcons name="candlestick-chart" size={32} color="#0f172a" />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{FEATURES[1].title}</Text>
-                            <Text style={styles.featureDesc}>{FEATURES[1].description}</Text>
+                            <Text style={styles.featureTitle}>{t('screen.aiIntro.features.price.title')}</Text>
+                            <Text style={styles.featureDesc}>{t('screen.aiIntro.features.price.description')}</Text>
                         </View>
                     </View>
                 </View>
@@ -141,7 +139,7 @@ export function AiIntroScreen({ navigation }: Props) {
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
                 <Pressable style={styles.ctaBtn} onPress={handleStartTrial}>
-                    <Text style={styles.ctaText}>사용해보기</Text>
+                    <Text style={styles.ctaText}>{t('screen.aiIntro.cta')}</Text>
                 </Pressable>
             </View>
         </SafeAreaView>

@@ -709,6 +709,34 @@
       "label": "Preferred Location",
       "hint": "Move the map to adjust the pin's location.",
       "placeholder": "Place name (e.g. Gellért Hill Entrance)"
+    },
+    "aiIntro": {
+      "badge": "Beta",
+      "title": "Adon AI",
+      "titlePro": "Pro",
+      "subtitle": "Faster and smarter selling assistant",
+      "features": {
+        "vision": {
+          "title": "Vision AI Instant Listing",
+          "description": "Just upload photos and AI will analyze brand, model, and condition to create a draft listing."
+        },
+        "price": {
+          "title": "Real-time Price Analysis",
+          "description": "AI analyzes similar items to recommend the optimal selling price."
+        }
+      },
+      "cta": "Try It"
+    },
+    "priceAssistant": {
+      "headerTitle": "Adon Vision AI",
+      "loading": "Analyzing all product photos in detail... ✨\nOur AI team is checking market prices.",
+      "error": "Failed to retrieve analysis information.",
+      "retry": "Retry",
+      "demand": "Demand",
+      "conditionScore": "Condition Score",
+      "priceRangeTitle": "Adon Vision Price Estimate 🎯",
+      "insightsTitle": "Adon Vision Market Report ✨",
+      "applyBtn": "Confirm at this price"
     }
   }
 }

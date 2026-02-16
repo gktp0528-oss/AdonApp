@@ -713,6 +713,34 @@
       "label": "거래 희망 장소",
       "hint": "지도를 움직여 핀의 위치를 조정해주세요.",
       "placeholder": "장소 이름 (예: 강남역 10번 출구)"
+    },
+    "aiIntro": {
+      "badge": "베타",
+      "title": "Adon AI",
+      "titlePro": "Pro",
+      "subtitle": "더 빠르고 정확한 판매 도우미",
+      "features": {
+        "vision": {
+          "title": "비전 AI 즉시 등록",
+          "description": "사진만 올리면 브랜드, 모델, 상태를 빠르게 분석해 등록 초안을 만듭니다."
+        },
+        "price": {
+          "title": "실시간 시세 분석",
+          "description": "AI가 유사 상품을 분석하여 적정 판매 가격을 추천합니다."
+        }
+      },
+      "cta": "사용해보기"
+    },
+    "priceAssistant": {
+      "headerTitle": "Adon Vision AI",
+      "loading": "모든 상품 사진을 정밀 분석 중이에요... ✨\n전담 AI 팀이 시세를 확인하고 있어요.",
+      "error": "분석 정보를 가져오지 못했어요.",
+      "retry": "다시 시도",
+      "demand": "수요",
+      "conditionScore": "상태 점수",
+      "priceRangeTitle": "Adon Vision 시세 예측 범위 🎯",
+      "insightsTitle": "Adon Vision 마켓 리포트 ✨",
+      "applyBtn": "이 가격으로 확정하기"
     }
   }
 }
