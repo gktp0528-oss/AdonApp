@@ -31,7 +31,12 @@ interface Prediction {
     };
 }
 
-const GOOGLE_API_KEY = "AIzaSyAewtFDFu-tZAldHQe3w0rqqJi8t3m6i5I";
+// Platform-specific API keys for better compatibility and security
+const GOOGLE_API_KEY = Platform.select({
+    ios: "AIzaSyCHhiuxAUVgLyjn71LNR3e8Eu5u03Dc6Zc", // From GoogleService-Info.plist
+    android: "AIzaSyAewtFDFu-tZAldHQe3w0rqqJi8t3m6i5I", // From google-services.json
+    default: "AIzaSyA1cqQPP2y2-4dMfYN-HRoHZG44N4EXv7I", // Fallback from firebaseConfig.ts
+});
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
@@ -43,6 +48,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [searchInput, setSearchInput] = useState('');
     const [predictions, setPredictions] = useState<Prediction[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     useEffect(() => {
         if (searchInput.length < 3) {
@@ -60,20 +66,61 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const fetchPredictions = async (query: string) => {
         if (!query.trim()) return;
         setIsLoading(true);
+        console.log('🔍 Address search query (New API):', query);
         try {
             const lang = i18n.language === 'ko' ? 'ko' : i18n.language === 'hu' ? 'hu' : 'en';
-            const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&language=${lang}`;
+            // Places API (New) endpoint
+            const url = `https://places.googleapis.com/v1/places:autocomplete`;
 
-            const response = await fetch(url);
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': GOOGLE_API_KEY || '',
+            };
+
+            if (Platform.OS === 'ios') {
+                headers['X-Ios-Bundle-Identifier'] = 'com.adonapp.adon';
+            } else if (Platform.OS === 'android') {
+                headers['X-Android-Package'] = 'com.adonapp.adon';
+            }
+
+            const body = {
+                input: query,
+                languageCode: lang,
+                includedRegionCodes: ['HU'], // Restrict to Hungary
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body),
+            });
             const data = await response.json();
 
-            if (data.status === 'OK') {
-                setPredictions(data.predictions);
+            console.log('📍 Autocomplete (New) Response:', !!data.suggestions);
+
+            if (data.suggestions) {
+                // Map New API response to our existing Prediction interface
+                const mappedPredictions = data.suggestions.map((s: any) => ({
+                    place_id: s.placePrediction.placeId,
+                    description: s.placePrediction.text.text,
+                    structured_formatting: {
+                        main_text: s.placePrediction.structuredFormat.mainText.text,
+                        secondary_text: s.placePrediction.structuredFormat.secondaryText?.text || '',
+                    },
+                }));
+                setPredictions(mappedPredictions);
+                setApiError(null);
+            } else if (data.error) {
+                const errorMsg = data.error.message || data.error.status;
+                console.warn('⚠️ Autocomplete API Error:', errorMsg);
+                setPredictions([]);
+                setApiError(errorMsg);
             } else {
                 setPredictions([]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ Fetch predictions failed:', error);
+            setApiError(error.message || 'Network error');
         } finally {
             setIsLoading(false);
         }
@@ -81,26 +128,43 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const handleSelectPlace = async (placeId: string, description: string) => {
         setIsLoading(true);
+        setApiError(null);
         try {
-            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,formatted_address&key=${GOOGLE_API_KEY}`;
-            const response = await fetch(url);
+            // Places API (New) Place Details endpoint
+            const url = `https://places.googleapis.com/v1/places/${placeId}`;
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': GOOGLE_API_KEY || '',
+                'X-Goog-FieldMask': 'location,formattedAddress',
+            };
+
+            if (Platform.OS === 'ios') {
+                headers['X-Ios-Bundle-Identifier'] = 'com.adonapp.adon';
+            } else if (Platform.OS === 'android') {
+                headers['X-Android-Package'] = 'com.adonapp.adon';
+            }
+
+            const response = await fetch(url, { headers });
             const data = await response.json();
 
-            if (data.status === 'OK') {
-                const { lat, lng } = data.result.geometry.location;
+            if (data.location) {
+                const { latitude, longitude } = data.location;
                 setSelectedAddress(description);
                 setIsModalVisible(false);
                 setSearchInput('');
                 setPredictions([]);
 
                 onLocationChange({
-                    latitude: lat,
-                    longitude: lng,
+                    latitude,
+                    longitude,
                     address: description,
                 });
+            } else if (data.error) {
+                setApiError(data.error.message || data.error.status);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Fetch place details failed:', error);
+            setApiError(error.message || 'Network error');
         } finally {
             setIsLoading(false);
         }
@@ -188,6 +252,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                     {/* Results Area */}
                     <View style={{ flex: 1 }}>
+                        {apiError && (
+                            <View style={styles.errorBanner}>
+                                <MaterialIcons name="error-outline" size={20} color="#ef4444" />
+                                <Text style={styles.errorText} numberOfLines={2}>{apiError}</Text>
+                            </View>
+                        )}
+
                         {isLoading ? (
                             <View style={styles.centerLoader}>
                                 <ActivityIndicator size="large" color="#22c55e" />
@@ -390,5 +461,22 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingHorizontal: 40,
         lineHeight: 20,
+    },
+    errorBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fef2f2',
+        padding: 12,
+        margin: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#fee2e2',
+        gap: 8,
+    },
+    errorText: {
+        flex: 1,
+        color: '#b91c1c',
+        fontSize: 13,
+        fontWeight: '500',
     },
 });
