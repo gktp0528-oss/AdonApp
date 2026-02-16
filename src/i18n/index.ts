@@ -41,6 +41,8 @@ const initI18n = async () => {
     }
 
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    console.log('🌍 [i18n] Saved language from AsyncStorage:', savedLanguage);
+
     let language = savedLanguage;
 
     // Enforce English as default (ignore system locale)
@@ -50,7 +52,10 @@ const initI18n = async () => {
 
     // Fallback to English if language is not supported
     if (!isSupportedLanguage(language)) {
+        console.log('🌍 [i18n] No valid saved language, falling back to English');
         language = 'en';
+    } else {
+        console.log('🌍 [i18n] Using saved language:', language);
     }
 
     await i18n.use(initReactI18next).init({
@@ -65,17 +70,26 @@ const initI18n = async () => {
         },
         compatibilityJSON: 'v4', // for android
     });
+
+    console.log('🌍 [i18n] Initialized with language:', i18n.language);
 };
 
 export const changeAppLanguage = async (language: AppLanguage) => {
     if (!isSupportedLanguage(language)) {
+        console.log('🌍 [i18n] Invalid language:', language);
         return;
     }
+    console.log('🌍 [i18n] Changing language to:', language);
+
     i18n.addResourceBundle('ko', 'translation', ko, true, true);
     i18n.addResourceBundle('en', 'translation', en, true, true);
     i18n.addResourceBundle('hu', 'translation', hu, true, true);
+
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    console.log('🌍 [i18n] Saved to AsyncStorage:', language);
+
     await i18n.changeLanguage(language);
+    console.log('🌍 [i18n] Language changed to:', i18n.language);
 };
 
 export default initI18n;

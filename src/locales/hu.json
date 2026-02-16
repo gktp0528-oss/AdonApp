@@ -588,7 +588,13 @@
         "uploading": "FOTÓK FELTÖLTÉSE...",
         "listing": "HIRDETÉS LÉTREHOZÁSA...",
         "finalizing": "KÉSZ!"
-      }
+      },
+      "analyzing": "AI elemzés...",
+      "aiPriceRange": "AI ár: €{{min}} ~ €{{max}}",
+      "generateReport": "AI jelentés készítése",
+      "reportGenerating": "Jelentés készítése...",
+      "stepHint": "2 lépéses folyamat: 1) Fotó szkennelés 2) Ár/leírás generálás",
+      "conditionPercent": "{{percent}}%"
     },
     "categoryList": {
       "itemsCount": "{{count}}+ termék",

@@ -1,6 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type ListingCondition = 'New' | 'Like New' | 'Good' | 'Fair';
+// Condition is now a percentage (0-100)
+export type ListingCondition = number;
 export type ListingStatus = 'active' | 'sold' | 'hidden';
 
 export interface Listing {

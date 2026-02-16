@@ -588,7 +588,13 @@
         "uploading": "UPLOADING PHOTOS...",
         "listing": "CREATING LISTING...",
         "finalizing": "COMPLETED!"
-      }
+      },
+      "analyzing": "AI Analyzing...",
+      "aiPriceRange": "AI Price: €{{min}} ~ €{{max}}",
+      "generateReport": "Generate AI Report",
+      "reportGenerating": "Generating Report...",
+      "stepHint": "2-step process: 1) Photo scan 2) Price/description generation",
+      "conditionPercent": "{{percent}}%"
     },
     "categoryList": {
       "itemsCount": "{{count}}+ items",

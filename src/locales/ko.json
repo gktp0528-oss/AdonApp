@@ -587,7 +587,13 @@
         "uploading": "사진 업로드 중...",
         "listing": "상품 등록 중...",
         "finalizing": "등록 완료!"
-      }
+      },
+      "analyzing": "AI 분석 중...",
+      "aiPriceRange": "AI 통합가: €{{min}} ~ €{{max}}",
+      "generateReport": "AI 통합 리포트 생성",
+      "reportGenerating": "통합 리포트 분석 중...",
+      "stepHint": "2단계 진행: 1) 사진 스캔 2) 시세/설명 생성",
+      "conditionPercent": "{{percent}}%"
     },
     "categoryList": {
       "itemsCount": "{{count}}+개 상품",

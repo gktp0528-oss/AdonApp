@@ -18,6 +18,7 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -136,7 +137,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
-  const [condition, setCondition] = useState<ListingCondition>('New'); // Default to first option
+  const [condition, setCondition] = useState<ListingCondition>(100); // Default to 100% (new)
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]); // Array of image URIs
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -149,13 +150,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [pickupLocation, setPickupLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
 
 
-  const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
-  const conditionLabelMap: Record<ListingCondition, string> = {
-    New: '새 상품',
-    'Like New': '거의 새것',
-    Good: '양호',
-    Fair: '사용감 있음',
-  };
+  // Removed: conditions and conditionLabelMap (now using slider 0-100)
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -178,11 +173,8 @@ export function AiListingScreen({ navigation, route }: Props) {
   };
 
   const inferConditionFromScore = (score: number | null): ListingCondition => {
-    if (score === null) return 'Good';
-    if (score >= 9) return 'New';
-    if (score >= 7) return 'Like New';
-    if (score >= 4) return 'Good';
-    return 'Fair';
+    if (score === null) return 60; // Default to 60%
+    return Math.round(score * 10); // Convert 1-10 score to 10-100%
   };
 
   const handleApplyRecommendedPrice = () => {
@@ -579,7 +571,7 @@ export function AiListingScreen({ navigation, route }: Props) {
               {isAiLoading && (
                 <View style={styles.aiLoadingBadge}>
                   <MaterialIcons name="auto-awesome" size={14} color="#16a34a" />
-                  <Text style={styles.aiLoadingText}>AI 분석 중...</Text>
+                  <Text style={styles.aiLoadingText}>{t('screen.aiListing.analyzing')}</Text>
                 </View>
               )}
             </View>
@@ -616,10 +608,10 @@ export function AiListingScreen({ navigation, route }: Props) {
               >
                 <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
                 <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
-                  {isAiLoading ? '통합 리포트 분석 중...' : aiPriceRange ? `AI 통합가: €${aiPriceRange.min} ~ €${aiPriceRange.max}` : 'AI 통합 리포트 생성'}
+                  {isAiLoading ? t('screen.aiListing.reportGenerating') : aiPriceRange ? t('screen.aiListing.aiPriceRange', { min: aiPriceRange.min, max: aiPriceRange.max }) : t('screen.aiListing.generateReport')}
                 </Text>
               </Pressable>
-              <Text style={styles.aiStepHint}>2단계 진행: 1) 사진 스캔 2) 시세/설명 생성</Text>
+              <Text style={styles.aiStepHint}>{t('screen.aiListing.stepHint')}</Text>
             </View>
 
             {/* Title Input */}
@@ -668,21 +660,27 @@ export function AiListingScreen({ navigation, route }: Props) {
             </View>
 
 
-            {/* Condition Selector */}
+            {/* Condition Slider */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-              <View style={styles.conditionRow}>
-                {conditions.map((c) => (
-                  <Pressable
-                    key={c}
-                    style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
-                    onPress={() => setCondition(c)}
-                  >
-                    <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
-                      {conditionLabelMap[c]}
-                    </Text>
-                  </Pressable>
-                ))}
+              <View style={styles.conditionHeader}>
+                <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
+                <Text style={styles.conditionValue}>{t('screen.aiListing.conditionPercent', { percent: condition })}</Text>
+              </View>
+              <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={100}
+                step={10}
+                value={condition}
+                onValueChange={setCondition}
+                minimumTrackTintColor="#30e86e"
+                maximumTrackTintColor="#e2e8f0"
+                thumbTintColor="#30e86e"
+              />
+              <View style={styles.sliderLabels}>
+                <Text style={styles.sliderLabelText}>0%</Text>
+                <Text style={styles.sliderLabelText}>50%</Text>
+                <Text style={styles.sliderLabelText}>100%</Text>
               </View>
             </View>
 
@@ -1539,5 +1537,31 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#30e86e',
     zIndex: 2000,
+  },
+  conditionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  conditionValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#30e86e',
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  sliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginTop: -8,
+  },
+  sliderLabelText: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '600',
   },
 });
