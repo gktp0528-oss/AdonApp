@@ -44,29 +44,22 @@ import { ListingCondition, UnifiedAiReport } from '../types/listing';
 import { useTranslation } from 'react-i18next';
 import { LocationPicker } from '../components/LocationPicker';
 import { aiBridge } from '../services/aiBridge';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
-  const slideUpAnim = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [isReady, setIsReady] = useState(false);
 
-  // Trigger fast slide up on mount and wait for interactions
   useEffect(() => {
-    const animation = Animated.timing(slideUpAnim, {
-      toValue: 0,
-      duration: 250,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-
-    animation.start();
-
-    // Use InteractionManager to delay heavy rendering until animation is done
+    // Wait for the native transition to finish before rendering heavy content
     const task = InteractionManager.runAfterInteractions(() => {
-      setIsReady(true);
+      // Add a tiny extra delay for psychological smoothness
+      setTimeout(() => {
+        setIsReady(true);
+      }, 50);
     });
 
     return () => task.cancel();
@@ -132,15 +125,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   }, [route.params?.appliedReport]);
 
   const handleClose = () => {
-    // Animate out before going back
-    Animated.timing(slideUpAnim, {
-      toValue: SCREEN_HEIGHT,
-      duration: 200,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      navigation.goBack();
-    });
+    navigation.goBack();
   };
 
   // Form State
@@ -530,6 +515,10 @@ export function AiListingScreen({ navigation, route }: Props) {
     }
   };
 
+  if (!isReady) {
+    return <PostSkeleton />;
+  }
+
   if (isAiLoading) {
     return <AiLoadingOverlay step={aiStep} />;
   }
@@ -539,7 +528,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Animated.View style={[styles.root, { transform: [{ translateY: slideUpAnim }] }]}>
+    <View style={styles.root}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -551,22 +540,6 @@ export function AiListingScreen({ navigation, route }: Props) {
             onClose={handleClose}
           />
 
-          <Pressable
-            style={styles.aiBanner}
-            onPress={() => navigation.navigate('AiIntro')}
-          >
-            <View style={styles.aiBannerContent}>
-              <View style={styles.aiIconBadge}>
-                <MaterialIcons name="auto-awesome" size={20} color="#fff" />
-              </View>
-              <View>
-                <Text style={styles.aiBannerTitle}>{t('screen.aiListing.ad.title')}</Text>
-                <Text style={styles.aiBannerSubtitle}>{t('screen.aiListing.ad.subtitle')}</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color="#15803d" />
-          </Pressable>
-
           <ScrollView
             contentContainerStyle={[
               styles.content,
@@ -576,6 +549,21 @@ export function AiListingScreen({ navigation, route }: Props) {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
+            <Pressable
+              style={styles.aiBanner}
+              onPress={() => navigation.navigate('AiIntro')}
+            >
+              <View style={styles.aiBannerContent}>
+                <View style={styles.aiIconBadge}>
+                  <MaterialIcons name="auto-awesome" size={20} color="#fff" />
+                </View>
+                <View>
+                  <Text style={styles.aiBannerTitle}>{t('screen.aiListing.ad.title')}</Text>
+                  <Text style={styles.aiBannerSubtitle}>{t('screen.aiListing.ad.subtitle')}</Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#15803d" />
+            </Pressable>
             {/* Photo Section */}
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>{t('screen.aiListing.section.photos')}</Text>
@@ -631,84 +619,75 @@ export function AiListingScreen({ navigation, route }: Props) {
               </View>
             )}
 
-            {!isReady ? (
-              <View style={{ height: 400, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#19e61b" />
+            {/* Title Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t('screen.aiListing.placeholder.title')}
+                placeholderTextColor="#64748b"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
+            {/* Category Selector */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
+              <Pressable
+                style={styles.selector}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  navigation.push('CategorySelect');
+                }}
+              >
+                <Text style={[styles.selectorText, !category && styles.placeholderText]}>
+                  {category || t('screen.categorySelect.title')}
+                </Text>
+                <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
+              </Pressable>
+            </View>
+
+            {/* Price Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.currencySymbol}>€</Text>
+                <TextInput
+                  style={styles.priceInput}
+                  placeholder={t('screen.aiListing.placeholder.price')}
+                  placeholderTextColor="#64748b"
+                  keyboardType="numeric"
+                  value={price}
+                  onChangeText={setPrice}
+                />
               </View>
-            ) : (
-              <>
-                {/* Title Input */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('screen.aiListing.placeholder.title')}
-                    placeholderTextColor="#64748b"
-                    value={title}
-                    onChangeText={setTitle}
-                  />
-                </View>
+            </View>
 
-                {/* Category Selector */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
-                  <Pressable
-                    style={styles.selector}
-                    onPress={() => {
-                      Keyboard.dismiss();
-                      navigation.push('CategorySelect');
-                    }}
-                  >
-                    <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                      {category || t('screen.categorySelect.title')}
-                    </Text>
-                    <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
-                  </Pressable>
-                </View>
+            {/* Condition Slider */}
+            <View style={styles.inputGroup}>
+              <ConditionSlider
+                value={condition}
+                onValueChange={setCondition}
+              />
+            </View>
 
-                {/* Price Input */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.currencySymbol}>€</Text>
-                    <TextInput
-                      style={styles.priceInput}
-                      placeholder={t('screen.aiListing.placeholder.price')}
-                      placeholderTextColor="#64748b"
-                      keyboardType="numeric"
-                      value={price}
-                      onChangeText={setPrice}
-                    />
-                  </View>
-                </View>
+            {/* Location Picker */}
+            <LocationPicker onLocationChange={setPickupLocation} />
 
-                {/* Condition Slider */}
-                <View style={styles.inputGroup}>
-                  <ConditionSlider
-                    value={condition}
-                    onValueChange={setCondition}
-                  />
-                </View>
-
-                {/* Location Picker */}
-                <LocationPicker onLocationChange={setPickupLocation} />
-
-                {/* Description Input */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder={t('screen.aiListing.placeholder.description')}
-                    placeholderTextColor="#64748b"
-                    multiline
-                    textAlignVertical="top"
-                    value={description}
-                    onChangeText={setDescription}
-                  />
-                </View>
-              </>
-            )}
-
+            {/* Description Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder={t('screen.aiListing.placeholder.description')}
+                placeholderTextColor="#64748b"
+                multiline
+                textAlignVertical="top"
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
           </ScrollView>
 
           {/* Footer / CTA - Always visible with KeyboardAvoidingView */}
@@ -734,7 +713,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -1070,6 +1049,125 @@ function PostFinalizingIcon() {
   );
 }
 
+// -------------------------------------------------------------------------
+// NEW POST SKELETON COMPONENT (Premium Vinted/Bunjang Style)
+// -------------------------------------------------------------------------
+function SkeletonItem({ width, height, borderRadius = 8, marginBottom = 16, style }: any) {
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const translateX = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-150, 150], // Adjust based on common widths
+  });
+
+  return (
+    <View
+      style={[
+        {
+          width,
+          height,
+          borderRadius,
+          marginBottom,
+          backgroundColor: '#eff6ff', // Light blue-ish gray
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+    >
+      <Animated.View
+        style={{
+          width: '100%',
+          height: '100%',
+          transform: [{ translateX }],
+        }}
+      >
+        <LinearGradient
+          colors={['transparent', 'rgba(255, 255, 255, 0.6)', 'transparent']}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </View>
+  );
+}
+
+function PostSkeleton() {
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  return (
+    <View style={styles.skeletonContainer}>
+      <AdonHeader title={t('screen.listing.title')} showClose={true} onClose={() => { }} />
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 100 + insets.bottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Photo Section Skeleton */}
+        <SkeletonItem width={120} height={20} marginBottom={16} />
+        <View style={{ flexDirection: 'row', marginBottom: 24 }}>
+          <SkeletonItem width={100} height={100} borderRadius={16} style={{ marginRight: 12 }} />
+          <SkeletonItem width={100} height={100} borderRadius={16} style={{ marginRight: 12 }} />
+          <SkeletonItem width={100} height={100} borderRadius={16} />
+        </View>
+
+        {/* Form Fields Skeletons */}
+        <View style={styles.inputGroup}>
+          <SkeletonItem width={80} height={16} marginBottom={12} />
+          <SkeletonItem width="100%" height={56} borderRadius={16} />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <SkeletonItem width={80} height={16} marginBottom={12} />
+          <SkeletonItem width="100%" height={56} borderRadius={16} />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <SkeletonItem width={80} height={16} marginBottom={12} />
+          <SkeletonItem width="100%" height={56} borderRadius={16} />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <SkeletonItem width="100%" height={80} borderRadius={16} />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <SkeletonItem width="100%" height={56} borderRadius={16} />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <SkeletonItem width={80} height={16} marginBottom={12} />
+          <SkeletonItem width="100%" height={150} borderRadius={16} />
+        </View>
+      </ScrollView>
+
+      {/* Footer Skeleton */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), borderTopWidth: 1, backgroundColor: '#fff' }]}>
+        <SkeletonItem width="100%" height={56} borderRadius={28} marginBottom={0} />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f6f8f6' },
   header: {
@@ -1352,8 +1450,7 @@ const styles = StyleSheet.create({
   },
   aiBannerSubtitle: {
     fontSize: 14,
-    color: '#fff',
-    opacity: 0.9,
+    color: '#166534', // Dark green for readability on light background
     marginTop: 4,
   },
   loadingOverlay: {
@@ -1633,5 +1730,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#30e86e',
     zIndex: 2000,
+  },
+  skeletonContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
   },
 });
