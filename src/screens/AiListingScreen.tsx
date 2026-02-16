@@ -577,6 +577,7 @@ export function AiListingScreen({ navigation, route }: Props) {
                 showsHorizontalScrollIndicator={false}
                 style={styles.photoScroll}
                 keyboardShouldPersistTaps="always"
+                nestedScrollEnabled={true}
               >
                 <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
                   <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
