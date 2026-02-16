@@ -600,19 +600,25 @@ export function AiListingScreen({ navigation, route }: Props) {
               ))}
             </ScrollView>
 
-            <View style={styles.aiActionRow}>
-              <Pressable
-                style={[styles.aiAnalyzeBtn, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnDisabled]}
-                onPress={handleRunAiAnalysis}
-                disabled={isAiLoading || photos.length === 0}
-              >
-                <MaterialIcons name="auto-awesome" size={16} color={isAiLoading || photos.length === 0 ? '#94a3b8' : '#30e86e'} />
-                <Text style={[styles.aiAnalyzeBtnText, (isAiLoading || photos.length === 0) && styles.aiAnalyzeBtnTextDisabled]}>
-                  {isAiLoading ? t('screen.aiListing.reportGenerating') : aiPriceRange ? t('screen.aiListing.aiPriceRange', { min: aiPriceRange.min, max: aiPriceRange.max }) : t('screen.aiListing.generateReport')}
-                </Text>
-              </Pressable>
-              <Text style={styles.aiStepHint}>{t('screen.aiListing.stepHint')}</Text>
-            </View>
+            {photos.length > 0 && !aiReport && (
+              <View style={styles.aiActionRow}>
+                <Pressable
+                  style={[styles.aiAnalyzeBtn, isAiLoading && styles.aiAnalyzeBtnDisabled]}
+                  onPress={handleRunAiAnalysis}
+                  disabled={isAiLoading}
+                >
+                  <MaterialIcons
+                    name="auto-awesome"
+                    size={20}
+                    color={isAiLoading ? '#94a3b8' : '#16a34a'}
+                  />
+                  <Text style={[styles.aiAnalyzeBtnText, isAiLoading && styles.aiAnalyzeBtnTextDisabled]}>
+                    {t('screen.aiListing.generateReport')}
+                  </Text>
+                </Pressable>
+                <Text style={styles.aiStepHint}>{t('screen.aiListing.stepHint')}</Text>
+              </View>
+            )}
 
             {/* Title Input */}
             <View style={styles.inputGroup}>
@@ -688,21 +694,27 @@ export function AiListingScreen({ navigation, route }: Props) {
 
           </ScrollView>
 
-          {/* Footer / CTA */}
-          {!isKeyboardVisible && (
-            <View
-              style={[styles.footer, { bottom: 0, paddingBottom: Math.max(insets.bottom, 5) }]}
-              pointerEvents="box-none"
+          {/* Footer / CTA - Always visible with KeyboardAvoidingView */}
+          <View
+            style={[
+              styles.footer,
+              {
+                bottom: 0,
+                paddingBottom: Math.max(insets.bottom, 12),
+                backgroundColor: isKeyboardVisible ? 'transparent' : '#f6f8f6',
+                borderTopWidth: isKeyboardVisible ? 0 : 1,
+              }
+            ]}
+            pointerEvents="box-none"
+          >
+            <Pressable
+              style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+              onPress={handlePostItem}
+              disabled={isPosting}
             >
-              <Pressable
-                style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-                onPress={handlePostItem}
-                disabled={isPosting}
-              >
-                <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
-              </Pressable>
-            </View>
-          )}
+              <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
+            </Pressable>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Animated.View>
@@ -800,6 +812,56 @@ function AiLoadingOverlay({ step }: { step: 'uploading' | 'analyzing' | 'finaliz
 }
 
 // -------------------------------------------------------------------------
+// AI LOADING ICONS
+// -------------------------------------------------------------------------
+
+function UploadingIcon() {
+  const y = React.useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(y, { toValue: -10, duration: 600, useNativeDriver: true }),
+        Animated.timing(y, { toValue: 0, duration: 600, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  return (
+    <Animated.View style={{ transform: [{ translateY: y }] }}>
+      <MaterialIcons name="cloud-upload" size={64} color="#19e61b" />
+    </Animated.View>
+  );
+}
+
+function AnalyzingIcon() {
+  const rotate = React.useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotate, { toValue: 1, duration: 2000, easing: Easing.linear, useNativeDriver: true })
+    ).start();
+  }, []);
+  const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  return (
+    <Animated.View style={{ transform: [{ rotate: spin }] }}>
+      <MaterialIcons name="auto-awesome" size={64} color="#19e61b" />
+    </Animated.View>
+  );
+}
+
+function FinalizingIcon() {
+  const scale = React.useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(scale, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }).start();
+  }, []);
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#19e61b', alignItems: 'center', justifyContent: 'center' }}>
+        <MaterialIcons name="check" size={56} color="#fff" />
+      </View>
+    </Animated.View>
+  );
+}
+
+// -------------------------------------------------------------------------
 // NEW POST LOADING OVERLAY COMPONENT
 // -------------------------------------------------------------------------
 
@@ -853,9 +915,9 @@ function PostLoadingOverlay({ step }: { step: 'uploading' | 'listing' | 'finaliz
     <View style={styles.loadingOverlay}>
       <View style={styles.scanningWrap}>
         <View style={{ height: 100, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-          {step === 'uploading' && <UploadingIcon />}
-          {step === 'listing' && <AnalyzingIcon />}
-          {step === 'finalizing' && <FinalizingIcon />}
+          {step === 'uploading' && <PostUploadingIcon />}
+          {step === 'listing' && <PostListingIcon />}
+          {step === 'finalizing' && <PostFinalizingIcon />}
         </View>
 
         <Animated.Text style={[styles.aiLiveTitle, { opacity: titleFade, textAlign: 'center', marginLeft: 0 }]}>
@@ -954,6 +1016,88 @@ function FinalizingIcon() {
         alignItems: 'center', justifyContent: 'center'
       }}>
         <MaterialIcons name="check" size={48} color="#fff" />
+      </View>
+    </Animated.View>
+  );
+}
+
+function PostUploadingIcon() {
+  const y = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(y, {
+          toValue: -15,
+          duration: 600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(y, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ translateY: y }] }}>
+      <MaterialIcons name="cloud-upload" size={72} color="#19e61b" />
+    </Animated.View>
+  );
+}
+
+function PostListingIcon() {
+  const scale = React.useRef(new Animated.Value(0.8)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 0.8,
+          duration: 1000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <MaterialIcons name="inventory" size={72} color="#19e61b" />
+    </Animated.View>
+  );
+}
+
+function PostFinalizingIcon() {
+  const scale = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <View style={{
+        width: 80, height: 80, borderRadius: 40, backgroundColor: '#19e61b',
+        alignItems: 'center', justifyContent: 'center'
+      }}>
+        <MaterialIcons name="check" size={56} color="#fff" />
       </View>
     </Animated.View>
   );
