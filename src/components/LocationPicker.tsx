@@ -47,6 +47,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
     initialLocation,
 }) => {
+    const { t, i18n } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState(initialLocation?.address || '');
     const [searchInput, setSearchInput] = useState('');
