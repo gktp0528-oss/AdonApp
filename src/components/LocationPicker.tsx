@@ -34,9 +34,9 @@ interface Prediction {
 
 // Platform-specific API keys for better compatibility and security
 const GOOGLE_API_KEY = Platform.select({
-    ios: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw", // New key from screen
-    android: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw",
-    default: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw",
+    ios: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U", // Final key from Europe Damoa project
+    android: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U",
+    default: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U",
 });
 
 // Default map center (Budapest, Hungary) - Still kept for coords if needed, but MapView is gone
