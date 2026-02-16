@@ -11,16 +11,21 @@ interface ConditionSliderProps {
 export function ConditionSlider({ value, onValueChange, disabled = false }: ConditionSliderProps) {
     const { t } = useTranslation();
     const sliderWidth = useRef(0);
+    const sliderPageX = useRef(0);
+    const isInteracting = useRef(false);
     const animatedValue = useRef(new Animated.Value(value)).current;
 
     // Keep animated value in sync with prop for smooth transitions when AI or parent updates it
     useEffect(() => {
-        Animated.timing(animatedValue, {
-            toValue: value,
-            duration: 300,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: false,
-        }).start();
+        // Only animate if not currently interacting to avoid drag lag
+        if (!isInteracting.current) {
+            Animated.timing(animatedValue, {
+                toValue: value,
+                duration: 300,
+                easing: Easing.out(Easing.quad),
+                useNativeDriver: false,
+            }).start();
+        }
     }, [value]);
 
     // Determine dynamic color based on value
@@ -49,20 +54,37 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             onMoveShouldSetPanResponder: () => !disabled,
             onPanResponderGrant: (evt, gestureState) => {
                 if (disabled) return;
-                handleTouch(evt.nativeEvent.locationX);
+                isInteracting.current = true;
+                handleTouch(evt.nativeEvent.pageX);
             },
             onPanResponderMove: (evt, gestureState) => {
                 if (disabled) return;
-                handleTouch(evt.nativeEvent.locationX);
+                handleTouch(evt.nativeEvent.pageX);
             },
+            onPanResponderRelease: () => {
+                isInteracting.current = false;
+                // Ensure value is snapped and parent informed
+                const currentValue = (animatedValue as any)._value;
+                const snappedValue = Math.round(currentValue / 10) * 10;
+                onValueChange(snappedValue);
+            },
+            onPanResponderTerminate: () => {
+                isInteracting.current = false;
+            }
         })
     ).current;
 
-    const handleTouch = (locationX: number) => {
+    const handleTouch = (pageX: number) => {
         if (sliderWidth.current <= 0) return;
-        const percentage = Math.max(0, Math.min(100, (locationX / sliderWidth.current) * 100));
-        const steppedValue = Math.round(percentage / 10) * 10;
 
+        const relativeX = pageX - sliderPageX.current;
+        const percentage = Math.max(0, Math.min(100, (relativeX / sliderWidth.current) * 100));
+
+        // Update visual position IMMEDIATELY for zero-lag feel
+        animatedValue.setValue(percentage);
+
+        // Inform parent for UI updates (label, color)
+        const steppedValue = Math.round(percentage / 10) * 10;
         if (steppedValue !== value) {
             onValueChange(steppedValue);
         }
@@ -102,6 +124,10 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
                 style={styles.sliderInteractArea}
                 onLayout={(e) => {
                     sliderWidth.current = e.nativeEvent.layout.width;
+                    // Measure pageX to handle absolute touch coordinates correctly
+                    e.currentTarget.measure((x, y, width, height, pageX, pageY) => {
+                        sliderPageX.current = pageX;
+                    });
                 }}
                 {...panResponder.panHandlers}
             >
