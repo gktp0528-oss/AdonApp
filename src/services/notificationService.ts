@@ -118,7 +118,7 @@ export const notificationService = {
     /**
      * Watch notifications for a user
      */
-    watchNotifications(userId: string, callback: (notifications: AdonNotification[]) => void): () => void {
+    watchNotifications(userId: string, callback: (notifications: AdonNotification[]) => void, errorCallback?: (error: any) => void): () => void {
         const q = query(
             collection(db, NOTIFICATIONS_COLLECTION),
             where('userId', '==', userId),
@@ -132,7 +132,13 @@ export const notificationService = {
             } as AdonNotification));
             callback(notifications);
         }, (error) => {
-            console.error('[NotificationService] Error watching notifications:', error);
+            const isIndexing = error.message?.includes('index') && error.message?.includes('building');
+            if (isIndexing) {
+                console.warn('[NotificationService] Index is still building, please wait a few minutes.');
+            } else {
+                console.error('[NotificationService] Error watching notifications:', error.code, error.message);
+            }
+            if (errorCallback) errorCallback(error);
         });
     },
 

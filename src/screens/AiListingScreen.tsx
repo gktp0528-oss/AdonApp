@@ -141,6 +141,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [photos, setPhotos] = useState<string[]>([]); // Array of image URIs
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [postStep, setPostStep] = useState<'uploading' | 'listing' | 'finalizing' | null>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
   const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
@@ -223,6 +224,7 @@ export function AiListingScreen({ navigation, route }: Props) {
     }
 
     setIsPosting(true);
+    setPostStep('uploading');
     try {
       const uploadedPhotos = await Promise.all(
         photos.map(async (uri, index) => {
@@ -240,6 +242,8 @@ export function AiListingScreen({ navigation, route }: Props) {
         })
       );
 
+      setPostStep('listing');
+
       await listingService.createListing({
         title: normalizedTitle,
         price: normalizedPrice,
@@ -254,7 +258,11 @@ export function AiListingScreen({ navigation, route }: Props) {
         // Optional fields can be added here
       });
 
-      Alert.alert('등록 완료', '상품이 정상적으로 등록되었어요.', [
+      setPostStep('finalizing');
+      // Give time for the user to see the success state
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      Alert.alert(t('screen.aiListing.alert.successTitle') || '등록 완료', t('screen.aiListing.alert.successMsg') || '상품이 정상적으로 등록되었어요.', [
         {
           text: '확인',
           onPress: () => navigation.goBack(),
@@ -268,6 +276,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       );
     } finally {
       setIsPosting(false);
+      setPostStep(null);
     }
   };
 
@@ -520,6 +529,10 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   if (isAiLoading) {
     return <AiLoadingOverlay step={aiStep} />;
+  }
+
+  if (isPosting && postStep) {
+    return <PostLoadingOverlay step={postStep} />;
   }
 
   return (
@@ -790,6 +803,87 @@ function AiLoadingOverlay({ step }: { step: 'uploading' | 'analyzing' | 'finaliz
       </View>
 
       {/* FLASH OVERLAY (Option 1) */}
+      <Animated.View
+        style={[
+          styles.flashCircle,
+          {
+            transform: [{ scale: flashScale }],
+            opacity: flashOpacity
+          }
+        ]}
+      />
+    </View>
+  );
+}
+
+// -------------------------------------------------------------------------
+// NEW POST LOADING OVERLAY COMPONENT
+// -------------------------------------------------------------------------
+
+function PostLoadingOverlay({ step }: { step: 'uploading' | 'listing' | 'finalizing' }) {
+  const { t } = useTranslation();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const titleFade = React.useRef(new Animated.Value(0)).current;
+  const flashAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+
+    if (step === 'finalizing') {
+      Animated.sequence([
+        Animated.delay(800),
+        Animated.timing(flashAnim, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [step]);
+
+  React.useEffect(() => {
+    Animated.timing(titleFade, {
+      toValue: 1,
+      duration: 800,
+      delay: 200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const flashScale = flashAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 15],
+  });
+
+  const flashOpacity = flashAnim.interpolate({
+    inputRange: [0, 0.8, 1],
+    outputRange: [0, 1, 1],
+  });
+
+  return (
+    <View style={styles.loadingOverlay}>
+      <View style={styles.scanningWrap}>
+        <View style={{ height: 100, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          {step === 'uploading' && <UploadingIcon />}
+          {step === 'listing' && <AnalyzingIcon />}
+          {step === 'finalizing' && <FinalizingIcon />}
+        </View>
+
+        <Animated.Text style={[styles.aiLiveTitle, { opacity: titleFade, textAlign: 'center', marginLeft: 0 }]}>
+          PREMIUM LISTING SERVICE
+        </Animated.Text>
+
+        <Animated.Text style={[styles.percentageText, { opacity: fadeAnim, marginTop: 10 }]}>
+          {t(`screen.aiListing.postStatus.${step}`)}
+        </Animated.Text>
+      </View>
+
       <Animated.View
         style={[
           styles.flashCircle,

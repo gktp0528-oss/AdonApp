@@ -18,11 +18,12 @@ import { transactionService } from '../services/transactionService';
 import { TransactionCompletion } from '../components/TransactionCompletion';
 import { ReviewModal } from '../components/ReviewModal';
 import { reviewService } from '../services/reviewService';
+import { translationService } from '../services/translationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 export function ChatScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { conversationId } = route.params;
   const isFocused = useIsFocused();
   const currentUserId = userService.getCurrentUserId();
@@ -43,6 +44,11 @@ export function ChatScreen({ navigation, route }: Props) {
   const [completedTransactionId, setCompletedTransactionId] = useState<string | null>(null);
   const [isSeller, setIsSeller] = useState(false);
   const [hasReview, setHasReview] = useState(false);
+
+  // Translation state
+  const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [translatingMessages, setTranslatingMessages] = useState<Record<string, boolean>>({});
 
   // Watch conversation metadata (single document)
   useEffect(() => {
@@ -131,6 +137,45 @@ export function ChatScreen({ navigation, route }: Props) {
     if (!didGrow || loadingMore) return;
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
   }, [messages.length, loadingMore]);
+
+  // Manual translate function
+  const handleTranslate = async (msgId: string, text: string, senderLang: string) => {
+    if (translatingMessages[msgId]) return;
+
+    setTranslatingMessages(prev => ({ ...prev, [msgId]: true }));
+    try {
+      const translatedText = await translationService.getTranslation(
+        conversationId,
+        msgId,
+        text,
+        senderLang,
+        i18n.language
+      );
+
+      if (translatedText) {
+        setTranslations(prev => ({
+          ...prev,
+          [msgId]: translatedText
+        }));
+        setShowOriginal(prev => ({
+          ...prev,
+          [msgId]: false
+        }));
+      }
+    } catch (error: any) {
+      console.error('Translation error:', error);
+      if (error?.message === 'QUOTA_EXCEEDED') {
+        Alert.alert(t('common.error'), t('screen.chat.error.quota', 'AI is busy. Please try again in 1 minute.'));
+      } else {
+        Alert.alert(t('common.error'), t('common.error'));
+      }
+    } finally {
+      setTranslatingMessages(prev => {
+        const { [msgId]: _, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -373,7 +418,63 @@ export function ChatScreen({ navigation, route }: Props) {
                 {msg.imageUrl ? (
                   <Image source={{ uri: msg.imageUrl }} style={styles.msgImage} resizeMode="cover" />
                 ) : null}
-                {msg.text ? <Text style={isMe ? styles.msgMine : styles.msg}>{msg.text}</Text> : null}
+                {msg.text ? (
+                  <>
+                    {/* Show translated text if available and not in "show original" mode */}
+                    <Text style={isMe ? styles.msgMine : styles.msg}>
+                      {!isMe && translations[msg.id] && !showOriginal[msg.id]
+                        ? translations[msg.id]
+                        : msg.text}
+                    </Text>
+
+                    {/* Show translation toggle/trigger for incoming messages */}
+                    {!isMe && !msg.systemType && msg.text && msg.senderLanguage && msg.senderLanguage !== i18n.language && (
+                      <View style={{ marginTop: 6 }}>
+                        {!translations[msg.id] ? (
+                          // 1. Initial Translate Button
+                          <Pressable
+                            onPress={() => handleTranslate(msg.id, msg.text, msg.senderLanguage!)}
+                            style={styles.translateToggle}
+                            disabled={translatingMessages[msg.id]}
+                          >
+                            {translatingMessages[msg.id] ? (
+                              <ActivityIndicator size="small" color="#6b7280" style={{ transform: [{ scale: 0.7 }] }} />
+                            ) : (
+                              <MaterialIcons name="translate" size={12} color="#6b7280" />
+                            )}
+                            <Text style={styles.translateToggleText}>
+                              {translatingMessages[msg.id]
+                                ? t('screen.chat.translating', 'Translating...')
+                                : t('screen.chat.translateBtn', 'Translate')}
+                            </Text>
+                          </Pressable>
+                        ) : (
+                          // 2. Toggle between Original and Translation
+                          <Pressable
+                            onPress={() => {
+                              setShowOriginal(prev => ({
+                                ...prev,
+                                [msg.id]: !prev[msg.id]
+                              }));
+                            }}
+                            style={styles.translateToggle}
+                          >
+                            <MaterialIcons
+                              name={showOriginal[msg.id] ? "translate" : "history"}
+                              size={12}
+                              color="#6b7280"
+                            />
+                            <Text style={styles.translateToggleText}>
+                              {showOriginal[msg.id]
+                                ? t('screen.chat.showTranslation', 'Show Translation')
+                                : t('screen.chat.showOriginal', 'Show Original')}
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+                  </>
+                ) : null}
                 <View style={[styles.msgBottom, isMe && styles.msgBottomMine]}>
                   {isMe && !isRead && (
                     <Text style={styles.unreadCount}>1</Text>
@@ -529,4 +630,31 @@ const styles = StyleSheet.create({
   iconBtn: { padding: 4 },
   msgImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
   moreBtn: { padding: 4 },
+  translateToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    alignSelf: 'flex-start'
+  },
+  translateToggleText: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '600'
+  },
+  translatingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4
+  },
+  translatingText: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontStyle: 'italic'
+  }
 });

@@ -5,9 +5,19 @@
     "retry": "Újra",
     "save": "Mentés",
     "cancel": "Mégse",
+    "confirm": "Megerősítés",
+    "copy": "Másolás",
     "add": "Hozzáadás",
     "manage": "Kezelés",
-    "confirm": "Megerősítés",
+    "verify": "Ellenőrzés",
+    "success": "Sikeres",
+    "edit": "Szerkesztés",
+    "condition": {
+      "new": "Új",
+      "likeNew": "Szinte új",
+      "good": "Jó",
+      "fair": "Megfelelő"
+    },
     "time": {
       "justNow": "Épp most",
       "ago": {
@@ -26,12 +36,6 @@
     "accessibility": {
       "back": "Vissza",
       "tab": "{{label}} lap"
-    },
-    "condition": {
-      "new": "Új",
-      "likeNew": "Szinte új",
-      "good": "Jó",
-      "fair": "Megfelelő"
     }
   },
   "screen": {
@@ -94,6 +98,28 @@
         "failedMsg": "A regisztráció sikertelen."
       }
     },
+    "welcome": {
+      "title": "Üdvözöljük az Adon-nál! 🎉",
+      "subtitle": "A fiókja sikeresen létrejött.\nÁllítsuk be a profilját, hogy elkezdhessük.",
+      "next": "Tovább"
+    },
+    "nickname": {
+      "title": "Hogyan szólítsuk? ✨",
+      "subtitle": "Ez a név látható lesz más felhasználók számára\na profilján és a csevegésekben.",
+      "label": "Profil becenév",
+      "placeholder": "Adja meg a becenevét",
+      "confirm": "Megerősítés",
+      "error": {
+        "empty": "Kérjük, adjon meg egy becenevet",
+        "tooShort": "A becenévnek legalább 2 karakter hosszúnak kell lennie",
+        "failed": "Nem sikerült frissíteni a becenevet. Kérjük, próbálja újra."
+      }
+    },
+    "onboardingFinish": {
+      "title": "Minden készen áll! ✨",
+      "subtitle": "Minden rendben. Most már szabadon\nfelfedezhet és kereskedhet az Adon-on.",
+      "start": "Kezdés"
+    },
     "landing": {
       "subtitle": "A prémium viszonteladás új standardja",
       "google": "Folytatás Google-lal",
@@ -119,12 +145,65 @@
       },
       "refresh": "Frissítés",
       "category": {
-        "fashion": "Divat",
-        "tech": "Tech",
-        "home": "Otthon",
-        "kids": "Gyerek",
-        "hobbies": "Hobbi",
-        "sports": "Sport"
+        "fashion": "Divat & Stílus",
+        "tech": "Digitális & Tech",
+        "home": "Otthon & Lakberendezés",
+        "hobbies": "Hobbi & szabadidő",
+        "sports": "Sport",
+        "sports_football": "Labdarúgás",
+        "sports_football_boots": "Futballcipők",
+        "sports_football_apparel": "Ruházat & Mezek",
+        "sports_football_equipment": "Felszerelés",
+        "sports_football_fan": "Szurkolói áruk",
+        "sports_football_other": "Egyéb labdarúgás",
+        "sports_cycling": "Kerékpározás",
+        "sports_cycling_bikes": "Kerékpárok",
+        "sports_cycling_parts": "Alkatrészek & Komponensek",
+        "sports_cycling_gear": "Ruházat & Felszerelés",
+        "sports_cycling_accessories": "Kiegészítők",
+        "sports_cycling_other": "Egyéb kerékpáros",
+        "sports_winter": "Téli sportok",
+        "sports_winter_skiing": "Síelés",
+        "sports_winter_snowboarding": "Snowboard",
+        "sports_winter_clothing": "Téli ruházat",
+        "sports_winter_other": "Egyéb téli sport",
+        "sports_racket": "Tenisz & Ütős sportok",
+        "sports_racket_tennis": "Tenisz",
+        "sports_racket_padel": "Padel",
+        "sports_racket_badminton_squash": "Tollaslabda & Squash",
+        "sports_racket_apparel": "Ruházat",
+        "sports_racket_other": "Egyéb ütős sport",
+        "sports_running": "Futás & Atlétika",
+        "sports_running_shoes": "Cipők",
+        "sports_running_apparel": "Ruházat",
+        "sports_running_tech": "Tech & Órák",
+        "sports_running_other": "Egyéb futás",
+        "sports_gym": "Edzőterem & Fitness",
+        "sports_gym_weights": "Súlyzók",
+        "sports_gym_machines": "Gépek",
+        "sports_gym_yoga": "Jóga & Pilates",
+        "sports_gym_apparel": "Ruházat",
+        "sports_gym_other": "Egyéb edzőterem",
+        "sports_water": "Vízi sportok",
+        "sports_water_surfing": "Szörfözés & Neoprén",
+        "sports_water_swimming": "Úszás",
+        "sports_water_sup": "Paddleboard (SUP)",
+        "sports_water_other": "Egyéb vízi sport",
+        "sports_team": "Egyéb csapatsportok",
+        "sports_team_rugby": "Rögbi",
+        "sports_team_basketball": "Kosárlabda",
+        "sports_team_volleyball": "Röplabda & Kézilabda",
+        "sports_team_other": "Egyéb csapatsport",
+        "sports_golf": "Golf",
+        "sports_golf_clubs": "Ütők",
+        "sports_golf_apparel": "Ruházat",
+        "sports_golf_accessories": "Kiegészítők",
+        "sports_golf_other": "Egyéb golf",
+        "sports_other_sports": "Egyéb sportok",
+        "sports_other_boxing": "Box & Harcművészetek",
+        "sports_other_cricket": "Krikett",
+        "sports_other_general": "Minden egyéb",
+        "mobility": "Mobilitás"
       },
       "accessibility": {
         "addToWishlist": "Hozzáadás a kívánságlistához"
@@ -146,7 +225,8 @@
         "sales": "{{count}} eladás",
         "positive": "Pozitív {{rate}}%",
         "follow": "Követés",
-        "following": "Követve"
+        "following": "Követve",
+        "visit": "Megtekintés"
       },
       "trust": {
         "response": "Válaszidő",
@@ -171,6 +251,7 @@
       "action": {
         "chat": "Csevegés",
         "buy": "Vásárlás",
+        "ownListing": "Nem vásárolhatja meg a saját termékét.",
         "back": "Vissza"
       },
       "accessibility": {
@@ -246,6 +327,7 @@
       "recent": "Legutóbbi keresések",
       "resultCount": "{{count}} termék található",
       "loading": "Keresés...",
+      "ai_analyzing": "Az Adon AI bővíti a keresését...",
       "accessibility": {
         "openCategory": "{{name}} kategória megnyitása"
       }
@@ -271,6 +353,9 @@
           "fewDays": "> 1d",
           "fewHours": "< 6h",
           "unknown": "-"
+        },
+        "reliabilityValue": {
+          "new": "Új tag"
         }
       },
       "reliabilityLabel": "ADON Megbízhatósági Index",
@@ -358,7 +443,8 @@
     "priceDrop": {
       "title": "Árcsökkenési riasztások",
       "description": "Értesítést kap, ha a kívánságlistáján szereplő termékek ára csökken!",
-      "description_short": "Soha ne maradjon le kedvenc termékei akciómárkáiról."
+      "description_short": "Soha ne maradjon le kedvenc termékei akciómárkáiról.",
+      "empty": "Még nincsenek termékek a kívánságlistán. Kezdje el a felfedezést!"
     },
     "editProfile": {
       "title": "Profil szerkesztése",
@@ -400,6 +486,14 @@
       "empty": "Nincs üzenet.",
       "inputPlaceholder": "Írjon üzenetet...",
       "send": "Küldés",
+      "showOriginal": "Eredeti megjelenítése",
+      "showTranslation": "Fordítás megjelenítése",
+      "translating": "Fordítás...",
+      "translateBtn": "Fordítás",
+      "error": {
+        "quota": "Az AI elfoglalt. Kérjük, próbálja újra 1 perc múlva.",
+        "image": "Nem sikerült a képet kiválasztani"
+      },
       "meet": {
         "title": "Találkozó Megerősítve",
         "time": "Ma 14:00 • 45 perc múlva",
@@ -445,6 +539,55 @@
         "c4": {
           "text": "Szuper. Hozom a sneakert és az eredeti dobozt."
         }
+      },
+      "system": {
+        "transactionCompleted": "Ügylet befejezve! Kérjük, hagyjon értékelést, hogy segítsen másoknak. 🌟",
+        "reviewSubmitted": "Értékelés elküldve! Köszönjük, hogy megosztotta tapasztalatát. 💖",
+        "paymentCompleted": "Fizetés befejezve! 💸",
+        "enterPin": "PIN kód megadása"
+      }
+    },
+    "categorySelect": {
+      "title": "Kategória kiválasztása",
+      "all": "Összes kategória",
+      "empty": "Nincsenek alkategóriák."
+    },
+    "aiListing": {
+      "title": "Új hirdetés",
+      "section": {
+        "photos": "Fotók"
+      },
+      "label": {
+        "title": "Cím",
+        "category": "Kategória",
+        "price": "Ár",
+        "condition": "Állapot",
+        "description": "Leírás"
+      },
+      "placeholder": {
+        "title": "pl. Nike Air Max 97",
+        "description": "Írja le a termékét...",
+        "price": "0.00"
+      },
+      "submit": "Termék feladása",
+      "uploading": "Feltöltés...",
+      "alert": {
+        "title": "Cím",
+        "category": "Kategória",
+        "price": "Ár",
+        "description": "Leírás",
+        "photo": "Fotók",
+        "successTitle": "Hirdetés feladva",
+        "successMsg": "A termék sikeresen feltöltve!"
+      },
+      "ad": {
+        "title": "Próbálja ki az Adon AI funkciót",
+        "subtitle": "Automatikus kitöltés, árelemzés, stb."
+      },
+      "postStatus": {
+        "uploading": "FOTÓK FELTÖLTÉSE...",
+        "listing": "HIRDETÉS LÉTREHOZÁSA...",
+        "finalizing": "KÉSZ!"
       }
     },
     "categoryList": {
@@ -455,6 +598,117 @@
         "nearby": "Közelben",
         "rating": "Legjobb értékelés"
       }
+    },
+    "payment": {
+      "title": "Biztonságos fizetés",
+      "summary": "Rendelés összegzése",
+      "tradeMethod": "Kereskedelmi mód",
+      "meetup": {
+        "title": "Személyes találkozó",
+        "desc": "Találkozzon személyesen az eladóval.",
+        "date": "Találkozó dátuma",
+        "time": "Találkozó időpontja",
+        "place": "Találkozó helyszíne",
+        "placeholder": {
+          "place": "pl. WestEnd Bevásárlóközpont bejárat"
+        }
+      },
+      "delivery": {
+        "title": "Futár",
+        "desc": "Magyar Posta, Packeta, DPD, stb.",
+        "recipient": "Címzett neve",
+        "phone": "Telefonszám",
+        "address": "Szállítási cím",
+        "postcode": "Irányítószám",
+        "placeholder": {
+          "recipient": "Teljes név",
+          "phone": "+36 30 123 4567",
+          "address": "Utca, Házszám, Emelet/Ajtó",
+          "postcode": "1234"
+        }
+      },
+      "locker": {
+        "title": "Automata csomag automata",
+        "desc": "Foxpost, Zasilkovna automatizált csomagautomaták.",
+        "select": "Csomag automata kiválasztása",
+        "search": "Keressen egy automatát a közelben..."
+      },
+      "price": {
+        "item": "Termék ára",
+        "shipping": "Szállítási díj",
+        "fee": "Szolgáltatási díj",
+        "total": "Teljes összeg"
+      },
+      "escrow": {
+        "title": "Biztonságos fizetés letéttel",
+        "desc": "A fizetése biztonságosan tárolásra kerül, amíg meg nem kapja és jóvá nem hagyja a terméket."
+      },
+      "submit": "Fizetés befejezése",
+      "provider": {
+        "title": "Szállítási szolgáltató kiválasztása",
+        "packeta": "Packeta (Csomagautomaták)",
+        "dpd": "DPD (Házhozszállítás)",
+        "foxpost": "FoxPost (Csomagautomaták)"
+      },
+      "error": {
+        "methodRequired": "Kérjük, válasszon kereskedelmi módot.",
+        "fieldsRequired": "Kérjük, töltse ki az összes kötelező mezőt.",
+        "providerRequired": "Kérjük, válasszon szállítási szolgáltatót."
+      }
+    },
+    "transaction": {
+      "title": "Ügylet részletei",
+      "status": "Kereskedési állapot",
+      "safetyCode": "Biztonsági PIN",
+      "safetyCodeDesc": "Ossza meg ezt a 4 jegyű PIN-kódot az eladóval CSAK akkor, amikor átvette a terméket a találkozón.",
+      "verifyBuyer": "Vevő ellenőrzése",
+      "pinVerified": "PIN sikeresen ellenőrizve! Az ügylet állapota frissítve.",
+      "pinInvalid": "Érvénytelen PIN. Kérjük, próbálja újra.",
+      "pinCopied": "PIN a vágólapra másolva.",
+      "completeMsg": "A termék sikeresen elcserélve!",
+      "completedTitle": "Ügylet befejezve",
+      "completedDesc": "Az ügylet sikeresen lezárult.",
+      "backToChat": "Vissza a csevegéshez",
+      "backHome": "Vissza a kezdőlapra",
+      "celebration": {
+        "title": "Ügylet befejezve! 🎉",
+        "subtitle": "Sikeresen átvette a terméket.\nMilyen volt a tapasztalata?",
+        "reviewBtn": "Értékelje tapasztalatát",
+        "reviewDone": "Értékelés befejezve",
+        "homeBtn": "Ugrás a kezdőlapra"
+      },
+      "review": {
+        "prompt": "Az értékelése segít az eladónak\na bizalom építésében! 💖",
+        "placeholder": "Barátságos volt az eladó? Milyen volt a termék?",
+        "submit": "Értékelés beküldése",
+        "success": "Értékelés sikeresen beküldve!",
+        "later": "Talán később"
+      }
+    },
+    "aiAnalysisResult": {
+      "headerTitle": "ADON AI JELENTÉS",
+      "badge": "AI ELEMZETT",
+      "demand": "{{value}} KERESLET",
+      "label": {
+        "condition": "ÁLLAPOT",
+        "category": "KATEGÓRIA",
+        "price": "BECSÜLT ÉRTÉK",
+        "insights": "KULCS EREDMÉNYEK",
+        "summary": "ELEMZÉS ÖSSZEFOGLALÁSA"
+      },
+      "submit": "Alkalmazás / Szerkesztés"
+    },
+    "review": {
+      "title": "Értékelés írása",
+      "ratingPrompt": "Milyen volt a tapasztalata?",
+      "commentPlaceholder": "Mondja el nekünk az eladóról...",
+      "submit": "Értékelés beküldése",
+      "success": "Értékelés beküldve! Köszönjük."
+    },
+    "locationPicker": {
+      "label": "Preferált hely",
+      "hint": "Mozgassa a térképet a tű helyének beállításához.",
+      "placeholder": "Hely neve (pl. Gellért-hegy Bejárat)"
     }
   }
 }

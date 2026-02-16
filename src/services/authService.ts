@@ -153,7 +153,6 @@ export const authService = {
             const provider = new OAuthProvider('apple.com');
             const authCredential = provider.credential({
                 idToken: identityToken,
-                rawNonce: 'nonce', // Optional, usually required for strict security
             });
 
             const userCredential = await signInWithCredential(auth, authCredential);

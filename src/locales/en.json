@@ -486,6 +486,14 @@
       "empty": "No messages yet.",
       "inputPlaceholder": "Type a message...",
       "send": "Send",
+      "showOriginal": "Show Original",
+      "showTranslation": "Show Translation",
+      "translating": "Translating...",
+      "translateBtn": "Translate",
+      "error": {
+        "quota": "AI is busy. Please try again in 1 minute.",
+        "image": "Failed to pick image"
+      },
       "meet": {
         "title": "Meeting Confirmed",
         "time": "Today 2:00 PM • in 45m",
@@ -568,11 +576,18 @@
         "category": "Category",
         "price": "Price",
         "description": "Description",
-        "photo": "Photos"
+        "photo": "Photos",
+        "successTitle": "Listing Posted",
+        "successMsg": "Your item has been successfully listed!"
       },
       "ad": {
         "title": "Try Adon AI Feature",
         "subtitle": "Auto-fill, Price Analysis, etc."
+      },
+      "postStatus": {
+        "uploading": "UPLOADING PHOTOS...",
+        "listing": "CREATING LISTING...",
+        "finalizing": "COMPLETED!"
       }
     },
     "categoryList": {

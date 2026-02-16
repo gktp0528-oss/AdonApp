@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { changeAppLanguage, SUPPORTED_LANGUAGES, AppLanguage } from '../i18n';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 
 export function LanguageSwitcher() {
     const { i18n } = useTranslation();
@@ -30,17 +29,10 @@ export function LanguageSwitcher() {
                 style={styles.triggerButton}
                 activeOpacity={0.7}
             >
-                {Platform.OS === 'ios' ? (
-                    <BlurView intensity={30} tint="light" style={styles.blurWrapper}>
-                        <Text style={styles.triggerText}>{languageNames[currentLanguage] || currentLanguage.toUpperCase()}</Text>
-                        <Ionicons name="chevron-down" size={14} color={theme.colors.text} />
-                    </BlurView>
-                ) : (
-                    <View style={[styles.blurWrapper, { backgroundColor: 'rgba(255,255,255,0.8)' }]}>
-                        <Text style={styles.triggerText}>{languageNames[currentLanguage] || currentLanguage.toUpperCase()}</Text>
-                        <Ionicons name="chevron-down" size={14} color={theme.colors.text} />
-                    </View>
-                )}
+                <View style={[styles.blurWrapper, { backgroundColor: 'rgba(255,255,255,0.8)' }]}>
+                    <Text style={styles.triggerText}>{languageNames[currentLanguage] || currentLanguage.toUpperCase()}</Text>
+                    <Ionicons name="chevron-down" size={14} color={theme.colors.text} />
+                </View>
             </TouchableOpacity>
 
             <Modal
@@ -53,11 +45,7 @@ export function LanguageSwitcher() {
                     style={styles.modalOverlay}
                     onPress={() => setModalVisible(false)}
                 >
-                    {Platform.OS === 'ios' ? (
-                        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-                    ) : (
-                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.3)' }]} />
-                    )}
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.3)' }]} />
 
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Select Language</Text>

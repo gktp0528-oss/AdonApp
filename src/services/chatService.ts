@@ -18,6 +18,8 @@ import {
 import { db } from '../firebaseConfig';
 import { Conversation, Message } from '../types/chat';
 import { userService } from './userService';
+import { translationService } from './translationService';
+import i18n from 'i18next';
 
 const CONVERSATIONS = 'conversations';
 const MESSAGES = 'messages';
@@ -108,13 +110,16 @@ export const chatService = {
         }
 
         // Add message to subcollection
-        await addDoc(collection(db, CONVERSATIONS, conversationId, MESSAGES), {
+        const messageRef = await addDoc(collection(db, CONVERSATIONS, conversationId, MESSAGES), {
             senderId,
             text,
             ...(imageUrl ? { imageUrl } : {}),
             ...(systemType ? { systemType } : {}),
             createdAt: now,
             read: false,
+            // Translation fields
+            senderLanguage: i18n.language || 'en',
+            translations: {}
         });
 
         // Update conversation metadata
@@ -126,6 +131,19 @@ export const chatService = {
             ...(otherUserId ? { [`unreadCount.${otherUserId}`]: increment(1) } : {}),
             [`lastReadAt.${senderId}`]: now,
         });
+
+        // Async language detection (non-blocking)
+        // Only detect for text messages, not images or system messages
+        if (text && !systemType) {
+            translationService.detectAndStoreLanguage(
+                conversationId,
+                messageRef.id,
+                text,
+                i18n.language || 'en'
+            ).catch(error => {
+                console.error('Background language detection failed:', error);
+            });
+        }
     },
 
     /**

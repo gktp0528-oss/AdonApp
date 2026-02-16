@@ -25,12 +25,34 @@ export function NotificationsScreen({ navigation }: Props) {
             return;
         }
 
-        const unsubscribe = notificationService.watchNotifications(userId, (data) => {
-            setNotifications(data);
-            setLoading(false);
-        });
+        // 인덱스 생성 중이거나 네트워크 지연 시 무한 로딩 방지를 위한 타임아웃
+        const timeoutId = setTimeout(() => {
+            if (loading) setLoading(false);
+        }, 5000);
 
-        return () => unsubscribe();
+        const unsubscribe = notificationService.watchNotifications(
+            userId,
+            (data) => {
+                clearTimeout(timeoutId);
+                setNotifications(data);
+                setLoading(false);
+            },
+            (err) => {
+                clearTimeout(timeoutId);
+                setLoading(false);
+                const isIndexing = err.message?.includes('index') && err.message?.includes('building');
+                if (isIndexing) {
+                    console.warn('Index still building, showing empty state for now.');
+                } else {
+                    console.error('Watch notifications error:', err);
+                }
+            }
+        );
+
+        return () => {
+            unsubscribe();
+            clearTimeout(timeoutId);
+        };
     }, [userId]);
 
     const handleNotiPress = (item: AdonNotification) => {
@@ -122,7 +144,12 @@ export function NotificationsScreen({ navigation }: Props) {
                     !loading ? (
                         <View style={styles.emptyContainer}>
                             <MaterialIcons name="notifications-none" size={48} color="#d1d5db" />
-                            <Text style={styles.emptyText}>{t('screen.notifications.empty')}</Text>
+                            <Text style={styles.emptyText}>
+                                {t('screen.notifications.empty')}
+                            </Text>
+                            <Text style={{ fontSize: 11, color: '#9ca3af', marginTop: 8, paddingHorizontal: 40, textAlign: 'center' }}>
+                                {t('screen.notifications.indexing_notice')}
+                            </Text>
                         </View>
                     ) : null
                 }
