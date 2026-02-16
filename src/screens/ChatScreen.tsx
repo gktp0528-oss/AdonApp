@@ -250,6 +250,12 @@ export function ChatScreen({ navigation, route }: Props) {
                 </Text>
               )}
             </View>
+            {conversation?.listingPhoto && (
+              <Image
+                source={{ uri: conversation.listingPhoto }}
+                style={styles.productThumb}
+              />
+            )}
             <Pressable onPress={handleMorePress} style={styles.moreBtn} hitSlop={10}>
               <MaterialIcons name="more-vert" size={24} color="#6b7280" />
             </Pressable>
@@ -397,6 +403,7 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20 },
   user: { fontWeight: '700', color: '#111827', fontSize: 15 },
   listingTitle: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  productThumb: { width: 44, height: 44, borderRadius: 8, backgroundColor: '#e5e7eb' },
   online: { color: '#6b7280', fontSize: 12 },
   meetCard: {
     backgroundColor: '#fff',
