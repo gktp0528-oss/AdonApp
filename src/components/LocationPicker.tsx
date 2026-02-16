@@ -14,7 +14,6 @@ import {
     TouchableOpacity,
     Dimensions,
 } from 'react-native';
-import MapView, { UrlTile, Marker, Region } from 'react-native-maps';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import { aiBackend } from '../firebaseConfig';
@@ -40,33 +39,20 @@ const GOOGLE_API_KEY = Platform.select({
     default: "AIzaSyA1cqQPP2y2-4dMfYN-HRoHZG44N4EXv7I", // Fallback from firebaseConfig.ts
 });
 
-// Default map center (Budapest, Hungary)
+// Default map center (Budapest, Hungary) - Still kept for coords if needed, but MapView is gone
 const DEFAULT_LATITUDE = 47.497913;
 const DEFAULT_LONGITUDE = 19.040236;
-const LATITUDE_DELTA = 0.05;
-const LONGITUDE_DELTA = 0.05;
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
     initialLocation,
 }) => {
-    const { t, i18n } = useTranslation();
-    const mapRef = useRef<MapView>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState(initialLocation?.address || '');
     const [searchInput, setSearchInput] = useState('');
     const [predictions, setPredictions] = useState<Prediction[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
-    const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(
-        initialLocation ? { latitude: initialLocation.latitude, longitude: initialLocation.longitude } : null
-    );
-    const [mapRegion, setMapRegion] = useState<Region>({
-        latitude: initialLocation?.latitude || DEFAULT_LATITUDE,
-        longitude: initialLocation?.longitude || DEFAULT_LONGITUDE,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-    });
 
     useEffect(() => {
         if (searchInput.length < 3) {
@@ -148,7 +134,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         setIsLoading(true);
         setApiError(null);
         try {
-            // Places API (New) Place Details endpoint
             const url = `https://places.googleapis.com/v1/places/${placeId}`;
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json',
@@ -168,22 +153,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             if (data.location) {
                 const { latitude, longitude } = data.location;
 
-                // Update map location and marker
-                setSelectedLocation({ latitude, longitude });
-                const newRegion = {
+                // Immediately update and close modal as requested
+                onLocationChange({
                     latitude,
                     longitude,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA,
-                };
-                setMapRegion(newRegion);
-
-                // Animate map to new location
-                if (mapRef.current) {
-                    mapRef.current.animateToRegion(newRegion, 500);
-                }
+                    address: description,
+                });
 
                 setSelectedAddress(description);
+                setIsModalVisible(false);
                 setSearchInput('');
                 setPredictions([]);
             } else if (data.error) {
@@ -197,61 +175,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         }
     };
 
-    const handleMarkerDragEnd = async (e: any) => {
-        const { latitude, longitude } = e.nativeEvent.coordinate;
-        setSelectedLocation({ latitude, longitude });
 
-        // Reverse geocode to get address
-        try {
-            const url = `https://places.googleapis.com/v1/places:searchNearby`;
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': GOOGLE_API_KEY || '',
-                'X-Goog-FieldMask': 'places.displayName,places.formattedAddress',
-            };
-
-            if (Platform.OS === 'ios') {
-                headers['X-Ios-Bundle-Identifier'] = 'com.adonapp.adon';
-            } else if (Platform.OS === 'android') {
-                headers['X-Android-Package'] = 'com.adonapp.adon';
-            }
-
-            const body = {
-                locationRestriction: {
-                    circle: {
-                        center: { latitude, longitude },
-                        radius: 50.0
-                    }
-                },
-                maxResultCount: 1,
-            };
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(body),
-            });
-            const data = await response.json();
-
-            if (data.places && data.places.length > 0) {
-                const address = data.places[0].formattedAddress || data.places[0].displayName?.text || 'Unknown location';
-                setSelectedAddress(address);
-            }
-        } catch (error) {
-            console.warn('Reverse geocoding failed:', error);
-        }
-    };
-
-    const handleConfirmLocation = () => {
-        if (selectedLocation && selectedAddress) {
-            onLocationChange({
-                latitude: selectedLocation.latitude,
-                longitude: selectedLocation.longitude,
-                address: selectedAddress,
-            });
-            setIsModalVisible(false);
-        }
-    };
 
     const renderPrediction = ({ item }: { item: Prediction }) => (
         <TouchableOpacity
@@ -333,36 +257,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         </View>
                     </View>
 
-                    {/* Map View */}
-                    <View style={styles.mapContainer}>
-                        <MapView
-                            ref={mapRef}
-                            style={styles.map}
-                            initialRegion={mapRegion}
-                            rotateEnabled={false}
-                            showsUserLocation={false}
-                            showsMyLocationButton={false}
-                        >
-                            <UrlTile
-                                urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                maximumZ={19}
-                                flipY={false}
-                            />
-                            {selectedLocation && (
-                                <Marker
-                                    coordinate={selectedLocation}
-                                    draggable
-                                    onDragEnd={handleMarkerDragEnd}
-                                    pinColor="#22c55e"
-                                />
-                            )}
-                        </MapView>
-                        {/* OSM Attribution */}
-                        <View style={styles.mapAttribution}>
-                            <Text style={styles.mapAttributionText}>© OpenStreetMap</Text>
-                        </View>
-                    </View>
-
                     {/* Results Area */}
                     <View style={{ flex: 1 }}>
                         {apiError && (
@@ -400,19 +294,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                             </View>
                         )}
                     </View>
-
-                    {/* Confirm Button - Only show when location is selected */}
-                    {selectedLocation && (
-                        <View style={styles.confirmButtonContainer}>
-                            <TouchableOpacity
-                                style={styles.confirmButton}
-                                onPress={handleConfirmLocation}
-                            >
-                                <MaterialIcons name="check" size={24} color="#fff" />
-                                <Text style={styles.confirmButtonText}>{t('screen.locationPicker.confirm') || 'Confirm Location'}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
                 </SafeAreaView>
             </Modal>
         </View>
@@ -604,49 +485,5 @@ const styles = StyleSheet.create({
         color: '#b91c1c',
         fontSize: 13,
         fontWeight: '500',
-    },
-    mapContainer: {
-        height: 250,
-        width: '100%',
-        position: 'relative',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    map: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    mapAttribution: {
-        position: 'absolute',
-        bottom: 4,
-        right: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    mapAttributionText: {
-        fontSize: 10,
-        color: '#64748b',
-    },
-    confirmButtonContainer: {
-        padding: 16,
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
-    },
-    confirmButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#22c55e',
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-        gap: 8,
-    },
-    confirmButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700',
     },
 });
