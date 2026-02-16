@@ -33,15 +33,19 @@ export function ProductScreen({ navigation, route }: Props) {
     return null;
   };
 
-  const toConditionLabel = (condition: string) => {
-    const map: Record<string, string> = {
-      New: 'new',
-      'Like New': 'likeNew',
-      Good: 'good',
-      Fair: 'fair',
-    };
-    const key = map[condition];
-    return key ? t(`common.condition.${key}`) : condition;
+  // Convert condition (now a number 0-100) to display format
+  const toConditionLabel = (condition: number | string) => {
+    // Handle legacy string values (for backward compatibility)
+    if (typeof condition === 'string') {
+      const legacyMap: Record<string, number> = {
+        'New': 100,
+        'Like New': 80,
+        'Good': 60,
+        'Fair': 40,
+      };
+      condition = legacyMap[condition] || 60;
+    }
+    return t('screen.aiListing.conditionPercent', { percent: condition });
   };
 
   // Params

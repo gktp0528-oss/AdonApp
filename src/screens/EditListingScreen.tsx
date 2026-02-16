@@ -12,6 +12,7 @@ import {
     Alert,
     ActivityIndicator,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,17 +38,11 @@ export default function EditListingScreen({ navigation, route }: Props) {
     const [title, setTitle] = useState('');
     const [price, setPrice] = useState('');
     const [category, setCategory] = useState('');
-    const [condition, setCondition] = useState<ListingCondition>('Good');
+    const [condition, setCondition] = useState<ListingCondition>(60); // Default to 60%
     const [description, setDescription] = useState('');
     const [listing, setListing] = useState<Listing | null>(null);
 
-    const conditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
-    const conditionLabelMap: Record<ListingCondition, string> = {
-        New: t('common.condition.new'),
-        'Like New': t('common.condition.likeNew'),
-        Good: t('common.condition.good'),
-        Fair: t('common.condition.fair'),
-    };
+    // Removed: conditions and conditionLabelMap (now using slider 0-100)
 
     useEffect(() => {
         loadListing();
@@ -164,21 +159,27 @@ export default function EditListingScreen({ navigation, route }: Props) {
                         />
                     </View>
 
-                    {/* Condition */}
+                    {/* Condition Slider */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-                        <View style={styles.conditionRow}>
-                            {conditions.map((c) => (
-                                <Pressable
-                                    key={c}
-                                    style={[styles.conditionChip, condition === c && styles.conditionChipActive]}
-                                    onPress={() => setCondition(c)}
-                                >
-                                    <Text style={[styles.conditionText, condition === c && styles.conditionTextActive]}>
-                                        {conditionLabelMap[c]}
-                                    </Text>
-                                </Pressable>
-                            ))}
+                        <View style={styles.conditionHeader}>
+                            <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
+                            <Text style={styles.conditionValue}>{t('screen.aiListing.conditionPercent', { percent: condition })}</Text>
+                        </View>
+                        <Slider
+                            style={styles.slider}
+                            minimumValue={0}
+                            maximumValue={100}
+                            step={10}
+                            value={condition}
+                            onValueChange={setCondition}
+                            minimumTrackTintColor="#30e86e"
+                            maximumTrackTintColor="#e2e8f0"
+                            thumbTintColor="#30e86e"
+                        />
+                        <View style={styles.sliderLabels}>
+                            <Text style={styles.sliderLabelText}>0%</Text>
+                            <Text style={styles.sliderLabelText}>50%</Text>
+                            <Text style={styles.sliderLabelText}>100%</Text>
                         </View>
                     </View>
 
@@ -269,4 +270,30 @@ const styles = StyleSheet.create({
     },
     ctaBtnDisabled: { opacity: 0.6 },
     ctaText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+    conditionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    conditionValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#30e86e',
+    },
+    slider: {
+        width: '100%',
+        height: 40,
+    },
+    sliderLabels: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 4,
+        marginTop: -8,
+    },
+    sliderLabelText: {
+        fontSize: 12,
+        color: '#64748b',
+        fontWeight: '600',
+    },
 });
