@@ -147,6 +147,8 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   // Removed: conditions and conditionLabelMap (now using slider 0-100)
 
+  const [isSliderInteracting, setIsSliderInteracting] = useState(false);
+
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -1194,13 +1196,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 16,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   aiLoadingBadge: {
     flexDirection: 'row',
@@ -1223,7 +1225,7 @@ const styles = StyleSheet.create({
   },
   photoScroll: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: 32,
     overflow: 'visible',
   },
   addPhotoBtn: {
@@ -1300,7 +1302,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
     fontSize: 14,
@@ -1425,6 +1427,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#dcfce7',
     marginHorizontal: 20,
     marginTop: 10,
+    marginBottom: 28,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,

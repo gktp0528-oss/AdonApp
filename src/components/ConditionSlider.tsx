@@ -5,10 +5,11 @@ import { useTranslation } from 'react-i18next';
 interface ConditionSliderProps {
     value: number;
     onValueChange: (value: number) => void;
+    onInteractionChange?: (active: boolean) => void;
     disabled?: boolean;
 }
 
-export function ConditionSlider({ value, onValueChange, disabled = false }: ConditionSliderProps) {
+export function ConditionSlider({ value, onValueChange, onInteractionChange, disabled = false }: ConditionSliderProps) {
     const { t } = useTranslation();
     const sliderWidth = useRef(0);
     const sliderPageX = useRef(0);
@@ -58,6 +59,7 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             onPanResponderGrant: (evt, gestureState) => {
                 if (disabled) return;
                 isInteracting.current = true;
+                onInteractionChange?.(true);
 
                 // Visual feedback: grow thumb
                 Animated.spring(thumbScale, {
@@ -75,6 +77,7 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             },
             onPanResponderRelease: () => {
                 isInteracting.current = false;
+                onInteractionChange?.(false);
 
                 // Visual feedback: shrink thumb back
                 Animated.spring(thumbScale, {
@@ -91,6 +94,7 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
             },
             onPanResponderTerminate: () => {
                 isInteracting.current = false;
+                onInteractionChange?.(false);
                 Animated.spring(thumbScale, {
                     toValue: 1,
                     useNativeDriver: false,
