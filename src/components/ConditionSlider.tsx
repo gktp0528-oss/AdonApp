@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, PanResponder, Animated, Easing } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 interface ConditionSliderProps {
@@ -11,10 +11,21 @@ interface ConditionSliderProps {
 export function ConditionSlider({ value, onValueChange, disabled = false }: ConditionSliderProps) {
     const { t } = useTranslation();
     const sliderWidth = useRef(0);
+    const animatedValue = useRef(new Animated.Value(value)).current;
+
+    // Keep animated value in sync with prop for smooth transitions when AI or parent updates it
+    useEffect(() => {
+        Animated.timing(animatedValue, {
+            toValue: value,
+            duration: 300,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: false,
+        }).start();
+    }, [value]);
 
     // Determine dynamic color based on value
     const getColor = (val: number) => {
-        if (val >= 80) return '#30e86e'; // Green
+        if (val >= 80) return '#19e61b'; // Brighter Green (Adon Primary)
         if (val >= 50) return '#facc15'; // Yellow
         return '#fb7185'; // Red
     };
@@ -36,60 +47,92 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
         PanResponder.create({
             onStartShouldSetPanResponder: () => !disabled,
             onMoveShouldSetPanResponder: () => !disabled,
-            onPanResponderGrant: (evt) => {
+            onPanResponderGrant: (evt, gestureState) => {
                 if (disabled) return;
-                const locationX = evt.nativeEvent.locationX;
-                updateValue(locationX);
+                handleTouch(evt.nativeEvent.locationX);
             },
-            onPanResponderMove: (evt) => {
+            onPanResponderMove: (evt, gestureState) => {
                 if (disabled) return;
-                const locationX = evt.nativeEvent.locationX;
-                updateValue(locationX);
+                handleTouch(evt.nativeEvent.locationX);
             },
         })
     ).current;
 
-    const updateValue = (locationX: number) => {
+    const handleTouch = (locationX: number) => {
+        if (sliderWidth.current <= 0) return;
         const percentage = Math.max(0, Math.min(100, (locationX / sliderWidth.current) * 100));
         const steppedValue = Math.round(percentage / 10) * 10;
-        onValueChange(steppedValue);
+
+        if (steppedValue !== value) {
+            onValueChange(steppedValue);
+        }
     };
+
+    const leftPosition = animatedValue.interpolate({
+        inputRange: [0, 100],
+        outputRange: ['0%', '100%'],
+    });
+
+    const trackWidth = animatedValue.interpolate({
+        inputRange: [0, 100],
+        outputRange: ['0%', '100%'],
+    });
 
     return (
         <View style={styles.container}>
-            {/* Header with Label and Percentage */}
+            {/* Header with Label and Percentage - Stabilized Layout */}
             <View style={styles.header}>
-                <View>
+                <View style={styles.statusInfoArea}>
                     <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-                    <Text style={[styles.statusText, { color: activeColor }]}>
-                        {statusInfo.label}
+                    <View style={styles.statusLabelWrap}>
+                        <Text style={[styles.statusText, { color: activeColor }]}>
+                            {statusInfo.label}
+                        </Text>
+                    </View>
+                </View>
+                <View style={styles.percentageWrap}>
+                    <Text style={[styles.valueText, { color: activeColor }]}>
+                        {value}%
                     </Text>
                 </View>
-                <Text style={[styles.valueText, { color: activeColor }]}>
-                    {value}%
-                </Text>
             </View>
 
             {/* Custom Slider */}
             <View
-                style={styles.sliderContainer}
+                style={styles.sliderInteractArea}
                 onLayout={(e) => {
                     sliderWidth.current = e.nativeEvent.layout.width;
                 }}
                 {...panResponder.panHandlers}
             >
                 <View style={styles.track}>
-                    <View style={[styles.trackFilled, { width: `${value}%`, backgroundColor: activeColor }]} />
+                    <Animated.View
+                        style={[
+                            styles.trackFilled,
+                            {
+                                width: trackWidth,
+                                backgroundColor: activeColor
+                            }
+                        ]}
+                    />
                 </View>
-                <View style={[styles.thumb, { left: `${value}%`, backgroundColor: activeColor }]} />
+                <Animated.View
+                    style={[
+                        styles.thumb,
+                        {
+                            left: leftPosition,
+                            backgroundColor: activeColor
+                        }
+                    ]}
+                />
             </View>
 
-            {/* Footer with Description and Scale */}
+            {/* Footer with Description */}
             <View style={styles.footer}>
-                <Text style={styles.description}>{statusInfo.desc}</Text>
-                <View style={styles.scaleLabels}>
-                    <Text style={styles.scaleText}>0%</Text>
-                    <Text style={styles.scaleText}>100%</Text>
+                <View style={styles.descriptionArea}>
+                    <Text style={styles.description} numberOfLines={2}>
+                        {statusInfo.desc}
+                    </Text>
                 </View>
             </View>
         </View>
@@ -98,74 +141,84 @@ export function ConditionSlider({ value, onValueChange, disabled = false }: Cond
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 8,
+        marginVertical: 12,
+        paddingHorizontal: 4,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        marginBottom: 12,
+        marginBottom: 16,
+        height: 52,
+    },
+    statusInfoArea: {
+        flex: 1,
+    },
+    statusLabelWrap: {
+        height: 28,
+        justifyContent: 'center',
     },
     label: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#64748b',
-        marginBottom: 4,
+        color: '#94a3b8',
+        marginBottom: 2,
     },
     statusText: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: '800',
+        letterSpacing: -0.5,
+    },
+    percentageWrap: {
+        width: 80,
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
     },
     valueText: {
-        fontSize: 24,
-        fontWeight: '800',
+        fontSize: 28,
+        fontWeight: '900',
         fontVariant: ['tabular-nums'],
+        letterSpacing: -1,
     },
-    sliderContainer: {
-        height: 40,
+    sliderInteractArea: {
+        height: 44,
         justifyContent: 'center',
-        marginTop: -8,
-        marginBottom: -4,
+        marginHorizontal: -4,
     },
     track: {
-        height: 4,
-        backgroundColor: '#e2e8f0',
-        borderRadius: 2,
+        height: 6,
+        backgroundColor: '#f1f5f9',
+        borderRadius: 3,
+        overflow: 'hidden',
     },
     trackFilled: {
-        height: 4,
-        borderRadius: 2,
+        height: 6,
+        borderRadius: 3,
     },
     thumb: {
         position: 'absolute',
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        marginLeft: -10,
-        backgroundColor: '#30e86e',
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        marginLeft: -12,
+        backgroundColor: '#19e61b',
+        borderWidth: 3,
+        borderColor: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 3,
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     footer: {
         marginTop: 4,
     },
+    descriptionArea: {
+        height: 40,
+    },
     description: {
         fontSize: 13,
-        color: '#94a3b8',
-        marginBottom: 8,
+        color: '#64748b',
         lineHeight: 18,
-    },
-    scaleLabels: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 2,
-    },
-    scaleText: {
-        fontSize: 11,
-        color: '#cbd5e1',
-        fontWeight: '600',
     },
 });

@@ -187,7 +187,7 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
                 <View style={styles.priceCard}>
                     <Text style={styles.cardTitle}>{t('screen.priceAssistant.priceRangeTitle')}</Text>
                     <Text style={styles.priceRange}>
-                        €{analysis.priceRange.min} — €{analysis.priceRange.max}
+                        {analysis.priceRange.min} Ft — {analysis.priceRange.max} Ft
                     </Text>
                     <View style={styles.graphContainer}>
                         <View style={styles.graphBar} />

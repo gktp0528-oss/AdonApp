@@ -138,7 +138,7 @@ export default function EditListingScreen({ navigation, route }: Props) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
                         <View style={styles.priceContainer}>
-                            <Text style={styles.currencySymbol}>€</Text>
+                            <Text style={styles.currencySymbol}>Ft</Text>
                             <TextInput
                                 style={styles.priceInput}
                                 keyboardType="numeric"

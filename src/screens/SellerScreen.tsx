@@ -235,7 +235,7 @@ export function SellerScreen({ navigation, route }: Props) {
                       <View style={styles.productInfo}>
                         <Text numberOfLines={1} style={styles.productTitle}>{item.title}</Text>
                         <Text style={styles.productPrice}>
-                          {item.currency === 'USD' ? '$' : '€'}{item.price}
+                          {item.currency === 'USD' ? '$' : 'Ft '}{item.price}
                         </Text>
                       </View>
                     </Pressable>

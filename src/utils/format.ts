@@ -5,7 +5,13 @@ import 'intl/locale-data/jsonp/ko';
 import 'intl/locale-data/jsonp/hu';
 
 // Currency formatter
-export const formatCurrency = (amount: number, currencyCode: string = 'KRW'): string => {
+export const formatCurrency = (amount: number, currencyCode: string = 'POINTS'): string => {
+    // Handle points as a special case
+    if (currencyCode === 'POINTS' || currencyCode === 'PTS') {
+        const formattedAmount = new Intl.NumberFormat('ko-KR').format(amount);
+        return `${formattedAmount} Ft`;
+    }
+
     const language = i18n.language || 'ko';
     let locale = language;
 

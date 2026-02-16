@@ -528,7 +528,7 @@
           "message": "I can meet you near the station at 5 PM today."
         },
         "item3": {
-          "message": "Would you accept €450 for the set?"
+          "message": "Would you accept 450 Ft for the set?"
         }
       },
       "messages": {
@@ -596,7 +596,7 @@
         "finalizing": "COMPLETED!"
       },
       "analyzing": "AI Analyzing...",
-      "aiPriceRange": "AI Price: €{{min}} ~ €{{max}}",
+      "aiPriceRange": "AI Price: {{min}} Ft ~ {{max}} Ft",
       "generateReport": "Generate AI Report",
       "reportGenerating": "Generating Report...",
       "stepHint": "2-step process: 1) Photo scan 2) Price/description generation",
@@ -719,8 +719,12 @@
     },
     "locationPicker": {
       "label": "Preferred Location",
-      "hint": "Move the map to adjust the pin's location.",
-      "placeholder": "Place name (e.g. Gellért Hill Entrance)"
+      "hint": "Start typing to find your location.",
+      "placeholder": "Enter address (e.g. Vaci utca)",
+      "noResults": "No addresses found.",
+      "searching": "Searching addresses...",
+      "currentLocation": "Use Current Location",
+      "confirm": "Confirm Location"
     },
     "aiIntro": {
       "badge": "Beta",

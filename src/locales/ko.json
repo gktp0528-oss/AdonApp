@@ -595,7 +595,7 @@
         "finalizing": "등록 완료!"
       },
       "analyzing": "AI 분석 중...",
-      "aiPriceRange": "AI 통합가: €{{min}} ~ €{{max}}",
+      "aiPriceRange": "AI 통합가: {{min}} Ft ~ {{max}} Ft",
       "generateReport": "AI 통합 리포트 생성",
       "reportGenerating": "통합 리포트 분석 중...",
       "stepHint": "2단계 진행: 1) 사진 스캔 2) 시세/설명 생성",
@@ -723,8 +723,12 @@
     },
     "locationPicker": {
       "label": "거래 희망 장소",
-      "hint": "지도를 움직여 핀의 위치를 조정해주세요.",
-      "placeholder": "장소 이름 (예: 강남역 10번 출구)"
+      "hint": "주소를 입력하여 거래 장소를 찾아보세요.",
+      "placeholder": "주소 입력 (예: 강남역)",
+      "noResults": "검색 결과가 없습니다.",
+      "searching": "주소를 찾는 중...",
+      "currentLocation": "현재 위치 사용",
+      "confirm": "위치 확정"
     },
     "aiIntro": {
       "badge": "베타",

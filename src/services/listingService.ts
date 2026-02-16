@@ -34,7 +34,7 @@ export const listingService = {
                 updatedAt: now,
                 // Ensure default values for critical fields
                 status: listingData.status || 'active',
-                currency: listingData.currency || 'EUR',
+                currency: listingData.currency || 'POINTS',
             });
 
             const listingId = docRef.id;

@@ -95,7 +95,7 @@ export default function AiAnalysisResultScreen({ navigation, route }: Props) {
                         <Text style={styles.statLabel}>{t('screen.aiAnalysisResult.label.price')}</Text>
                         <Text style={styles.priceValue}>
                             {report.priceRange
-                                ? `€${report.priceRange.min} - €${report.priceRange.max}`
+                                ? `${report.priceRange.min} Ft - ${report.priceRange.max} Ft`
                                 : 'N/A'}
                         </Text>
                     </View>

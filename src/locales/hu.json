@@ -596,7 +596,7 @@
         "finalizing": "KÉSZ!"
       },
       "analyzing": "AI elemzés...",
-      "aiPriceRange": "AI ár: €{{min}} ~ €{{max}}",
+      "aiPriceRange": "AI ár: {{min}} Ft ~ {{max}} Ft",
       "generateReport": "AI jelentés készítése",
       "reportGenerating": "Jelentés készítése...",
       "stepHint": "2 lépéses folyamat: 1) Fotó szkennelés 2) Ár/leírás generálás",
@@ -719,8 +719,12 @@
     },
     "locationPicker": {
       "label": "Preferált hely",
-      "hint": "Mozgassa a térképet a tű helyének beállításához.",
-      "placeholder": "Hely neve (pl. Gellért-hegy Bejárat)"
+      "hint": "Kezdjen el gépelni a hely megtalálásához.",
+      "placeholder": "Cím megadása (pl. Váci utca)",
+      "noResults": "Nem található cím.",
+      "searching": "Címek keresése...",
+      "currentLocation": "Jelenlegi hely használata",
+      "confirm": "Hely megerősítése"
     },
     "aiIntro": {
       "badge": "Béta",

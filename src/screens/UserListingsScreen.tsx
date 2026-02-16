@@ -44,7 +44,7 @@ export function UserListingsScreen({ navigation, route }: Props) {
       <View style={styles.gridInfo}>
         <Text numberOfLines={2} style={styles.gridTitle}>{item.title}</Text>
         <Text style={styles.gridPrice}>
-          {item.currency === 'USD' ? '$' : '€'}{item.price}
+          {item.currency === 'USD' ? '$' : 'Ft '}{item.price}
         </Text>
       </View>
     </Pressable>

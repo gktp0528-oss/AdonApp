@@ -64,7 +64,6 @@ export function NicknameSetupScreen({ navigation }: Props) {
                                 placeholder={t('screen.nickname.placeholder')}
                                 value={nickname}
                                 onChangeText={setNickname}
-                                autoFocus
                                 maxLength={20}
                             />
                         </View>

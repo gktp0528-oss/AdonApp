@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Easing,
   Animated,
+  InteractionManager,
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
@@ -48,19 +49,28 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AiListing'>;
 
 export function AiListingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
   const slideUpAnim = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const [isReady, setIsReady] = useState(false);
 
-  // Trigger fast slide up on mount
+  // Trigger fast slide up on mount and wait for interactions
   useEffect(() => {
-    Animated.timing(slideUpAnim, {
+    const animation = Animated.timing(slideUpAnim, {
       toValue: 0,
       duration: 250,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start();
-  }, []);
+    });
 
-  const { t, i18n } = useTranslation();
+    animation.start();
+
+    // Use InteractionManager to delay heavy rendering until animation is done
+    const task = InteractionManager.runAfterInteractions(() => {
+      setIsReady(true);
+    });
+
+    return () => task.cancel();
+  }, []);
 
   // Temporary: get current seller ID
   const sellerId = userService.getCurrentUserId();
@@ -621,77 +631,83 @@ export function AiListingScreen({ navigation, route }: Props) {
               </View>
             )}
 
-            {/* Title Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('screen.aiListing.placeholder.title')}
-                placeholderTextColor="#64748b"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
-              <Pressable
-                style={styles.selector}
-                onPress={() => {
-                  console.log('Category selector pressed! Navigating to CategorySelect...');
-                  Keyboard.dismiss();
-                  navigation.push('CategorySelect');
-                }}
-              >
-                <Text style={[styles.selectorText, !category && styles.placeholderText]}>
-                  {category || t('screen.categorySelect.title')}
-                </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
-              </Pressable>
-            </View>
-
-            {/* Price Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.currencySymbol}>€</Text>
-                <TextInput
-                  style={styles.priceInput}
-                  placeholder={t('screen.aiListing.placeholder.price')}
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  value={price}
-                  onChangeText={setPrice}
-                />
+            {!isReady ? (
+              <View style={{ height: 400, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#19e61b" />
               </View>
-            </View>
+            ) : (
+              <>
+                {/* Title Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{t('screen.aiListing.label.title')}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('screen.aiListing.placeholder.title')}
+                    placeholderTextColor="#64748b"
+                    value={title}
+                    onChangeText={setTitle}
+                  />
+                </View>
 
+                {/* Category Selector */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{t('screen.aiListing.label.category')}</Text>
+                  <Pressable
+                    style={styles.selector}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      navigation.push('CategorySelect');
+                    }}
+                  >
+                    <Text style={[styles.selectorText, !category && styles.placeholderText]}>
+                      {category || t('screen.categorySelect.title')}
+                    </Text>
+                    <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
+                  </Pressable>
+                </View>
 
-            {/* Condition Slider */}
-            {/* Condition Slider */}
-            <View style={styles.inputGroup}>
-              <ConditionSlider
-                value={condition}
-                onValueChange={setCondition}
-              />
-            </View>
+                {/* Price Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.currencySymbol}>€</Text>
+                    <TextInput
+                      style={styles.priceInput}
+                      placeholder={t('screen.aiListing.placeholder.price')}
+                      placeholderTextColor="#64748b"
+                      keyboardType="numeric"
+                      value={price}
+                      onChangeText={setPrice}
+                    />
+                  </View>
+                </View>
 
-            {/* Location Picker */}
-            <LocationPicker onLocationChange={setPickupLocation} />
+                {/* Condition Slider */}
+                <View style={styles.inputGroup}>
+                  <ConditionSlider
+                    value={condition}
+                    onValueChange={setCondition}
+                  />
+                </View>
 
-            {/* Description Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder={t('screen.aiListing.placeholder.description')}
-                placeholderTextColor="#64748b"
-                multiline
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
+                {/* Location Picker */}
+                <LocationPicker onLocationChange={setPickupLocation} />
+
+                {/* Description Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder={t('screen.aiListing.placeholder.description')}
+                    placeholderTextColor="#64748b"
+                    multiline
+                    textAlignVertical="top"
+                    value={description}
+                    onChangeText={setDescription}
+                  />
+                </View>
+              </>
+            )}
 
           </ScrollView>
 
