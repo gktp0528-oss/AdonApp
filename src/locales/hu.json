@@ -14,9 +14,15 @@
     "edit": "Szerkesztés",
     "condition": {
       "new": "Új",
-      "likeNew": "Szinte új",
+      "likeNew": "Újszerű",
       "good": "Jó",
-      "fair": "Megfelelő"
+      "fair": "Használt",
+      "poor": "Gyenge",
+      "newDesc": "Bontatlan vagy használatlan, kopásnyomok nélkül",
+      "likeNewDesc": "Keveset használt, újszerű állapot",
+      "goodDesc": "Apró karcolások, de összességében tiszta",
+      "fairDesc": "Látható használati nyomok vagy karcolások",
+      "poorDesc": "Javításra vagy felújításra szorul"
     },
     "time": {
       "justNow": "Épp most",
@@ -99,12 +105,12 @@
       }
     },
     "welcome": {
-      "title": "Üdvözöljük az Adon-nál! 🎉",
+      "title": "Üdvözöljük az Adon-nál!",
       "subtitle": "A fiókja sikeresen létrejött.\nÁllítsuk be a profilját, hogy elkezdhessük.",
       "next": "Tovább"
     },
     "nickname": {
-      "title": "Hogyan szólítsuk? ✨",
+      "title": "Hogyan szólítsuk?",
       "subtitle": "Ez a név látható lesz más felhasználók számára\na profilján és a csevegésekben.",
       "label": "Profil becenév",
       "placeholder": "Adja meg a becenevét",
@@ -116,7 +122,7 @@
       }
     },
     "onboardingFinish": {
-      "title": "Minden készen áll! ✨",
+      "title": "Minden készen áll!",
       "subtitle": "Minden rendben. Most már szabadon\nfelfedezhet és kereskedhet az Adon-on.",
       "start": "Kezdés"
     },

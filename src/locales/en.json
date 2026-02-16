@@ -16,7 +16,13 @@
       "new": "New",
       "likeNew": "Like New",
       "good": "Good",
-      "fair": "Fair"
+      "fair": "Fair",
+      "poor": "Poor",
+      "newDesc": "Unopened or unused with no signs of wear",
+      "likeNewDesc": "Used few times, looks brand new",
+      "goodDesc": "Minor scratches but generally clean",
+      "fairDesc": "Visible signs of use or scratches",
+      "poorDesc": "Needs repair or refurbishment"
     },
     "time": {
       "justNow": "Just now",
@@ -107,12 +113,12 @@
       }
     },
     "welcome": {
-      "title": "Welcome to Adon! 🎉",
+      "title": "Welcome to Adon!",
       "subtitle": "Your account has been successfully created.\nLet's set up your profile to get started.",
       "next": "Next"
     },
     "nickname": {
-      "title": "What should we call you? ✨",
+      "title": "What should we call you?",
       "subtitle": "This name will be visible to other users\non your profile and in chats.",
       "label": "Profile Nickname",
       "placeholder": "Enter your nickname",
@@ -124,7 +130,7 @@
       }
     },
     "onboardingFinish": {
-      "title": "You're all set! ✨",
+      "title": "You're all set!",
       "subtitle": "Everything is ready. Now you can\nfreely explore and trade on Adon.",
       "start": "Start Exploring"
     },

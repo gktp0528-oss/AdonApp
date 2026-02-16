@@ -16,7 +16,11 @@ export function WelcomeScreen({ navigation }: Props) {
         <SafeAreaView style={styles.root}>
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <Text style={styles.emoji}>🎉</Text>
+                    <Image
+                        source={require('../../assets/images/onboarding-welcome.png')}
+                        style={styles.icon}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.title}>{t('screen.welcome.title')}</Text>
                     <Text style={styles.subtitle}>{t('screen.welcome.subtitle')}</Text>
                 </View>
@@ -47,10 +51,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    emoji: {
-        fontSize: 64,
+    icon: {
+        width: 120,
+        height: 120,
         marginBottom: 24,
     },
+
     title: {
         fontSize: 28,
         fontWeight: '800',

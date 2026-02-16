@@ -18,7 +18,7 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { ConditionSlider } from '../components/ConditionSlider';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -661,27 +661,12 @@ export function AiListingScreen({ navigation, route }: Props) {
 
 
             {/* Condition Slider */}
+            {/* Condition Slider */}
             <View style={styles.inputGroup}>
-              <View style={styles.conditionHeader}>
-                <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-                <Text style={styles.conditionValue}>{t('screen.aiListing.conditionPercent', { percent: condition })}</Text>
-              </View>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={100}
-                step={10}
+              <ConditionSlider
                 value={condition}
                 onValueChange={setCondition}
-                minimumTrackTintColor="#30e86e"
-                maximumTrackTintColor="#e2e8f0"
-                thumbTintColor="#30e86e"
               />
-              <View style={styles.sliderLabels}>
-                <Text style={styles.sliderLabelText}>0%</Text>
-                <Text style={styles.sliderLabelText}>50%</Text>
-                <Text style={styles.sliderLabelText}>100%</Text>
-              </View>
             </View>
 
             {/* Description Input */}
@@ -1537,31 +1522,5 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#30e86e',
     zIndex: 2000,
-  },
-  conditionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  conditionValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#30e86e',
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    marginTop: -8,
-  },
-  sliderLabelText: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
   },
 });

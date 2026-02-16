@@ -16,7 +16,11 @@ export function OnboardingFinishScreen({ navigation }: Props) {
         <SafeAreaView style={styles.root}>
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <Text style={styles.emoji}>✨</Text>
+                    <Image
+                        source={require('../../assets/images/onboarding-success.png')}
+                        style={styles.icon}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.title}>{t('screen.onboardingFinish.title')}</Text>
                     <Text style={styles.subtitle}>{t('screen.onboardingFinish.subtitle')}</Text>
                 </View>
@@ -47,10 +51,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    emoji: {
-        fontSize: 64,
+    icon: {
+        width: 140,
+        height: 140,
         marginBottom: 24,
     },
+
     title: {
         fontSize: 28,
         fontWeight: '800',

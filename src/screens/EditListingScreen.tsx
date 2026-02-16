@@ -12,7 +12,7 @@ import {
     Alert,
     ActivityIndicator,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { ConditionSlider } from '../components/ConditionSlider';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -161,26 +161,10 @@ export default function EditListingScreen({ navigation, route }: Props) {
 
                     {/* Condition Slider */}
                     <View style={styles.inputGroup}>
-                        <View style={styles.conditionHeader}>
-                            <Text style={styles.label}>{t('screen.aiListing.label.condition')}</Text>
-                            <Text style={styles.conditionValue}>{t('screen.aiListing.conditionPercent', { percent: condition })}</Text>
-                        </View>
-                        <Slider
-                            style={styles.slider}
-                            minimumValue={0}
-                            maximumValue={100}
-                            step={10}
+                        <ConditionSlider
                             value={condition}
                             onValueChange={setCondition}
-                            minimumTrackTintColor="#30e86e"
-                            maximumTrackTintColor="#e2e8f0"
-                            thumbTintColor="#30e86e"
                         />
-                        <View style={styles.sliderLabels}>
-                            <Text style={styles.sliderLabelText}>0%</Text>
-                            <Text style={styles.sliderLabelText}>50%</Text>
-                            <Text style={styles.sliderLabelText}>100%</Text>
-                        </View>
                     </View>
 
                     {/* Description */}
@@ -270,30 +254,4 @@ const styles = StyleSheet.create({
     },
     ctaBtnDisabled: { opacity: 0.6 },
     ctaText: { color: '#fff', fontSize: 18, fontWeight: '800' },
-    conditionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    conditionValue: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#30e86e',
-    },
-    slider: {
-        width: '100%',
-        height: 40,
-    },
-    sliderLabels: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 4,
-        marginTop: -8,
-    },
-    sliderLabelText: {
-        fontSize: 12,
-        color: '#64748b',
-        fontWeight: '600',
-    },
 });
