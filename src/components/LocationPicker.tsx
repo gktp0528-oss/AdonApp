@@ -52,7 +52,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
             <View style={styles.mapContainer}>
                 <MapView
-                    provider={PROVIDER_GOOGLE}
+                    provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
                     style={styles.map}
                     initialRegion={region}
                     onRegionChangeComplete={onRegionChangeComplete}
