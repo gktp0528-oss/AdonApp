@@ -178,25 +178,12 @@ export function AiIntroScreen({ navigation }: Props) {
                     </View>
                 </View>
 
-                <View style={styles.pricingContainer}>
-                    <View style={styles.pricingBadge}>
-                        <Text style={styles.proText}>한정 혜택</Text>
-                    </View>
-                    <Text style={styles.trialText}>
-                        <Text style={styles.boldText}>Adon Pro</Text>를 무료로 체험해 보세요.
-                    </Text>
-                    <Text style={styles.subtext}>
-                        7일 무료 체험 후 월 $4.99
-                    </Text>
-                </View>
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
                 <Pressable style={styles.ctaBtn} onPress={handleStartTrial}>
-                    <Text style={styles.ctaText}>무료 체험 시작</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color="#0f172a" />
+                    <Text style={styles.ctaText}>사용해보기</Text>
                 </Pressable>
-                <Text style={styles.footerNote}>설정에서 언제든 해지할 수 있어요</Text>
             </View>
         </SafeAreaView>
     );
