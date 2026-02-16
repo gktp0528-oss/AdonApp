@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,7 +20,7 @@ export function WelcomeScreen({ navigation }: Props) {
                     <Image
                         source={require('../../assets/images/onboarding-welcome.png')}
                         style={styles.icon}
-                        resizeMode="contain"
+                        contentFit="contain"
                     />
                     <Text style={styles.title}>{t('screen.welcome.title')}</Text>
                     <Text style={styles.subtitle}>{t('screen.welcome.subtitle')}</Text>

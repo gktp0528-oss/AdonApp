@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,7 +20,7 @@ export function OnboardingFinishScreen({ navigation }: Props) {
                     <Image
                         source={require('../../assets/images/onboarding-success.png')}
                         style={styles.icon}
-                        resizeMode="contain"
+                        contentFit="contain"
                     />
                     <Text style={styles.title}>{t('screen.onboardingFinish.title')}</Text>
                     <Text style={styles.subtitle}>{t('screen.onboardingFinish.subtitle')}</Text>
