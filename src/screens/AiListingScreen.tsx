@@ -306,8 +306,8 @@ export function AiListingScreen({ navigation, route }: Props) {
     try {
       const manipulResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 512 } }], // Aggressive resize to 512px for speed
-        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 1024 } }], // Increased resolution to 1024px for better OCR/Identification
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Slightly higher quality
       );
       return manipulResult.uri;
     } catch (error) {
@@ -390,13 +390,13 @@ export function AiListingScreen({ navigation, route }: Props) {
 
       const prompt = `당신은 헝가리(Hungary)의 중고 마켓(Arukereso.hu, Jofogas.hu, Vinted.hu) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
       
-      [분석 지침]
-      1. 제품의 정확한 모델명을 식별하세요.
-      2. 헝가리 현지 최저가 비교 사이트인 'arukereso.hu'의 신제품 가격을 반드시 참고하되, 중고 시장 상황(Jofogas, Vinted)을 함께 고려하세요.
-      3. 사진에서 스크래치, 찍힘, 오염, 사용감 등 '감가 요인'을 이 잡듯 찾아내십시오. 
-      4. 가격 책정 시 매우 보수적이어야 합니다. 조금이라도 흠집이 있다면 '최상의 상태' 시세보다 최소 20-30% 이상 낮은 가격을 제시하세요.
-      5. 화폐 단위는 반드시 'HUF (Hungarian Forint)'를 기준으로 합니다. 숫자가 작지 않도록 주의하세요 (예: 15 EUR가 아니라 6,000 HUF 수준).
-      6. 제품의 카테고리를 다음 중 하나로 반드시 분류하세요: fashion, tech, home, hobbies, sports, mobility.
+      [분석 지침 - 중요도 순서]
+      1. **정밀 식별**: 사진에 포함된 모든 텍스트(모델명, 시리얼 번호, SKU), 브랜드 로고, 특정 디자인 패턴을 가장 먼저 추출하여 정확한 제품명을 식별하세요.
+      2. **상태 세부 분석**: 사진 속 제품의 모든 면(전면, 후면, 모서리 등)을 대조하여 미세한 스크래치, 찍힘, 변색 등 '감가 요인'을 철저히 찾아내십시오.
+      3. **로컬 시장 대조**: 헝가리 현지 최저가 비교 사이트인 'arukereso.hu'의 신제품 가격을 반드시 참고하되, 실제 중고 거래가(Jofogas, Vinted)를 함께 반영하세요.
+      4. **보수적 가격 책정**: 조금이라도 사용감이 있다면 신품가 대비 최소 20-30% 이상 낮은 현실적인 가격을 제시하세요.
+      5. **화폐 단위**: 반드시 'HUF (Hungarian Forint)' 기준으로 하며, 숫자가 현지 물가에 맞아야 합니다.
+      6. **카테고리**: fashion, tech, home, hobbies, sports, mobility 중 하나로 분류하세요.
       
       다음 JSON 형식으로 상세 리포트를 작성해주세요:
       {
@@ -560,7 +560,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           <ScrollView
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: (isKeyboardVisible ? 56 : 100) + insets.bottom },
+              { paddingBottom: (isKeyboardVisible ? 400 : 100) + insets.bottom },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -676,6 +676,9 @@ export function AiListingScreen({ navigation, route }: Props) {
               />
             </View>
 
+            {/* Location Picker */}
+            <LocationPicker onLocationChange={setPickupLocation} />
+
             {/* Description Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
@@ -689,9 +692,6 @@ export function AiListingScreen({ navigation, route }: Props) {
                 onChangeText={setDescription}
               />
             </View>
-
-            {/* Location Picker */}
-            <LocationPicker onLocationChange={setPickupLocation} />
 
           </ScrollView>
 
