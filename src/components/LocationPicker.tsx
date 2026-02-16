@@ -34,9 +34,9 @@ interface Prediction {
 
 // Platform-specific API keys for better compatibility and security
 const GOOGLE_API_KEY = Platform.select({
-    ios: "AIzaSyCHhiuxAUVgLyjn71LNR3e8Eu5u03Dc6Zc", // From GoogleService-Info.plist
-    android: "AIzaSyAewtFDFu-tZAldHQe3w0rqqJi8t3m6i5I", // From google-services.json
-    default: "AIzaSyA1cqQPP2y2-4dMfYN-HRoHZG44N4EXv7I", // Fallback from firebaseConfig.ts
+    ios: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw", // New key from screen
+    android: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw",
+    default: "AIzaSyCAr2LCkwcoTq6lQDJ9ffDAeNV7QG4oTUw",
 });
 
 // Default map center (Budapest, Hungary) - Still kept for coords if needed, but MapView is gone
