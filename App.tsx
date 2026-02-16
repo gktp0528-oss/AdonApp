@@ -125,7 +125,7 @@ export default function App() {
             component={AiListingScreen}
             options={{
               presentation: 'fullScreenModal',
-              animation: 'none'
+              animation: 'slide_from_bottom',
             }}
           />
 
