@@ -1,179 +1,394 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, Platform, ActivityIndicator } from 'react-native';
-import MapView, { UrlTile, Region, PROVIDER_GOOGLE } from 'react-native-maps';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    StyleSheet,
+    View,
+    Text,
+    TextInput,
+    FlatList,
+    Pressable,
+    ActivityIndicator,
+    Keyboard,
+    Platform,
+    Modal,
+    SafeAreaView,
+    TouchableOpacity,
+} from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import { aiBackend } from '../firebaseConfig';
 
 interface LocationPickerProps {
     onLocationChange: (location: { latitude: number; longitude: number; address: string }) => void;
     initialLocation?: { latitude: number; longitude: number; address: string };
 }
 
-const DEFAULT_LATITUDE = 47.497913; // Budapest
-const DEFAULT_LONGITUDE = 19.040236;
-const LATITUDE_DELTA = 0.01;
-const LONGITUDE_DELTA = 0.01;
+interface Prediction {
+    place_id: string;
+    description: string;
+    structured_formatting: {
+        main_text: string;
+        secondary_text: string;
+    };
+}
+
+const GOOGLE_API_KEY = "AIzaSyAewtFDFu-tZAldHQe3w0rqqJi8t3m6i5I";
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
     initialLocation,
 }) => {
-    const { t } = useTranslation();
-    const [region, setRegion] = useState<Region>({
-        latitude: initialLocation?.latitude || DEFAULT_LATITUDE,
-        longitude: initialLocation?.longitude || DEFAULT_LONGITUDE,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-    });
+    const { t, i18n } = useTranslation();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(initialLocation?.address || '');
+    const [searchInput, setSearchInput] = useState('');
+    const [predictions, setPredictions] = useState<Prediction[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const [address, setAddress] = useState(initialLocation?.address || '');
-    const [isMapReady, setIsMapReady] = useState(false);
-
-    // Debounce location updates to avoid too many updates while dragging
     useEffect(() => {
-        const timer = setTimeout(() => {
-            onLocationChange({
-                latitude: region.latitude,
-                longitude: region.longitude,
-                address,
-            });
+        if (searchInput.length < 3) {
+            setPredictions([]);
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            fetchPredictions(searchInput);
         }, 500);
 
-        return () => clearTimeout(timer);
-    }, [region, address]);
+        return () => clearTimeout(timeoutId);
+    }, [searchInput]);
 
-    const onRegionChangeComplete = (newRegion: Region) => {
-        setRegion(newRegion);
+    const fetchPredictions = async (query: string) => {
+        if (!query.trim()) return;
+        setIsLoading(true);
+        try {
+            const lang = i18n.language === 'ko' ? 'ko' : i18n.language === 'hu' ? 'hu' : 'en';
+            const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&language=${lang}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 'OK') {
+                setPredictions(data.predictions);
+            } else {
+                setPredictions([]);
+            }
+        } catch (error) {
+            console.error('❌ Fetch predictions failed:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    const handleSelectPlace = async (placeId: string, description: string) => {
+        setIsLoading(true);
+        try {
+            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,formatted_address&key=${GOOGLE_API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 'OK') {
+                const { lat, lng } = data.result.geometry.location;
+                setSelectedAddress(description);
+                setIsModalVisible(false);
+                setSearchInput('');
+                setPredictions([]);
+
+                onLocationChange({
+                    latitude: lat,
+                    longitude: lng,
+                    address: description,
+                });
+            }
+        } catch (error) {
+            console.error('Fetch place details failed:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const renderPrediction = ({ item }: { item: Prediction }) => (
+        <TouchableOpacity
+            style={styles.resultItem}
+            onPress={() => handleSelectPlace(item.place_id, item.description)}
+        >
+            <View style={styles.resultIcon}>
+                <MaterialIcons name="location-on" size={20} color="#94a3b8" />
+            </View>
+            <View style={styles.resultTextContainer}>
+                <Text style={styles.mainText} numberOfLines={1}>
+                    {item.structured_formatting.main_text}
+                </Text>
+                <Text style={styles.secondaryText} numberOfLines={1}>
+                    {item.structured_formatting.secondary_text}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
 
     return (
         <View style={styles.container}>
             <Text style={styles.label}>{t('screen.locationPicker.label')}</Text>
 
-            <View style={styles.mapContainer}>
-                <MapView
-                    provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-                    style={styles.map}
-                    initialRegion={region}
-                    onRegionChangeComplete={onRegionChangeComplete}
-                    onMapReady={() => setIsMapReady(true)}
-                    rotateEnabled={false}
-                    showsUserLocation={true}
+            {/* Trigger Button */}
+            <TouchableOpacity
+                style={styles.triggerContainer}
+                onPress={() => {
+                    setSearchInput('');
+                    setPredictions([]);
+                    setIsModalVisible(true);
+                }}
+            >
+                <MaterialIcons name="location-searching" size={22} color="#16a34a" style={styles.searchIcon} />
+                <Text
+                    style={[styles.triggerText, !selectedAddress && styles.placeholderText]}
+                    numberOfLines={1}
                 >
-                    <UrlTile
-                        urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        maximumZ={19}
-                        flipY={false}
-                    />
-                </MapView>
+                    {selectedAddress || t('screen.locationPicker.placeholder')}
+                </Text>
+                <MaterialIcons name="keyboard-arrow-right" size={24} color="#94a3b8" />
+            </TouchableOpacity>
 
-                {/* Fixed Center Marker */}
-                <View style={styles.markerFixed}>
-                    <MaterialIcons name="location-on" size={38} color="#22c55e" />
-                </View>
+            <Text style={styles.hint}>{t('screen.locationPicker.hint')}</Text>
 
-                {/* Floating Input Card */}
-                <View style={styles.floatingCard}>
-                    <Text style={styles.hint}>{t('screen.locationPicker.hint')}</Text>
-                    <View style={styles.inputContainer}>
-                        <MaterialIcons name="edit-location" size={20} color="#16a34a" style={styles.icon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder={t('screen.locationPicker.placeholder')}
-                            placeholderTextColor="#94a3b8"
-                            value={address}
-                            onChangeText={setAddress}
-                        />
+            {/* Address Search Modal */}
+            <Modal
+                visible={isModalVisible}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setIsModalVisible(false)}
+            >
+                <SafeAreaView style={styles.modalContent}>
+                    {/* Modal Header */}
+                    <View style={styles.modalHeader}>
+                        <TouchableOpacity
+                            onPress={() => setIsModalVisible(false)}
+                            style={styles.closeBtn}
+                        >
+                            <MaterialIcons name="close" size={24} color="#0f172a" />
+                        </TouchableOpacity>
+                        <Text style={styles.modalTitle}>{t('screen.locationPicker.label')}</Text>
+                        <View style={{ width: 40 }} />
                     </View>
-                </View>
 
-                {!isMapReady && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="small" color="#22c55e" />
+                    {/* Modal Search Bar */}
+                    <View style={styles.modalSearchContainer}>
+                        <View style={styles.modalInputContainer}>
+                            <MaterialIcons name="search" size={22} color="#16a34a" style={styles.searchIcon} />
+                            <TextInput
+                                style={styles.modalInput}
+                                placeholder={t('screen.locationPicker.placeholder')}
+                                placeholderTextColor="#94a3b8"
+                                value={searchInput}
+                                onChangeText={setSearchInput}
+                                autoFocus={true}
+                                clearButtonMode="while-editing"
+                            />
+                        </View>
                     </View>
-                )}
-            </View>
+
+                    {/* Results Area */}
+                    <View style={{ flex: 1 }}>
+                        {isLoading ? (
+                            <View style={styles.centerLoader}>
+                                <ActivityIndicator size="large" color="#22c55e" />
+                                <Text style={styles.loadingText}>{t('screen.locationPicker.searching')}</Text>
+                            </View>
+                        ) : predictions.length > 0 ? (
+                            <FlatList
+                                data={predictions}
+                                renderItem={renderPrediction}
+                                keyExtractor={(item) => item.place_id}
+                                contentContainerStyle={styles.listContent}
+                                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                keyboardShouldPersistTaps="handled"
+                            />
+                        ) : searchInput.length >= 3 ? (
+                            <View style={styles.noResults}>
+                                <MaterialIcons name="location-off" size={48} color="#e2e8f0" />
+                                <Text style={styles.noResultsText}>{t('screen.locationPicker.noResults')}</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.emptySearch}>
+                                <MaterialIcons name="map" size={48} color="#f1f5f9" />
+                                <Text style={styles.emptySearchText}>
+                                    {t('screen.locationPicker.hint')}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                </SafeAreaView>
+            </Modal>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 12,
+        marginVertical: 16,
     },
     label: {
-        fontSize: 16,
-        fontWeight: '800',
-        color: '#1e293b',
-        marginBottom: 10,
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#64748b',
+        marginBottom: 8,
+        letterSpacing: 0.5,
     },
-    mapContainer: {
-        height: 300,
-        width: '100%',
-        borderRadius: 20,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        backgroundColor: '#e5e7eb',
-        position: 'relative',
-    },
-    map: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    markerFixed: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        marginLeft: -19,
-        marginTop: -38, // Adjusted for slightly larger icon
-    },
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#f1f5f9',
-        justifyContent: 'center',
+    triggerContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-    },
-    floatingCard: {
-        position: 'absolute',
-        bottom: 12,
-        left: 12,
-        right: 12,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 16,
-        padding: 12,
-        // Premium Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 5,
+        backgroundColor: '#fff',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
+        borderColor: '#e2e8f0',
+        borderRadius: 16,
+        paddingHorizontal: 14,
+        height: 56,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    triggerText: {
+        flex: 1,
+        fontSize: 15,
+        color: '#0f172a',
+        fontWeight: '600',
+    },
+    placeholderText: {
+        color: '#94a3b8',
+        fontWeight: '500',
+    },
+    searchIcon: {
+        marginRight: 10,
     },
     hint: {
-        marginBottom: 8,
+        marginTop: 8,
         fontSize: 12,
-        fontWeight: '600',
-        color: '#64748b',
-        textAlign: 'center',
+        color: '#94a3b8',
+        fontWeight: '500',
+        paddingHorizontal: 4,
     },
-    inputContainer: {
+    modalContent: {
+        flex: 1,
+        backgroundColor: '#f6f8f6',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+        backgroundColor: '#fff',
+    },
+    closeBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#f8fafc',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0f172a',
+    },
+    modalSearchContainer: {
+        padding: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    modalInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#f8fafc',
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: '#e2e8f0',
         borderRadius: 12,
         paddingHorizontal: 12,
+        height: 48,
     },
-    icon: {
-        marginRight: 8,
-    },
-    input: {
+    modalInput: {
         flex: 1,
-        height: 44,
-        fontSize: 14,
+        fontSize: 15,
         color: '#0f172a',
         fontWeight: '500',
+    },
+    centerLoader: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+    },
+    loadingText: {
+        color: '#64748b',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    listContent: {
+        backgroundColor: '#fff',
+        paddingVertical: 8,
+    },
+    resultItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+    },
+    resultIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#f1f5f9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    resultTextContainer: {
+        flex: 1,
+    },
+    mainText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1e293b',
+        marginBottom: 2,
+    },
+    secondaryText: {
+        fontSize: 12,
+        color: '#64748b',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#f1f5f9',
+        marginHorizontal: 16,
+    },
+    noResults: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 16,
+        paddingTop: 100,
+    },
+    noResultsText: {
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    emptySearch: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 16,
+        paddingTop: 100,
+    },
+    emptySearchText: {
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '500',
+        textAlign: 'center',
+        paddingHorizontal: 40,
+        lineHeight: 20,
     },
 });
