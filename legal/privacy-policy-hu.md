@@ -38,12 +38,10 @@ Az Európai Unió Általános Adatvédelmi Rendeletének (GDPR - 2016/679 EU ren
 - Értékelések és vélemények más felhasználókról
 - Ügyfélszolgálati levelezés
 
-### 2.4 Tranzakciós adatok
-- Vásárlási és eladási előzmények
-- Fizetési információk (biztonságos fizetési szolgáltatókon keresztül)
-- Szállítási címek (csak futáros szállítás esetén)
-- Találkozási helyszínek (csak személyes átvétel esetén)
-- Biztonsági PIN kódok (ideiglenesen, tranzakció megerősítéséhez)
+### 2.4 Találkozási adatok (MVP verzió)
+- Tervezett találkozási helyszínek és időpontok (csak személyes átvétel esetén)
+- Érdeklődések és megkeresések (termékekre vonatkozóan)
+- **Megjegyzés:** Jelenleg az ADON csak személyes találkozós kereskedelmet támogat. Online fizetés és futáros szállítás hamarosan elérhető lesz.
 
 ### 2.5 Technikai és használati adatok
 - IP-cím, eszköz azonosító (UUID), operációs rendszer verzió
@@ -65,7 +63,7 @@ Az Ön adatait a következő célokra használjuk:
 - Fiók létrehozása és kezelése
 - Termékek listázása és keresése
 - Vevők és eladók közötti kapcsolat létrehozása (csevegés)
-- Tranzakciók lebonyolítása (escrow fizetés, találkozó szervezés)
+- Személyes találkozók koordinálása
 - Értesítések küldése (új üzenetek, ár csökkenés, kulcsszó riasztások)
 
 ### 3.2 Biztonság és csalás megelőzése (GDPR 6. cikk (1) f - jogos érdek)
@@ -103,9 +101,8 @@ Az Ön adatait a következő célokra használjuk:
 - **Firebase (Google LLC):** Adatbázis, hitelesítés, tárhelyszolgáltatás, elemzés
   - Helyszín: USA (Privacy Shield utód: Data Privacy Framework)
   - [Firebase Privacy Policy](https://firebase.google.com/support/privacy)
-- **Fizetési szolgáltatók:** [Stripe/PayPal/helyi szolgáltató] - kártyaadatokat SOHA nem tárolunk
-- **Szállítási szolgáltatók:** Magyar Posta, Packeta, DPD, Foxpost (csak szállítási címet osztjuk meg)
 - **E-mail szolgáltató:** [pl. SendGrid] - értesítések küldéséhez
+- **Megjegyzés (MVP):** Jelenleg NEM használunk fizetési vagy szállítási szolgáltatókat, mivel az alkalmazás csak személyes találkozós kereskedelmet támogat.
 
 ### 4.3 Jogi követelmények
 Adatait átadhatjuk hatóságoknak, ha:
@@ -125,7 +122,7 @@ Cégfelvásárlás vagy egyesülés esetén az adatai az új tulajdonoshoz kerü
 | Fiók adatok | Fiók törléséig + 30 nap |
 | Termék hirdetések | Hirdetés törléséig vagy fiók törléséig |
 | Csevegési üzenetek | Fiók törléséig + 90 nap |
-| Tranzakciós adatok | 7 év (számviteli és jogi követelmények) |
+| Találkozási adatok | Találkozó után 30 nap |
 | Értékelések | Fiók törléséig (de anonim formában megmaradhat) |
 | Technikai naplók | 90 nap |
 | Marketing hozzájárulás | Visszavonásig |

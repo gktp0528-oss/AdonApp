@@ -14,8 +14,6 @@ import { chatService } from '../services/chatService';
 import { userService } from '../services/userService';
 import { Message, Conversation } from '../types/chat';
 import { User } from '../types/user';
-import { transactionService } from '../services/transactionService';
-import { TransactionCompletion } from '../components/TransactionCompletion';
 import { ReviewModal } from '../components/ReviewModal';
 import { reviewService } from '../services/reviewService';
 import { translationService } from '../services/translationService';
@@ -39,11 +37,6 @@ export function ChatScreen({ navigation, route }: Props) {
   const [uploading, setUploading] = useState(false);
   const [limit, setLimit] = useState(20);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
-  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
-  const [completedTransactionId, setCompletedTransactionId] = useState<string | null>(null);
-  const [isSeller, setIsSeller] = useState(false);
-  const [hasReview, setHasReview] = useState(false);
 
   // Translation state
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
@@ -70,33 +63,6 @@ export function ChatScreen({ navigation, route }: Props) {
     return () => unsub();
   }, [conversation, currentUserId]);
 
-  // Check for active transaction
-  useEffect(() => {
-    if (!conversation || !currentUserId) return;
-    const otherUserId = conversation.participants.find((p) => p !== currentUserId);
-    if (!otherUserId) return;
-
-    const findTransaction = async () => {
-      // We check both ways since either could be buyer/seller
-      const tr = await transactionService.getTransactionsByChat(
-        conversation.listingId,
-        currentUserId,
-        otherUserId
-      ) || await transactionService.getTransactionsByChat(
-        conversation.listingId,
-        otherUserId,
-        currentUserId
-      );
-
-      if (tr) {
-        setActiveTransactionId(tr.id);
-        setIsSeller(tr.sellerId === currentUserId);
-        setHasReview(!!tr.reviewId);
-      }
-    };
-
-    findTransaction();
-  }, [conversation, currentUserId]);
 
   // Watch messages in real-time
   useEffect(() => {
@@ -329,89 +295,6 @@ export function ChatScreen({ navigation, route }: Props) {
               }
             }
 
-            if (msg.systemType === 'transaction_completed') {
-              // More reliable seller check: If the listing belongs to the current user
-              // However, we don't have listing detail here directly in a clean way unless we use conversation metadata.
-              // Let's use otherUser and currentUserId logic more clearly.
-              // In this app, listing owner is the seller.
-
-              return (
-                <View key={msg.id} style={{ alignItems: 'center', marginVertical: 16 }}>
-                  <TransactionCompletion
-                    isChatView={true}
-                    onReviewPress={() => {
-                      if (activeTransactionId) {
-                        setCompletedTransactionId(activeTransactionId);
-                        setReviewModalVisible(true);
-                      } else {
-                        Alert.alert(t('common.error'), "Transaction data missing");
-                      }
-                    }}
-                    onHomePress={() => navigation.navigate('MainTabs')}
-                    isSeller={isSeller}
-                    hasReview={hasReview}
-                  />
-                </View>
-              );
-            }
-
-            if (msg.systemType === 'payment_completed') {
-              return (
-                <View key={msg.id} style={{ alignItems: 'center', marginVertical: 16 }}>
-                  <View style={{
-                    backgroundColor: '#fff',
-                    padding: 20,
-                    borderRadius: 16,
-                    alignItems: 'center',
-                    width: '80%',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 8,
-                    elevation: 3,
-                    borderWidth: 1,
-                    borderColor: '#f0fdf4'
-                  }}>
-                    <View style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      backgroundColor: '#f0fdf4',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 12,
-                    }}>
-                      <MaterialIcons name="check" size={32} color="#22c55e" />
-                    </View>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 8, textAlign: 'center' }}>
-                      {t('screen.chat.messages.system.paymentCompleted')}
-                    </Text>
-                    <Pressable
-                      style={{
-                        backgroundColor: '#22c55e',
-                        paddingVertical: 12,
-                        paddingHorizontal: 24,
-                        borderRadius: 24,
-                        marginTop: 12,
-                        width: '100%',
-                        alignItems: 'center'
-                      }}
-                      onPress={() => {
-                        if (activeTransactionId) {
-                          navigation.navigate('TransactionDetail', { transactionId: activeTransactionId });
-                        } else {
-                          // Fallback: This might happen if transaction just created and not refreshed.
-                          // We should probably rely on re-fetching.
-                          Alert.alert(t('common.loading'));
-                        }
-                      }}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{t('screen.chat.messages.system.enterPin')}</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              );
-            }
 
             return (
               <View key={msg.id} style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
@@ -488,35 +371,6 @@ export function ChatScreen({ navigation, route }: Props) {
           })}
         </ScrollView>
 
-        <ReviewModal
-          isVisible={isReviewModalVisible}
-          onClose={() => setReviewModalVisible(false)}
-          onSubmit={async (rating, comment) => {
-            if (!currentUserId || !completedTransactionId || !conversation) return;
-
-            try {
-              const sellerId = conversation.participants.find(p => p !== currentUserId) || '';
-              if (!sellerId) return;
-
-              await reviewService.submitReview({
-                transactionId: completedTransactionId,
-                listingId: conversation.listingId,
-                reviewerId: currentUserId,
-                revieweeId: sellerId,
-                rating,
-                comment,
-              });
-
-              Alert.alert(t('common.success'), t('screen.transaction.review.success'));
-              setReviewModalVisible(false);
-              setHasReview(true); // Update local state immediately
-
-            } catch (error) {
-              console.error('Review submit failed', error);
-              Alert.alert(t('common.error'), t('common.error'));
-            }
-          }}
-        />
 
         <View style={styles.composer}>
           <Pressable onPress={pickImage} style={styles.iconBtn} disabled={uploading}>

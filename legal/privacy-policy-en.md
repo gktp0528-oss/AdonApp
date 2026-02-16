@@ -38,12 +38,10 @@ We process your data in accordance with the EU General Data Protection Regulatio
 - Reviews and ratings about other users
 - Customer support correspondence
 
-### 2.4 Transaction Data
-- Purchase and sales history
-- Payment information (through secure payment processors)
-- Shipping addresses (delivery option only)
-- Meetup locations (in-person meetup option only)
-- Safety PIN codes (temporary, for transaction verification)
+### 2.4 Meetup Data (MVP Version)
+- Planned meetup locations and times (for in-person exchanges)
+- Product inquiries and interest expressions
+- **Note:** Currently, ADON supports only in-person meetup trades. Online payment and shipping delivery will be available soon.
 
 ### 2.5 Technical and Usage Data
 - IP address, device identifier (UUID), operating system version
@@ -65,7 +63,7 @@ We use your data for the following purposes:
 - Creating and managing your account
 - Listing and searching products
 - Connecting buyers and sellers (chat)
-- Facilitating transactions (escrow payment, meetup coordination)
+- Coordinating in-person meetups
 - Sending notifications (new messages, price drops, keyword alerts)
 
 ### 3.2 Security and Fraud Prevention (GDPR Article 6(1)(f) - legitimate interest)
@@ -103,9 +101,8 @@ We use your data for the following purposes:
 - **Firebase (Google LLC):** Database, authentication, storage, analytics
   - Location: USA (Privacy Shield successor: Data Privacy Framework)
   - [Firebase Privacy Policy](https://firebase.google.com/support/privacy)
-- **Payment processors:** [Stripe/PayPal/local provider] - we NEVER store card details
-- **Shipping providers:** Hungarian Post, Packeta, DPD, Foxpost (only sharing shipping address)
 - **Email service:** [e.g., SendGrid] - for sending notifications
+- **Note (MVP):** We currently do NOT use payment or shipping providers, as the app supports only in-person meetup trades.
 
 ### 4.3 Legal Requirements
 We may disclose your data to authorities if:
@@ -125,7 +122,7 @@ In case of merger or acquisition, your data may transfer to the new owner (with 
 | Account data | Until account deletion + 30 days |
 | Product listings | Until listing/account deletion |
 | Chat messages | Until account deletion + 90 days |
-| Transaction data | 7 years (accounting and legal requirements) |
+| Meetup data | 30 days after meetup |
 | Reviews | Until account deletion (may remain anonymized) |
 | Technical logs | 90 days |
 | Marketing consent | Until withdrawn |

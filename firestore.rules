@@ -112,24 +112,6 @@ service cloud.firestore {
       allow read: if false;
     }
 
-    // TRANSACTIONS RULES
-    match /transactions/{transactionId} {
-      // Read access but hide safetyCode field from clients
-      allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.buyerId || 
-        request.auth.uid == resource.data.sellerId
-      );
-      
-      allow create: if isAuthenticated() && 
-        request.resource.data.buyerId == request.auth.uid;
-        
-      // Only allow updating status/escrowStatus, not safetyCode
-      allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.buyerId || 
-        request.auth.uid == resource.data.sellerId
-      ) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['safetyCode']);
-    }
-
     // WISHLISTS RULES
     match /wishlists/{wishlistId} {
       // Authenticated users can read (needed for mock price drop detection query)

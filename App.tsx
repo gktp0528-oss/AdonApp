@@ -23,10 +23,7 @@ import { ChatScreen } from './src/screens/ChatScreen';
 import { AiListingScreen } from './src/screens/AiListingScreen';
 import { CategorySelectScreen } from './src/screens/CategorySelectScreen';
 import { AiIntroScreen } from './src/screens/AiIntroScreen';
-import AiPriceAssistantScreen from './src/screens/PriceAssistantScreen';
 import AiAnalysisResultScreen from './src/screens/AiAnalysisResultScreen';
-import PaymentScreen from './src/screens/PaymentScreen';
-import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
 import ReviewScreen from './src/screens/ReviewScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { NicknameSetupScreen } from './src/screens/NicknameSetupScreen';
@@ -155,10 +152,7 @@ export default function App() {
             }}
           />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
-          <Stack.Screen name="AiPriceAssistant" component={AiPriceAssistantScreen} />
           <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
-          <Stack.Screen name="Payment" component={PaymentScreen} />
-          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
           <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="Keywords" component={KeywordsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
