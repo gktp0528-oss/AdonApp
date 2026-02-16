@@ -692,27 +692,29 @@ export function AiListingScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          {/* Footer / CTA - Always visible with KeyboardAvoidingView */}
-          <View
-            style={[
-              styles.footer,
-              {
-                bottom: 0,
-                paddingBottom: Math.max(insets.bottom, 12),
-                backgroundColor: isKeyboardVisible ? 'transparent' : '#f6f8f6',
-                borderTopWidth: isKeyboardVisible ? 0 : 1,
-              }
-            ]}
-            pointerEvents="box-none"
-          >
-            <Pressable
-              style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-              onPress={handlePostItem}
-              disabled={isPosting}
+          {/* Footer / CTA - Hidden when keyboard is visible to avoid blocking inputs */}
+          {!isKeyboardVisible && (
+            <View
+              style={[
+                styles.footer,
+                {
+                  bottom: 0,
+                  paddingBottom: Math.max(insets.bottom, 12),
+                  backgroundColor: '#f6f8f6',
+                  borderTopWidth: 1,
+                }
+              ]}
+              pointerEvents="box-none"
             >
-              <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
-            </Pressable>
-          </View>
+              <Pressable
+                style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+                onPress={handlePostItem}
+                disabled={isPosting}
+              >
+                <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </View>
