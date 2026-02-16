@@ -199,7 +199,12 @@ export function SellerScreen({ navigation, route }: Props) {
             <View style={styles.productsSection}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>{t('screen.profile.products.title')}</Text>
-                <Pressable>
+                <Pressable
+                  onPress={() => navigation.navigate('UserListings', {
+                    sellerId: sellerId,
+                    sellerName: seller.name
+                  })}
+                >
                   <Text style={styles.seeAllText}>{t('screen.profile.products.seeAll')} ({listings.length})</Text>
                 </Pressable>
               </View>
@@ -247,7 +252,7 @@ export function SellerScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#ffffff' },
-  content: { paddingBottom: 40 },
+  content: { paddingBottom: 120 },
   center: { alignItems: 'center', justifyContent: 'center' },
   errorTitle: { color: '#64748b', fontSize: 15, fontWeight: '600' },
   retryBtn: {
