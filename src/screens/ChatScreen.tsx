@@ -244,6 +244,11 @@ export function ChatScreen({ navigation, route }: Props) {
                   <MaterialIcons name="verified-user" size={16} color="#16a34a" />
                 )}
               </View>
+              {conversation?.listingTitle && (
+                <Text style={styles.listingTitle} numberOfLines={1}>
+                  {conversation.listingTitle}
+                </Text>
+              )}
             </View>
             <Pressable onPress={handleMorePress} style={styles.moreBtn} hitSlop={10}>
               <MaterialIcons name="more-vert" size={24} color="#6b7280" />
@@ -391,6 +396,7 @@ const styles = StyleSheet.create({
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   user: { fontWeight: '700', color: '#111827', fontSize: 15 },
+  listingTitle: { fontSize: 12, color: '#6b7280', marginTop: 2 },
   online: { color: '#6b7280', fontSize: 12 },
   meetCard: {
     backgroundColor: '#fff',
