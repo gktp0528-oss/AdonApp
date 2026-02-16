@@ -30,10 +30,15 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#4ADE80"
+    },
     "plugins": [
       "expo-localization",
       "@react-native-google-signin/google-signin",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-notifications"
     ]
   }
 }

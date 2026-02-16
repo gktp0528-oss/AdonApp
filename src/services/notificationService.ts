@@ -70,9 +70,10 @@ export const notificationService = {
 
         // Get the token that uniquely identifies this device
         try {
-            // Note: For actual FCM, use getDevicePushTokenAsync or similar
-            token = (await Notifications.getExpoPushTokenAsync()).data;
-            console.log('Push Token:', token);
+            // For native FCM integration, we use getDevicePushTokenAsync
+            const tokenResponse = await Notifications.getDevicePushTokenAsync();
+            token = tokenResponse.data;
+            console.log('Native Push Token:', token);
 
             // Save token to user profile
             const userId = userService.getCurrentUserId();
