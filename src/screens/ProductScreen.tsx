@@ -209,27 +209,6 @@ export function ProductScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleBuyNow = () => {
-    if (!listing) return;
-
-    const currentUserId = userService.getCurrentUserId();
-    if (currentUserId === listing.sellerId) {
-      Alert.alert(
-        t('common.info') || 'Info',
-        t('screen.product.action.ownListing') || 'You cannot buy your own product.'
-      );
-      return;
-    }
-
-    console.log('--- Handle Buy Now Clicked ---');
-    console.log('Listing ID:', listing.id);
-    console.log('Seller ID:', listing.sellerId);
-
-    navigation.navigate('Payment', {
-      listingId: listing.id,
-      sellerId: listing.sellerId!,
-    });
-  };
 
   return (
     <View style={styles.root}>
@@ -493,26 +472,20 @@ export function ProductScreen({ navigation, route }: Props) {
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
-          style={styles.chatBtn}
+          style={styles.chatBtnFull}
           onPress={handleStartChat}
           disabled={isChatStarting}
           accessibilityRole="button"
           accessibilityLabel={t('screen.product.action.chat')}
         >
           {isChatStarting ? (
-            <ActivityIndicator size="small" color="#1f2937" />
+            <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <MaterialIcons name="chat-bubble-outline" size={22} color="#1f2937" />
+            <>
+              <MaterialIcons name="chat-bubble-outline" size={22} color="#ffffff" />
+              <Text style={styles.chatBtnText}>{t('screen.product.action.chat')}</Text>
+            </>
           )}
-        </Pressable>
-        <Pressable
-          style={styles.buyBtn}
-          onPress={handleBuyNow}
-          accessibilityRole="button"
-          accessibilityLabel={t('screen.product.action.buy')}
-        >
-          <MaterialIcons name="shopping-bag" size={18} color="#ffffff" />
-          <Text style={styles.buyText}>{t('screen.product.action.buy')}</Text>
         </Pressable>
       </View>
     </View>
@@ -735,15 +708,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e5e7eb',
     backgroundColor: 'rgba(245,246,245,0.98)',
   },
-  chatBtn: {
-    width: 54,
-    height: 54,
-    borderRadius: 12,
-    backgroundColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buyBtn: {
+  chatBtnFull: {
     flex: 1,
     height: 54,
     borderRadius: 12,
@@ -753,5 +718,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  buyText: { color: '#fff', fontSize: 26 / 2, fontWeight: '800' },
+  chatBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
