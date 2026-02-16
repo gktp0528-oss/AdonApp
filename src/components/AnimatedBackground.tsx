@@ -21,7 +21,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ children
             Animated.loop(
                 Animated.timing(translateAnim, {
                     toValue: 1,
-                    duration: 20000, // Slightly slower for better feel
+                    duration: 30000, // Even slower for a premium, subtle feel
                     easing: Easing.linear,
                     useNativeDriver: true,
                 })
@@ -87,38 +87,6 @@ const styles = StyleSheet.create({
         // Make the container large enough to cover screen plus one movement cycle
         width: width + LOGICAL_PATTERN_SIZE,
         height: height + LOGICAL_PATTERN_SIZE,
-    },
-    backgroundImage: {
-        width: '100%',
-        height: '100%',
-    },
-
-            {/* Overlay to improve text readability */ }
-    < View style = { styles.overlay } />
-
-    {/* Content Overlay */ }
-    < View style = { styles.content } >
-    { children }
-            </View >
-        </View >
-    );
-};
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.bg,
-        overflow: 'hidden', // Clip the overflowing background
-    },
-    imageContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        // Make the container huge so it covers the screen even when translated
-        // Width = Screen Width + Pattern Size (buffer for scrolling)
-        // Actually, simply making it huge is easier.
-        width: PATTERN_SIZE * 4,
-        height: PATTERN_SIZE * 4,
     },
     backgroundImage: {
         width: '100%',
