@@ -2,9 +2,9 @@ import algoliasearch from 'algoliasearch';
 import { db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
-const ALGOLIA_APP_ID = 'OGLDTZUAKT';
-const ALGOLIA_SEARCH_KEY = '3a34132580d762de4e9d11d8059e9fb7';
-const ALGOLIA_ADMIN_KEY = '32542dc12f95d1ba1bfa47ce2710cdbb';
+const ALGOLIA_APP_ID = process.env.EXPO_PUBLIC_ALGOLIA_APP_ID || '';
+const ALGOLIA_SEARCH_KEY = process.env.EXPO_PUBLIC_ALGOLIA_SEARCH_KEY || '';
+const ALGOLIA_ADMIN_KEY = process.env.EXPO_PUBLIC_ALGOLIA_ADMIN_KEY || '';
 
 // Search-only client for frontend
 export const searchClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY);

@@ -2,7 +2,8 @@ import { db } from '../firebaseConfig';
 import { SUPPORTED_LANGUAGES } from '../i18n/index';
 
 // [NOTE] 대표님이 제공해주신 최강 Azure 번역기 키를 적용했어요! 💖
-const AZURE_TRANSLATOR_KEY = ''; // GitHub 보안 정책상 키를 제거했습니다. 환경 변수나 로컬 파일에서 관리해주세요.
+// 보안을 위해 .env 파일에서 관리하며, EXPO_PUBLIC_ 접두어를 사용해 안전하게 불러옵니다.
+const AZURE_TRANSLATOR_KEY = process.env.EXPO_PUBLIC_AZURE_TRANSLATOR_KEY || '';
 const AZURE_REGION = 'westeurope'; // 헝가리에서 가장 가까운 westeurope으로 설정했어요.
 const AZURE_ENDPOINT = 'https://api.cognitive.microsofttranslator.com';
 
