@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.adonapp.adon",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
