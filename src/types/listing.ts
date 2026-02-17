@@ -37,6 +37,8 @@ export interface Listing {
     hotUntil?: Timestamp; // HOT badge active until this timestamp (24h from 10th like)
 }
 
+export type CreateListingData = Omit<Listing, 'id' | 'createdAt' | 'updatedAt'>;
+
 export type UnifiedAiReport = {
     itemName: string;
     category: string;

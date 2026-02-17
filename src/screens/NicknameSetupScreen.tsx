@@ -16,16 +16,52 @@ export function NicknameSetupScreen({ navigation }: Props) {
     const { t } = useTranslation();
     const [nickname, setNickname] = useState('');
     const [loading, setLoading] = useState(false);
+    const [validationMessage, setValidationMessage] = useState('');
+    const [isValid, setIsValid] = useState(false);
+
+    const validate = async (text: string) => {
+        const lowerText = text.toLowerCase().trim();
+        // Regex: 소문자, 숫자, ., _, - 허용 / 3~15자 / 특수문자로 시작/종료 불가
+        const regex = /^[a-z0-9]([a-z0-9._-]{1,13}[a-z0-9])?$/;
+
+        if (!lowerText) {
+            setValidationMessage('');
+            setIsValid(false);
+            return;
+        }
+
+        if (lowerText.length < 3) {
+            setValidationMessage(t('screen.nickname.error.tooShort', 'Minimum 3 characters required'));
+            setIsValid(false);
+            return;
+        }
+
+        if (!regex.test(lowerText)) {
+            setValidationMessage(t('screen.nickname.error.invalidFormat', 'Only lowercase, numbers, ., _, - allowed'));
+            setIsValid(false);
+            return;
+        }
+
+        setValidationMessage(t('common.checking', 'Checking availability...'));
+        const available = await authService.checkNicknameAvailability(lowerText);
+
+        if (!available) {
+            setValidationMessage(t('screen.nickname.error.taken', 'This nickname is already taken'));
+            setIsValid(false);
+        } else {
+            setValidationMessage(t('screen.nickname.success.available', 'Perfect! This nickname is available'));
+            setIsValid(true);
+        }
+    };
+
+    const handleTextChange = (text: string) => {
+        const lowerText = text.toLowerCase().replace(/\s/g, ''); // 공백 제거 및 소문자 강제
+        setNickname(lowerText);
+        validate(lowerText);
+    };
 
     const handleConfirm = async () => {
-        if (!nickname.trim()) {
-            Alert.alert(t('common.error'), t('screen.nickname.error.empty'));
-            return;
-        }
-        if (nickname.trim().length < 2) {
-            Alert.alert(t('common.error'), t('screen.nickname.error.tooShort'));
-            return;
-        }
+        if (!isValid) return;
 
         setLoading(true);
         try {
@@ -60,12 +96,25 @@ export function NicknameSetupScreen({ navigation }: Props) {
                         <View style={styles.inputContainer}>
                             <Text style={styles.label}>{t('screen.nickname.label')}</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[
+                                    styles.input,
+                                    nickname.length > 0 && (isValid ? styles.inputValid : styles.inputInvalid)
+                                ]}
                                 placeholder={t('screen.nickname.placeholder')}
                                 value={nickname}
-                                onChangeText={setNickname}
-                                maxLength={20}
+                                onChangeText={handleTextChange}
+                                maxLength={15}
+                                autoCapitalize="none"
+                                autoCorrect={false}
                             />
+                            {validationMessage ? (
+                                <Text style={[
+                                    styles.validationText,
+                                    isValid ? styles.successText : styles.errorText
+                                ]}>
+                                    {validationMessage}
+                                </Text>
+                            ) : null}
                         </View>
                     </View>
 
@@ -73,7 +122,7 @@ export function NicknameSetupScreen({ navigation }: Props) {
                         <PrimaryButton
                             label={loading ? t('common.loading') : t('screen.nickname.confirm')}
                             onPress={handleConfirm}
-                            disabled={loading}
+                            disabled={loading || !isValid}
                         />
                     </View>
                 </View>
@@ -125,8 +174,26 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         fontSize: 18,
         color: theme.colors.text,
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: theme.colors.border,
+    },
+    inputValid: {
+        borderColor: theme.colors.primary,
+    },
+    inputInvalid: {
+        borderColor: '#ff4444',
+    },
+    validationText: {
+        fontSize: 13,
+        marginTop: 8,
+        marginLeft: 4,
+        fontWeight: '500',
+    },
+    successText: {
+        color: theme.colors.primary,
+    },
+    errorText: {
+        color: '#ff4444',
     },
     footer: {
         width: '100%',

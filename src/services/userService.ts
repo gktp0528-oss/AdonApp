@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { User } from '../types/user';
-import { authService } from './authService';
+import { auth } from '../firebaseConfig';
 
 const COLLECTION = 'users';
 
@@ -38,15 +38,18 @@ export const userService = {
             } else {
                 callback(null);
             }
-        }, (error) => {
-            console.error(`Error watching user ${id}:`, error);
+        }, (error: any) => {
+            // Silence permission-denied errors as they are expected during logout/account deletion
+            if (error.code !== 'permission-denied') {
+                console.error(`Error watching user ${id}:`, error);
+            }
         });
     },
 
     // Get current user ID.
     // This app requires login, so we do not use any shared fallback account.
     getCurrentUserId(): string {
-        const currentUser = authService.getCurrentUser();
+        const currentUser = auth.currentUser;
         return currentUser ? currentUser.uid : '';
     },
 

@@ -70,7 +70,7 @@ export function LoginScreen({ navigation }: Props) {
               onChangeText={setPassword}
             />
 
-            <TouchableOpacity onPress={() => Alert.alert('Coming Soon', 'Password Reset feature')}>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
               <Text style={styles.forgot}>{t('screen.login.forgot')}</Text>
             </TouchableOpacity>
 

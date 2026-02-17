@@ -170,7 +170,7 @@ export function QuerySearchScreen({ navigation }: Props) {
         {viewMode === 'recents' ? (
           <FlatList
             data={recentSearches}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `recent-${item}-${index}`}
             renderItem={renderRecentItem}
             contentContainerStyle={styles.listContent}
             keyboardShouldPersistTaps="handled"
@@ -196,7 +196,7 @@ export function QuerySearchScreen({ navigation }: Props) {
         ) : (
           <FlatList
             data={suggestions}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `suggest-${item}-${index}`}
             renderItem={renderSuggestionItem}
             contentContainerStyle={styles.listContent}
             keyboardShouldPersistTaps="handled"

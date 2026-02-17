@@ -38,9 +38,12 @@ export function CategorySelectScreen({ navigation, route }: Props) {
 
     const handleSelect = (category: CategoryItem) => {
         console.log('Category selected:', category);
-        const newPath = `${currentPath} > ${category.name}`;
+        const pathSeparator = ' - ';
+        const isDefaultPath = currentPath === t('screen.categorySelect.all');
+        const newPath = isDefaultPath ? category.name : `${currentPath}${pathSeparator}${category.name}`;
+
         if (category.isLeaf) {
-            const selectedLabel = category.name;
+            const selectedLabel = newPath;
             console.log('Navigating back to AiListing with:', selectedLabel);
 
             Keyboard.dismiss();

@@ -82,6 +82,13 @@
         "comingSoonMsg": "{{feature}} will be available soon."
       }
     },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "description": "Please enter your email address.\nWe will send you a link to reset your password.",
+      "submit": "Send Link",
+      "successTitle": "Email Sent",
+      "successMessage": "A password reset link has been sent to your email. Please check your inbox (or spam folder)."
+    },
     "signup": {
       "title": "ADON",
       "subtitle": "Join the premium resale community",
@@ -89,28 +96,46 @@
       "label": {
         "name": "Name",
         "email": "Email Address",
-        "password": "Password"
+        "password": "Password",
+        "confirmPassword": "Confirm Password"
       },
       "placeholder": {
         "name": "John Doe",
         "email": "hello@example.com",
-        "password": "••••••••"
+        "password": "••••••••",
+        "confirmPassword": "••••••••"
       },
-      "submit": "Join & Go Home",
+      "submit": "Join Adon",
       "terms": "By joining, you agree to our Terms and Privacy Policy.",
+      "termsPrefix": "I agree to the",
+      "termsLink": "Terms of Service",
+      "termsAnd": "and",
+      "privacyLink": "Privacy Policy",
+      "consentAge": "I confirm I am 13 years of age or older",
+      "consentMarketing": "I agree to receive marketing emails and promotions (optional)",
+      "required": "Required",
       "loginText": "Already have an account?",
       "loginLink": "Login",
+      "passwordRuleLength": "At least 8 characters",
+      "passwordRuleNumber": "At least one number",
+      "passwordRuleSpecial": "At least one special character",
       "alert": {
         "inputNeeded": "Input Needed",
         "nameMissing": "Please enter your name.",
-        "passwordError": "Password Error",
-        "passwordLength": "Password must be at least 6 characters.",
+        "passwordError": "Password Policy",
+        "passwordLength": "Password does not meet the security requirements.",
+        "passwordMismatch": "Passwords do not match.",
         "success": "Welcome",
         "successMsg": "Account created successfully.",
         "failed": "Error",
         "emailInUse": "Email already in use.",
         "failedMsg": "Signup failed."
       }
+    },
+    "socialConsent": {
+      "title": "Before you get started",
+      "subtitle": "Please review and accept our terms to continue.",
+      "continue": "Continue"
     },
     "welcome": {
       "title": "Welcome to Adon!",
@@ -132,7 +157,11 @@
     "onboardingFinish": {
       "title": "You're all set!",
       "subtitle": "Everything is ready. Now you can\nfreely explore and trade on Adon.",
-      "start": "Start Exploring"
+      "start": "Start Exploring",
+      "notificationsTitle": "Stay in the loop",
+      "notificationsSubtitle": "Get notified when someone messages you or your favourite items go on sale.",
+      "enableNotifications": "Enable Notifications",
+      "maybeLater": "Maybe Later"
     },
     "home": {
       "title": "Home",
@@ -248,7 +277,10 @@
       },
       "desc": {
         "title": "Description",
-        "empty": "No description available."
+        "empty": "No description available.",
+        "translate": "Translate",
+        "showOriginal": "Show Original",
+        "translating": "Translating..."
       },
       "location": {
         "title": "Location",
@@ -396,9 +428,9 @@
         "logoutError": "Failed to logout.",
         "delete": "Delete Account",
         "deleteConfirmTitle": "Delete Account",
-        "deleteConfirmMessage": "Are you sure you want to delete your account? This action cannot be undone.",
-        "deleteWarningTitle": "Coming Soon",
-        "deleteWarningMessage": "Account deletion will be available soon. Please contact support."
+        "deleteConfirmMessage": "Are you sure you want to permanently delete your account? All your data will be erased. This action cannot be undone.",
+        "deleteError": "Failed to delete account. Please try again.",
+        "deleteReAuthError": "For security, please log out and log in again before deleting your account."
       },
       "language": {
         "title": "Language",
@@ -413,10 +445,14 @@
       },
       "notifications": {
         "push": "Push Notifications",
-        "email": "Email Notifications"
+        "email": "Email Notifications",
+        "chat": "Chatting Notifications",
+        "priceDrop": "Price Drop Alerts",
+        "marketing": "Marketing & Promotions"
       },
       "privacy": {
-        "publicProfile": "Public Profile"
+        "publicProfile": "Public Profile",
+        "exportData": "Export My Data"
       },
       "support": {
         "help": "Help Center",
@@ -484,6 +520,14 @@
     },
     "chat": {
       "title": "Messages",
+      "button": {
+        "select": "Select",
+        "delete": "Delete",
+        "cancel": "Cancel"
+      },
+      "selection_count": "{{count}} selected",
+      "delete_confirm_title": "Delete Chats",
+      "delete_confirm_message": "Are you sure you want to delete {{count}} chats?",
       "filter": {
         "all": "All",
         "unread": "Unread"
@@ -573,7 +617,7 @@
       "placeholder": {
         "title": "e.g. Nike Air Max 97",
         "description": "Describe your item...",
-        "price": "0.00"
+        "price": "0"
       },
       "submit": "Post Item",
       "uploading": "Posting...",
@@ -591,6 +635,7 @@
         "subtitle": "Auto-fill, Price Analysis, etc."
       },
       "postStatus": {
+        "overlayTitle": "PREMIUM LISTING SERVICE",
         "uploading": "UPLOADING PHOTOS...",
         "listing": "CREATING LISTING...",
         "finalizing": "COMPLETED!"

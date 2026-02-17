@@ -33,8 +33,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { getGenerativeModel } from "firebase/ai";
-import { storage, db, aiBackend } from '../firebaseConfig';
+import { storage, db } from '../firebaseConfig';
+import { aiListingService } from '../services/aiListingService';
 
 
 
@@ -148,6 +148,17 @@ export function AiListingScreen({ navigation, route }: Props) {
   // Removed: conditions and conditionLabelMap (now using slider 0-100)
 
   const [isSliderInteracting, setIsSliderInteracting] = useState(false);
+  const scrollRef = React.useRef<ScrollView>(null);
+
+  const handleInputFocus = (offset: number) => {
+    // Add a slight delay to ensure keyboard is active and layout updated
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        y: offset,
+        animated: true,
+      });
+    }, 150);
+  };
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -199,6 +210,10 @@ export function AiListingScreen({ navigation, route }: Props) {
   const handlePostItem = async () => {
     if (isPosting) return;
 
+    // Ensure AI loading is cleared to prevent UI overlap
+    setIsAiLoading(false);
+    setAiStep(null);
+
     const normalizedTitle = title.trim();
     const normalizedCategory = category.trim();
     const normalizedDescription = description.trim();
@@ -228,23 +243,73 @@ export function AiListingScreen({ navigation, route }: Props) {
     setIsPosting(true);
     setPostStep('uploading');
     try {
-      const uploadedPhotos = await Promise.all(
-        photos.map(async (uri, index) => {
-          if (uri.startsWith('http')) {
-            return uri;
-          }
+      // Helper: create blob from local URI (React Native compatible)
+      const uriToBlob = (uri: string): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.onload = () => resolve(xhr.response as Blob);
+          xhr.onerror = (e) => reject(new Error(`Blob conversion failed: ${e}`));
+          xhr.responseType = 'blob';
+          xhr.open('GET', uri, true);
+          xhr.send(null);
+        });
+      };
 
-          const filename = uri.split('/').pop() || `listing_${index}.jpg`;
-          const storagePath = `listings/photos/${Date.now()}_${index}_${filename}`;
-          const storageRef = ref(storage, storagePath);
-          const response = await fetch(uri);
-          const blob = await response.blob();
-          await uploadBytes(storageRef, blob);
-          return getDownloadURL(storageRef);
-        })
+      // Upload with per-file timeout to prevent infinite hangs
+      const uploadWithTimeout = async (uri: string, index: number): Promise<string> => {
+        if (uri.startsWith('http')) return uri;
+
+        const UPLOAD_TIMEOUT = 60000; // 60 seconds per file
+        return new Promise<string>(async (resolve, reject) => {
+          const timer = setTimeout(() => {
+            reject(new Error(`Photo ${index + 1} upload timed out after 30s`));
+          }, UPLOAD_TIMEOUT);
+
+          try {
+            const filename = uri.split('/').pop() || `listing_${index}.jpg`;
+            const storagePath = `listings/photos/${Date.now()}_${index}_${filename}`;
+            const storageRef = ref(storage, storagePath);
+            console.log(`[Upload] Starting photo ${index + 1}: ${storagePath}`);
+
+            const blob = await uriToBlob(uri);
+            console.log(`[Upload] Blob created for photo ${index + 1}, size: ${blob.size}`);
+
+            await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+            console.log(`[Upload] Photo ${index + 1} uploaded successfully`);
+
+            const downloadUrl = await getDownloadURL(storageRef);
+            clearTimeout(timer);
+            resolve(downloadUrl);
+          } catch (err) {
+            clearTimeout(timer);
+            reject(err);
+          }
+        });
+      };
+
+      const uploadedPhotos = await Promise.all(
+        photos.map((uri, index) => uploadWithTimeout(uri, index))
       );
 
       setPostStep('listing');
+
+      // CRITICAL FIX: Ensure we have the latest UID from auth, not just the state
+      const currentUid = userService.getCurrentUserId();
+      const finalSellerId = currentUid || sellerId;
+
+      console.log('--- POSTING DATA ---');
+      console.log('Title:', normalizedTitle);
+      console.log('Price:', normalizedPrice);
+      console.log('Category:', normalizedCategory);
+      console.log('SellerId (from auth):', currentUid);
+      console.log('SellerId (from state):', sellerId);
+      console.log('Condition:', condition);
+      console.log('Photos Count:', uploadedPhotos.length);
+      console.log('--------------------');
+
+      if (!finalSellerId) {
+        throw new Error('사용자 인증 정보가 없습니다. 다시 로그인해 주세요.');
+      }
 
       await listingService.createListing({
         title: normalizedTitle,
@@ -255,9 +320,8 @@ export function AiListingScreen({ navigation, route }: Props) {
         photos: uploadedPhotos,
         currency: 'HUF', // Default to HUF for Hungary market
         status: 'active',
-        sellerId: sellerId,
+        sellerId: finalSellerId,
         pickupLocation: pickupLocation || undefined,
-        // Optional fields can be added here
       });
 
       setPostStep('finalizing');
@@ -293,12 +357,28 @@ export function AiListingScreen({ navigation, route }: Props) {
       allowsMultipleSelection: true,
       selectionLimit: 10 - photos.length,
       quality: 0.8,
-      base64: true,
+      exif: false, // Strip EXIF data
     });
 
     if (!result.canceled) {
-      const newUris = result.assets.map(a => a.uri);
-      const combinedPhotos = [...photos, ...newUris];
+      // Convert all images to JPEG format to avoid HEIC upload issues
+      const convertedUris = await Promise.all(
+        result.assets.map(async (asset) => {
+          try {
+            const manipResult = await ImageManipulator.manipulateAsync(
+              asset.uri,
+              [], // No transformations, just format conversion
+              { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+            );
+            console.log(`[ImagePicker] Converted ${asset.uri} to JPEG: ${manipResult.uri}`);
+            return manipResult.uri;
+          } catch (err) {
+            console.warn(`[ImagePicker] Failed to convert ${asset.uri}, using original:`, err);
+            return asset.uri;
+          }
+        })
+      );
+      const combinedPhotos = [...photos, ...convertedUris];
       setPhotos(combinedPhotos);
     }
   };
@@ -352,44 +432,27 @@ export function AiListingScreen({ navigation, route }: Props) {
     // addFeed('📤 사진 데이터 클라우드 업로드 중...');
 
     try {
-      // Optimize images before upload & analysis
-      const uris = await Promise.all(originalUris.map(uri => processImage(uri)));
+      // Optimize images
+      const uris = await Promise.all(originalUris.map(uri => aiListingService.processImage(uri)));
 
       const primaryUri = uris[0];
       const filename = primaryUri.split('/').pop();
       const storagePath = `listings/ai_logs/${Date.now()}_${filename}`;
       const storageRef = ref(storage, storagePath);
 
-      const response = await fetch(primaryUri);
-      const blob = await response.blob();
-      await uploadBytes(storageRef, blob);
+      // Use XMLHttpRequest for blob (React Native compatible)
+      const aiBlob = await new Promise<Blob>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => resolve(xhr.response as Blob);
+        xhr.onerror = (e) => reject(new Error(`AI log blob conversion failed: ${e}`));
+        xhr.responseType = 'blob';
+        xhr.open('GET', primaryUri, true);
+        xhr.send(null);
+      });
+      await uploadBytes(storageRef, aiBlob, { contentType: 'image/jpeg' });
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Animated.timing(progressAnim, { toValue: 40, duration: 1500, useNativeDriver: false }).start();
       setAiStep('analyzing');
-      // addFeed('🧠 Adon Vision 하이엔드 식별 엔진 가동...');
-      const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash" });
-
-      // Prepare all images for Gemini
-      const imageParts = await Promise.all(uris.map(async (uri, idx) => {
-        // addFeed(`📸 ${idx + 1}번 이미지 정밀 스캔 중...`); // Reduced clutter
-        const resp = await fetch(uri);
-        const b = await resp.blob();
-        const base64: string = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const result = reader.result as string;
-            resolve(result.split(',')[1]);
-          };
-          reader.readAsDataURL(b);
-        });
-        return {
-          inlineData: {
-            data: base64,
-            mimeType: "image/jpeg",
-          },
-        };
-      }));
 
       const languageMap: Record<string, string> = {
         ko: '한국어 (Korean)',
@@ -398,135 +461,41 @@ export function AiListingScreen({ navigation, route }: Props) {
       };
       const targetLang = languageMap[i18n.language] || 'English';
 
-      const prompt = `당신은 헝가리(Hungary)의 중고 마켓(Arukereso.hu, Jofogas.hu, Vinted.hu) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
-      
-      [분석 지침 - 중요도 순서]
-      1. **정밀 식별**: 사진에 포함된 모든 텍스트(모델명, 시리얼 번호, SKU), 브랜드 로고, 특정 디자인 패턴을 가장 먼저 추출하여 정확한 제품명을 식별하세요.
-      2. **상태 세부 분석**: 사진 속 제품의 모든 면(전면, 후면, 모서리 등)을 대조하여 미세한 스크래치, 찍힘, 변색 등 '감가 요인'을 철저히 찾아내십시오.
-      3. **로컬 시장 대조**: 헝가리 현지 최저가 비교 사이트인 'arukereso.hu'의 신제품 가격을 반드시 참고하되, 실제 중고 거래가(Jofogas, Vinted)를 함께 반영하세요.
-      4. **보수적 가격 책정**: 조금이라도 사용감이 있다면 신품가 대비 최소 20-30% 이상 낮은 현실적인 가격을 제시하세요.
-      5. **화폐 단위**: 반드시 'HUF (Hungarian Forint)' 기준으로 하며, 숫자가 현지 물가에 맞아야 합니다.
-      6. **카테고리**: fashion, tech, home, hobbies, sports, mobility 중 하나로 분류하세요.
-      
-      다음 JSON 형식으로 상세 리포트를 작성해주세요:
-      {
-        "itemName": "식별된 정확한 모델명",
-        "category": "상기 분류 중 하나",
-        "conditionScore": 1~10 사이 점수 (흠집이 하나라도 보이면 7점 이하로 책정),
-        "marketDemand": "헝가리 내 수요 (High/Medium/Low)",
-        "priceRange": { "min": 보수적 최소 포린트(HUF) 숫자만, "max": 현실적 최대 포린트(HUF) 숫자만 },
-        "insights": ["헝가리 시장가 대비 분석", "arukereso.hu 등 로컬 데이터 기반 감가 분석"],
-        "reasoning": "왜 이 가격인가? (어떤 흠집 때문에 가격을 깎았는지, 헝가리 시장가와 비교하여 구체적으로 명시)"
-      }
-      MUST be written in ${targetLang}. Response language should match exactly ${targetLang}.`;
+      const report = await aiListingService.analyzeListing(uris, targetLang);
 
-      // addFeed('🌍 유럽 시장 시세 및 명품 트렌드 DB 대조...'); 
-      // Animated.timing(progressAnim, { toValue: 85, duration: 3000, useNativeDriver: false }).start();
+      if (report) {
+        setAiStep('finalizing');
+        setTitle(report.itemName);
+        setAiPriceRange(report.priceRange);
+        setCategory(report.category);
 
-      const result = await model.generateContent([prompt, ...imageParts]);
-      const aiResponse = await result.response;
-      const responseText = aiResponse.text();
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log('🤖 AI Raw Response:', responseText);
+        navigation.navigate('AiAnalysisResult', {
+          report,
+          imageUri: photos[0]
+        });
 
-      setAiStep('finalizing');
-      // Animated.timing(progressAnim, { toValue: 100, duration: 800, useNativeDriver: false }).start();
-      // addFeed('✨ 최적의 리스팅 데이터 패키징 완료!');
-
-      try {
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        console.log('🔍 JSON Match found:', jsonMatch ? 'Yes' : 'No');
-        if (jsonMatch) {
-          console.log('📝 Extracted JSON:', jsonMatch[0].substring(0, 200) + '...');
-        }
-        const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
-
-        if (data) {
-          const parsedScore = Number(data.conditionScore);
-          const normalizedScore = Number.isFinite(parsedScore) ? Math.max(1, Math.min(10, Math.round(parsedScore))) : null;
-          const normalizedInsights = Array.isArray(data.insights)
-            ? data.insights.filter((x: unknown) => typeof x === 'string' && x.trim()).slice(0, 4)
-            : [];
-
-          let normalizedPriceRange: { min: number; max: number } | null = null;
-          if (data.priceRange && typeof data.priceRange.min === 'number' && typeof data.priceRange.max === 'number') {
-            const min = Math.max(0, Math.round(data.priceRange.min));
-            const max = Math.max(0, Math.round(data.priceRange.max));
-            normalizedPriceRange = min <= max ? { min, max } : { min: max, max: min };
-          }
-
-          if (typeof data.itemName === 'string' && data.itemName.trim()) {
-            setTitle(data.itemName.trim());
-          } else {
-            setTitle('AI 분석 상품');
-          }
-
-          setAiPriceRange(normalizedPriceRange);
-
-          if (typeof data.category === 'string' && data.category.trim()) {
-            setCategory(data.category.trim());
-          }
-
-          const desc = data.reasoning || data.description || '';
-
-          const report: UnifiedAiReport = {
-            itemName: typeof data.itemName === 'string' && data.itemName.trim() ? data.itemName.trim() : '분석 상품',
-            category: typeof data.category === 'string' && data.category.trim() ? data.category.trim() : 'fashion',
-            marketDemand: typeof data.marketDemand === 'string' && data.marketDemand.trim() ? data.marketDemand.trim() : 'N/A',
-            conditionScore: normalizedScore,
-            priceRange: normalizedPriceRange,
-            insights: normalizedInsights,
-            reasoning: typeof desc === 'string' && desc.trim() ? desc.trim() : '리포트 설명이 제공되지 않았습니다.',
-          };
-
-          // Add a small delay so user can actually see the 'Finalizing' checkmark (1.5s total)
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          // Navigate FIRST while overlay is still active
-          navigation.navigate('AiAnalysisResult', {
-            report,
-            imageUri: photos[0]
-          });
-
-          // Delay cleanup for 500ms so the screen transition finishes before unmounting overlay
-          setTimeout(() => {
-            setIsAiLoading(false);
-            setAiStep(null);
-          }, 500);
-
-        } else {
-          // Fallback for failed JSON parse
-          console.warn('❌ No valid JSON found in AI response');
-          Alert.alert(
-            'AI 분석 실패',
-            'AI 응답을 파싱할 수 없습니다.\n\n응답 미리보기:\n' + responseText.substring(0, 150) + '...'
-          );
+        setTimeout(() => {
           setIsAiLoading(false);
           setAiStep(null);
-        }
+        }, 500);
 
         await addDoc(collection(db, 'ai_processing_logs'), {
           image: downloadURL,
-          aiResult: data || responseText,
+          aiResult: report,
           status: 'completed',
           createdAt: new Date(),
         });
-      } catch (e) {
-        console.warn('Failed to parse AI JSON:', e);
-        setTitle('AI 분석 실패');
-        // Error fallback: just clear loading, don't write to description
-        setIsAiLoading(false);
-        setAiStep(null);
+      } else {
+        throw new Error('Analysis result is empty');
       }
 
-    } catch (error: any) {
-      console.error('AI Analysis failed:', error);
+    } catch (e) {
+      console.warn('AI analysis error:', e);
+      Alert.alert('AI 분석 실패', '분석 중 문제가 발생했습니다.');
       setIsAiLoading(false);
       setAiStep(null);
-
-      const errorMessage = error?.message || '알 수 없는 에러가 발생했어요.';
-      Alert.alert('AI 분석 오류' + (errorMessage.includes('API_NOT_ENABLED') ? ' (API 미활성화)' : ''),
-        `AI가 분석 중에 문제가 생겼어요: ${errorMessage}\n\nFirebase 콘솔에서 AI API가 활성화되어 있는지 확인해 주세요! 💖`);
     }
   };
 
@@ -544,23 +513,24 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.root}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // We can adjust this if needed, but often 0 is fine with correct structure
-      >
-        <View style={{ flex: 1 }}>
-          <AdonHeader
-            title={t('screen.listing.title')}
-            showClose={true}
-            onClose={handleClose}
-          />
+      <View style={{ flex: 1 }}>
+        <AdonHeader
+          title={t('screen.listing.title')}
+          showClose={true}
+          onClose={handleClose}
+        />
 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
           <ScrollView
+            ref={scrollRef}
             scrollEnabled={!isSliderInteracting}
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: 100 + insets.bottom },
+              { paddingBottom: 120 + insets.bottom },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -653,6 +623,7 @@ export function AiListingScreen({ navigation, route }: Props) {
                 placeholderTextColor="#64748b"
                 value={title}
                 onChangeText={setTitle}
+                onFocus={() => handleInputFocus(220)}
               />
             </View>
 
@@ -666,7 +637,11 @@ export function AiListingScreen({ navigation, route }: Props) {
                   navigation.push('CategorySelect');
                 }}
               >
-                <Text style={[styles.selectorText, !category && styles.placeholderText]}>
+                <Text
+                  style={[styles.selectorText, !category && styles.placeholderText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {category || t('screen.categorySelect.title')}
                 </Text>
                 <MaterialIcons name="keyboard-arrow-down" size={24} color="#94a3b8" />
@@ -684,6 +659,7 @@ export function AiListingScreen({ navigation, route }: Props) {
                 textAlignVertical="top"
                 value={description}
                 onChangeText={setDescription}
+                onFocus={() => handleInputFocus(400)}
               />
             </View>
 
@@ -699,6 +675,7 @@ export function AiListingScreen({ navigation, route }: Props) {
                   value={price}
                   onChangeText={handlePriceChange}
                   maxLength={13} // Account for commas (10 digits + 3 commas)
+                  onFocus={() => handleInputFocus(550)}
                 />
                 <View style={styles.currencyBadge}>
                   <Text style={styles.currencyBadgeText}>Ft</Text>
@@ -717,35 +694,30 @@ export function AiListingScreen({ navigation, route }: Props) {
 
             {/* Location Picker */}
             <LocationPicker onLocationChange={setPickupLocation} />
-
           </ScrollView>
+        </KeyboardAvoidingView>
 
-          {/* Footer / CTA - Hidden when keyboard is visible to avoid blocking inputs */}
-          {!isKeyboardVisible && (
-            <View
-              style={[
-                styles.footer,
-                {
-                  bottom: 0,
-                  paddingBottom: Math.max(insets.bottom, 12),
-                  backgroundColor: '#f6f8f6',
-                  borderTopWidth: 1,
-                }
-              ]}
-              pointerEvents="box-none"
-            >
-              <Pressable
-                style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
-                onPress={handlePostItem}
-                disabled={isPosting}
-              >
-                <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
-              </Pressable>
-            </View>
-          )}
+        {/* Footer / CTA - Always fixed at bottom of screen */}
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: '#f6f8f6',
+            }
+          ]}
+          pointerEvents="box-none"
+        >
+          <Pressable
+            style={[styles.ctaBtn, isPosting && styles.ctaBtnDisabled]}
+            onPress={handlePostItem}
+            disabled={isPosting}
+          >
+            <Text style={styles.ctaText}>{isPosting ? t('screen.aiListing.uploading') : t('screen.aiListing.submit')}</Text>
+          </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </View >
+      </View>
+    </View>
   );
 }
 
@@ -898,11 +870,11 @@ function PostLoadingOverlay({ step }: { step: 'uploading' | 'listing' | 'finaliz
           {step === 'finalizing' && <PostFinalizingIcon />}
         </View>
 
-        <Animated.Text style={[styles.aiLiveTitle, { opacity: titleFade, textAlign: 'center', marginLeft: 0 }]}>
-          PREMIUM LISTING SERVICE
+        <Animated.Text style={[styles.aiLiveTitle, { opacity: titleFade, textAlign: 'center', marginLeft: 0, color: '#16a34a' }]}>
+          {t('screen.aiListing.postStatus.overlayTitle')}
         </Animated.Text>
 
-        <Animated.Text style={[styles.percentageText, { opacity: fadeAnim, marginTop: 10 }]}>
+        <Animated.Text style={[styles.percentageText, { opacity: fadeAnim, marginTop: 10, color: '#15803d' }]}>
           {t(`screen.aiListing.postStatus.${step}`)}
         </Animated.Text>
       </View>
@@ -1398,8 +1370,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   selectorText: {
-    fontSize: 16,
+    fontSize: 14, // Slightly smaller to fit more of the path
     color: '#0f172a',
+    flex: 1,
+    marginRight: 8,
   },
   placeholderText: {
     color: '#94a3b8',
@@ -1820,3 +1794,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
 });
+
+export default AiListingScreen;

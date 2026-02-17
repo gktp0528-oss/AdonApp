@@ -1,11 +1,15 @@
-import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
-import { getGenerativeModel } from 'firebase/ai';
-import { db, aiBackend } from '../firebaseConfig';
+import { db } from '../firebaseConfig';
 import { SUPPORTED_LANGUAGES } from '../i18n/index';
+
+// [NOTE] 대표님이 제공해주신 최강 Azure 번역기 키를 적용했어요! 💖
+const AZURE_TRANSLATOR_KEY = ''; // GitHub 보안 정책상 키를 제거했습니다. 환경 변수나 로컬 파일에서 관리해주세요.
+const AZURE_REGION = 'westeurope'; // 헝가리에서 가장 가까운 westeurope으로 설정했어요.
+const AZURE_ENDPOINT = 'https://api.cognitive.microsofttranslator.com';
 
 const CONVERSATIONS = 'conversations';
 const MESSAGES = 'messages';
-const TRANSLATION_TIMEOUT = 10000; // 10 seconds
+
+import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
 
 export const translationService = {
     /**
@@ -16,19 +20,24 @@ export const translationService = {
         try {
             if (!text || text.trim().length < 3) return null;
 
-            const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash-exp" });
-            const prompt = `Detect the language of this text and respond with ONLY the ISO 639-1 code (ko, en, hu).
-If unsure or mixed languages, return the dominant language.
-Supported: ko (Korean), en (English), hu (Hungarian)
+            const response = await fetch(`${AZURE_ENDPOINT}/detect?api-version=3.0`, {
+                method: 'POST',
+                headers: {
+                    'Ocp-Apim-Subscription-Key': AZURE_TRANSLATOR_KEY,
+                    'Ocp-Apim-Subscription-Region': AZURE_REGION,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify([{ text }]),
+            });
 
-Text: "${text}"
+            if (!response.ok) {
+                console.warn('Azure detect failed:', response.status);
+                return null;
+            }
 
-Response (ISO code only):`;
+            const data = await response.json();
+            const detectedCode = data[0]?.language;
 
-            const response = await model.generateContent(prompt);
-            const detectedCode = response.response.text().trim().toLowerCase();
-
-            // Validate against supported languages
             return SUPPORTED_LANGUAGES.includes(detectedCode as any) ? detectedCode : null;
         } catch (error) {
             console.error('Language detection failed:', error);
@@ -37,48 +46,40 @@ Response (ISO code only):`;
     },
 
     /**
-     * Translate text to target language using Gemini AI
+     * Translate text to target language using Azure Translator
      */
     async translateText(text: string, fromLang: string, toLang: string): Promise<string | null> {
         try {
             if (!text || fromLang === toLang) return text;
 
-            const languageNames: Record<string, string> = {
-                ko: 'Korean',
-                en: 'English',
-                hu: 'Hungarian'
-            };
-
-            const timeoutPromise = new Promise<null>((_, reject) =>
-                setTimeout(() => reject(new Error('Translation timeout')), TRANSLATION_TIMEOUT)
+            const response = await fetch(
+                `${AZURE_ENDPOINT}/translate?api-version=3.0&from=${fromLang}&to=${toLang}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': AZURE_TRANSLATOR_KEY,
+                        'Ocp-Apim-Subscription-Region': AZURE_REGION,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify([{ text }]),
+                }
             );
 
-            const translationPromise = (async () => {
-                const model = getGenerativeModel(aiBackend, { model: "gemini-2.0-flash-exp" });
-
-                const prompt = `Translate this ${languageNames[fromLang]} message to ${languageNames[toLang]}.
-Preserve the tone and style. Return ONLY the translated text, no explanations.
-
-Original: "${text}"
-
-Translation:`;
-
-                const response = await model.generateContent(prompt);
-                const translatedText = response.response.text().trim();
-
-                return translatedText || null;
-            })();
-
-            return await Promise.race([translationPromise, timeoutPromise]);
-        } catch (error: any) {
-            if (error instanceof Error && error.message === 'Translation timeout') {
-                console.warn('Translation timed out');
-            } else if (error?.status === 429 || error?.message?.includes('429')) {
-                console.warn('AI quota exceeded (429)');
-                throw new Error('QUOTA_EXCEEDED');
-            } else {
-                console.error('Translation failed:', error);
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (response.status === 429) {
+                    console.warn('Azure quota exceeded (429)');
+                    throw new Error('QUOTA_EXCEEDED');
+                }
+                console.error('Azure translation failed:', errorData);
+                return null;
             }
+
+            const data = await response.json();
+            return data[0]?.translations[0]?.text || null;
+        } catch (error: any) {
+            if (error.message === 'QUOTA_EXCEEDED') throw error;
+            console.error('Translation failed:', error);
             return null;
         }
     },

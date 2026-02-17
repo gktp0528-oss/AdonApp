@@ -126,10 +126,15 @@ export function NotificationsScreen({ navigation }: Props) {
                             <MaterialIcons
                                 name={
                                     item.type === 'system' ? 'info' :
-                                        item.type === 'keyword' ? 'notifications-active' : 'trending-down'
+                                    item.type === 'keyword' ? 'notifications-active' :
+                                    item.type === 'like' ? 'favorite' : 'trending-down'
                                 }
                                 size={20}
-                                color={item.type === 'system' ? '#6b7280' : item.type === 'keyword' ? '#16a34a' : '#3b82f6'}
+                                color={
+                                    item.type === 'system' ? '#6b7280' :
+                                    item.type === 'keyword' ? '#16a34a' :
+                                    item.type === 'like' ? '#ef4444' : '#3b82f6'
+                                }
                             />
                         </View>
                         <View style={styles.notiContent}>

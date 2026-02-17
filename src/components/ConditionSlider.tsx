@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, PanResponder, Animated, Easing } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,8 @@ export function ConditionSlider({ value, onValueChange, onInteractionChange, dis
     const sliderWidth = useRef(0);
     const sliderPageX = useRef(0);
     const isInteracting = useRef(false);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const thumbRadius = 16;
     const animatedValue = useRef(new Animated.Value(value)).current;
     const thumbScale = useRef(new Animated.Value(1)).current;
 
@@ -129,15 +131,23 @@ export function ConditionSlider({ value, onValueChange, onInteractionChange, dis
         }
     };
 
-    const leftPosition = animatedValue.interpolate({
-        inputRange: [0, 100],
-        outputRange: ['0%', '100%'],
-    });
+    const SIDE_PADDING = 24; // Balanced padding from screen edges
 
-    const trackWidth = animatedValue.interpolate({
-        inputRange: [0, 100],
-        outputRange: ['0%', '100%'],
-    });
+    const leftPosition = useMemo(() =>
+        animatedValue.interpolate({
+            inputRange: [0, 100],
+            outputRange: containerWidth > 0
+                ? [SIDE_PADDING - thumbRadius, containerWidth - SIDE_PADDING - thumbRadius]
+                : [0, 0],
+        }), [containerWidth]);
+
+    const trackWidth = useMemo(() =>
+        animatedValue.interpolate({
+            inputRange: [0, 100],
+            outputRange: containerWidth > 0
+                ? [0, containerWidth - SIDE_PADDING * 2]
+                : [0, 0],
+        }), [containerWidth]);
 
     return (
         <View style={styles.container}>
@@ -162,9 +172,10 @@ export function ConditionSlider({ value, onValueChange, onInteractionChange, dis
             <View
                 style={styles.sliderInteractArea}
                 onLayout={(e) => {
-                    sliderWidth.current = e.nativeEvent.layout.width;
-                    // Measure pageX to handle absolute touch coordinates correctly
-                    e.currentTarget.measure((x, y, width, height, pageX, pageY) => {
+                    const width = e.nativeEvent.layout.width;
+                    sliderWidth.current = width;
+                    setContainerWidth(width);
+                    e.currentTarget.measure((_x, _y, _w, _h, pageX) => {
                         sliderPageX.current = pageX;
                     });
                 }}
@@ -214,7 +225,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        marginBottom: 16,
+        marginBottom: 4, // Heavily reduced from 16
         height: 52,
     },
     statusInfoArea: {
@@ -236,26 +247,31 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
     },
     percentageWrap: {
-        width: 80,
+        width: 100, // Increased to safely accommodate '100%' and prevent layout shifts
+        height: 34, // Fixed height to prevent vertical jumping
         alignItems: 'flex-end',
         justifyContent: 'flex-end',
     },
     valueText: {
         fontSize: 28,
         fontWeight: '900',
-        fontVariant: ['tabular-nums'],
+        fontVariant: ['tabular-nums'], // Stable character widths
         letterSpacing: -1,
+        lineHeight: 34, // Match container height for perfect vertical alignment
     },
     sliderInteractArea: {
-        height: 60, // Much larger hit area vertically
+        height: 48, // Reduced from 60 for tighter vertical spacing
         justifyContent: 'center',
-        marginHorizontal: -20, // Horizontal spill for easier catching from edges
+        marginHorizontal: -20,
         paddingHorizontal: 20,
     },
     track: {
-        height: 8, // Slightly thicker track for better visibility
+        height: 8,
         backgroundColor: '#f1f5f9',
         borderRadius: 4,
+        position: 'absolute',
+        left: 10, // Matches new SIDE_PADDING
+        right: 10, // Matches new SIDE_PADDING
         overflow: 'hidden',
     },
     trackFilled: {
@@ -264,10 +280,10 @@ const styles = StyleSheet.create({
     },
     thumb: {
         position: 'absolute',
-        width: 32, // Larger default thumb
+        top: 8, // (sliderInteractArea height 48 - thumb height 32) / 2
+        width: 32,
         height: 32,
         borderRadius: 16,
-        marginLeft: -16,
         backgroundColor: '#19e61b',
         borderWidth: 4, // Stronger border
         borderColor: '#fff',
@@ -279,7 +295,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     footer: {
-        marginTop: 4,
+        marginTop: -4, // Pulled up closer to the slider
     },
     descriptionArea: {
         height: 40,

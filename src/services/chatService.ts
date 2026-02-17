@@ -14,6 +14,8 @@ import {
     limit,
     deleteDoc,
     getDocs,
+    arrayRemove,
+    arrayUnion,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Conversation, Message } from '../types/chat';
@@ -130,6 +132,8 @@ export const chatService = {
             [`unreadCount.${senderId}`]: 0,
             ...(otherUserId ? { [`unreadCount.${otherUserId}`]: increment(1) } : {}),
             [`lastReadAt.${senderId}`]: now,
+            // If sender had previously deleted, restore conversation for them
+            deletedFor: arrayRemove(senderId),
         });
 
         // Async language detection (non-blocking)
@@ -158,11 +162,16 @@ export const chatService = {
             let total = 0;
             snapshot.docs.forEach(doc => {
                 const data = doc.data() as Conversation;
+                if (data.deletedFor?.includes(userId)) return;
                 if (data.unreadCount && typeof data.unreadCount[userId] === 'number') {
                     total += data.unreadCount[userId];
                 }
             });
             callback(total);
+        }, (error: any) => {
+            if (error.code !== 'permission-denied') {
+                console.error('Error watching total unread count:', error);
+            }
         });
     },
 
@@ -188,8 +197,10 @@ export const chatService = {
                 const messages = newestFirst.reverse();
                 callback(messages);
             },
-            (error) => {
-                console.error(`Error watching messages for ${conversationId}:`, error);
+            (error: any) => {
+                if (error.code !== 'permission-denied') {
+                    console.error(`Error watching messages for ${conversationId}:`, error);
+                }
             },
         );
     },
@@ -209,13 +220,15 @@ export const chatService = {
         return onSnapshot(
             q,
             (snapshot) => {
-                const conversations = snapshot.docs.map(
-                    (d) => ({ id: d.id, ...d.data() } as Conversation),
-                );
+                const conversations = snapshot.docs
+                    .map((d) => ({ id: d.id, ...d.data() } as Conversation))
+                    .filter((c) => !c.deletedFor?.includes(userId));
                 callback(conversations);
             },
-            (error) => {
-                console.error(`Error watching conversations for ${userId}:`, error);
+            (error: any) => {
+                if (error.code !== 'permission-denied') {
+                    console.error(`Error watching conversations for ${userId}:`, error);
+                }
             },
         );
     },
@@ -237,8 +250,10 @@ export const chatService = {
                     callback(null);
                 }
             },
-            (error) => {
-                console.error(`Error watching conversation ${conversationId}:`, error);
+            (error: any) => {
+                if (error.code !== 'permission-denied') {
+                    console.error(`Error watching conversation ${conversationId}:`, error);
+                }
             },
         );
     },
@@ -259,19 +274,32 @@ export const chatService = {
     },
 
     /**
-     * Delete a conversation from Firestore.
+     * Soft-delete a conversation for a specific user.
+     * If both participants have deleted, the conversation is permanently removed.
      */
-    async deleteConversation(conversationId: string): Promise<void> {
+    async deleteConversation(conversationId: string, userId: string): Promise<void> {
         try {
-            // 1. Delete all messages in the subcollection first
-            const messagesRef = collection(db, CONVERSATIONS, conversationId, MESSAGES);
-            const messagesSnap = await getDocs(messagesRef);
+            const convRef = doc(db, CONVERSATIONS, conversationId);
+            const convSnap = await getDoc(convRef);
 
-            const deletePromises = messagesSnap.docs.map(mDoc => deleteDoc(mDoc.ref));
-            await Promise.all(deletePromises);
+            if (!convSnap.exists()) return;
 
-            // 2. Delete the parent conversation document
-            await deleteDoc(doc(db, CONVERSATIONS, conversationId));
+            const convData = convSnap.data() as Conversation;
+            const updatedDeletedFor = [...(convData.deletedFor || []), userId];
+            const allLeft = convData.participants.every(p => updatedDeletedFor.includes(p));
+
+            if (allLeft) {
+                // Both users have deleted — permanently remove
+                const messagesRef = collection(db, CONVERSATIONS, conversationId, MESSAGES);
+                const messagesSnap = await getDocs(messagesRef);
+                await Promise.all(messagesSnap.docs.map(mDoc => deleteDoc(mDoc.ref)));
+                await deleteDoc(convRef);
+            } else {
+                // Only this user deleted — soft delete
+                await updateDoc(convRef, {
+                    deletedFor: arrayUnion(userId),
+                });
+            }
         } catch (error) {
             console.error(`Error deleting conversation ${conversationId}:`, error);
             throw error;

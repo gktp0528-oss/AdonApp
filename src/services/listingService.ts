@@ -16,72 +16,84 @@ import {
     updateDoc
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Listing } from '../types/listing';
+import { Listing, CreateListingData } from '../types/listing';
 import { wishlistService } from './wishlistService';
 import { notificationService } from './notificationService';
+import { algoliaService } from './algoliaService';
 
 const COLLECTION = 'listings';
 const PAGE_SIZE = 20;
 
 export const listingService = {
     // Create a new listing
-    async createListing(listingData: Omit<Listing, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    async createListing(listingData: CreateListingData): Promise<string> {
+        let listingId = '';
+        const now = Timestamp.now();
+        const finalData = {
+            ...listingData,
+            createdAt: now,
+            updatedAt: now,
+            status: listingData.status || 'active',
+            currency: listingData.currency || 'HUF',
+        };
+
         try {
-            const now = Timestamp.now();
-            const docRef = await addDoc(collection(db, COLLECTION), {
-                ...listingData,
-                createdAt: now,
-                updatedAt: now,
-                // Ensure default values for critical fields
-                status: listingData.status || 'active',
-                currency: listingData.currency || 'POINTS',
-            });
-
-            const listingId = docRef.id;
-
-            // Keyword Matching Logic
-            // In a large app, this should be done in a Cloud Function.
-            // For now, we fetch all users with keywords (limited to small set for performance)
-            // or just iterate if number of users is small.
-            try {
-                const usersRef = collection(db, 'users');
-                // Fetch users who have at least one keyword
-                const q = query(usersRef, where('keywords', '!=', []));
-                const userSnapshots = await getDocs(q);
-
-                const normalizedTitle = (listingData.title || '').toLowerCase();
-
-                for (const userDoc of userSnapshots.docs) {
-                    const userData = userDoc.data();
-                    const userId = userDoc.id;
-
-                    // Skip the seller
-                    if (userId === listingData.sellerId) continue;
-
-                    const userKeywords = userData.keywords || [];
-                    const matchedKeyword = userKeywords.find((kw: string) =>
-                        normalizedTitle.includes(kw.toLowerCase())
-                    );
-
-                    if (matchedKeyword) {
-                        await notificationService.sendNotification(
-                            userId,
-                            'keyword',
-                            'New item matched! ✨',
-                            `A new item matching your keyword "${matchedKeyword}" was just listed: ${listingData.title}`,
-                            { listingId }
-                        );
-                    }
-                }
-            } catch (err) {
-                console.warn('[ListingService] Keyword matching failed:', err);
-            }
-
-            return listingId;
-        } catch (error) {
-            console.error('Error creating listing:', error);
+            console.log('[ListingService] Attempting addDoc with:', JSON.stringify(finalData, null, 2));
+            const docRef = await addDoc(collection(db, COLLECTION), finalData);
+            listingId = docRef.id;
+            console.log('[ListingService] Listing created successfully:', listingId);
+        } catch (error: any) {
+            console.error('[ListingService] addDoc FAILED:', error);
+            console.error('[ListingService] Error Message:', error.message);
+            console.error('[ListingService] Error Code:', error.code);
             throw error;
         }
+
+        // Keyword Matching Logic (Isolated)
+        try {
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('keywords', '!=', []));
+            const userSnapshots = await getDocs(q);
+            const normalizedTitle = (listingData.title || '').toLowerCase();
+
+            for (const userDoc of userSnapshots.docs) {
+                const userData = userDoc.data();
+                const userId = userDoc.id;
+                if (userId === listingData.sellerId) continue;
+
+                const userKeywords = userData.keywords || [];
+                const matchedKeyword = userKeywords.find((kw: string) =>
+                    normalizedTitle.includes(kw.toLowerCase())
+                );
+
+                if (matchedKeyword) {
+                    await notificationService.sendNotification(
+                        userId,
+                        'keyword',
+                        'New item matched! ✨',
+                        `A new item matching your keyword "${matchedKeyword}" was just listed: ${listingData.title}`,
+                        { listingId }
+                    );
+                }
+            }
+        } catch (err) {
+            console.warn('[ListingService] Keyword matching failed (background):', err);
+        }
+
+        // Sync to Algolia (Isolated)
+        try {
+            const fullListing = {
+                id: listingId,
+                ...listingData,
+                createdAt: now.toDate().getTime(),
+                updatedAt: now.toDate().getTime(),
+            };
+            await algoliaService.syncListing(fullListing);
+        } catch (algErr) {
+            console.warn('[ListingService] Algolia initial sync failed (background):', algErr);
+        }
+
+        return listingId;
     },
 
     // Update a listing
@@ -100,21 +112,15 @@ export const listingService = {
                 updatedAt: now,
             });
 
-            // Price Drop Detection & Original Price Preservation
+            // Price Drop Detection
             if (data.price !== undefined) {
                 const currentPrice = oldData.price;
                 const initialPrice = oldData.oldPrice || currentPrice;
 
                 if (data.price < currentPrice) {
-                    console.log(`Price drop detected for ${id}: ${currentPrice} -> ${data.price}`);
-
-                    // If we don't have an oldPrice yet, save the current price as the original.
-                    // If we already have one, keep it (preserve the FIRST original price).
                     if (!oldData.oldPrice) {
                         await updateDoc(docRef, { oldPrice: currentPrice });
                     }
-
-                    // Notify users who have this in their wishlist
                     const wishlists = await wishlistService.getWishlistByListing(id);
                     for (const item of wishlists) {
                         if (item.userId === oldData.sellerId) continue;
@@ -127,10 +133,19 @@ export const listingService = {
                         );
                     }
                 } else if (data.price >= initialPrice) {
-                    // If price goes back up to or above the initial original price, remove the discount badge/price
-                    console.log(`Price recovered or increased for ${id}. Removing oldPrice.`);
                     await updateDoc(docRef, { oldPrice: null });
                 }
+            }
+
+            // Sync updated data to Algolia
+            try {
+                const updatedDoc = await getDoc(docRef);
+                if (updatedDoc.exists()) {
+                    const fullData = { id: id, ...updatedDoc.data() };
+                    await algoliaService.syncListing(fullData);
+                }
+            } catch (algErr) {
+                console.warn('Algolia update sync failed:', algErr);
             }
         } catch (error) {
             console.error(`Error updating listing ${id}:`, error);
@@ -143,12 +158,7 @@ export const listingService = {
         try {
             const docRef = doc(db, COLLECTION, id);
             const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                return { id: docSnap.id, ...docSnap.data() } as Listing;
-            } else {
-                return null;
-            }
+            return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Listing : null;
         } catch (error) {
             console.error(`Error getting listing ${id}:`, error);
             throw error;
@@ -159,17 +169,13 @@ export const listingService = {
     watchListingById(id: string, callback: (listing: Listing | null) => void): () => void {
         const docRef = doc(db, COLLECTION, id);
         return onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                callback({ id: docSnap.id, ...docSnap.data() } as Listing);
-            } else {
-                callback(null);
-            }
+            callback(docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Listing : null);
         }, (error) => {
             console.error(`Error watching listing ${id}:`, error);
         });
     },
 
-    // Get latest active listings for home screen with pagination
+    // Get latest active listings
     async getLatestListings(lastDoc?: DocumentSnapshot): Promise<{ listings: Listing[], lastDoc: DocumentSnapshot | null }> {
         try {
             const constraints: QueryConstraint[] = [
@@ -177,19 +183,10 @@ export const listingService = {
                 orderBy('createdAt', 'desc'),
                 limit(PAGE_SIZE)
             ];
-
-            if (lastDoc) {
-                constraints.push(startAfter(lastDoc));
-            }
-
+            if (lastDoc) constraints.push(startAfter(lastDoc));
             const q = query(collection(db, COLLECTION), ...constraints);
             const querySnapshot = await getDocs(q);
-
-            const listings: Listing[] = [];
-            querySnapshot.forEach((doc) => {
-                listings.push({ id: doc.id, ...doc.data() } as Listing);
-            });
-
+            const listings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing));
             return {
                 listings,
                 lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null
@@ -203,14 +200,8 @@ export const listingService = {
     // Get listings by seller
     async getListingsBySeller(sellerId: string): Promise<Listing[]> {
         try {
-            const q = query(
-                collection(db, COLLECTION),
-                where('sellerId', '==', sellerId),
-                where('status', 'in', ['active', 'sold']), // Show active and sold items
-                orderBy('createdAt', 'desc')
-            );
+            const q = query(collection(db, COLLECTION), where('sellerId', '==', sellerId), where('status', 'in', ['active', 'sold']), orderBy('createdAt', 'desc'));
             const querySnapshot = await getDocs(q);
-
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing));
         } catch (error) {
             console.error(`Error fetching listings for seller ${sellerId}:`, error);
@@ -218,33 +209,20 @@ export const listingService = {
         }
     },
 
-    // Subscribe to latest listings
+    // Real-time watches
     watchLatestListings(callback: (listings: Listing[]) => void): () => void {
-        const q = query(
-            collection(db, COLLECTION),
-            where('status', '==', 'active'),
-            orderBy('createdAt', 'desc'),
-            limit(PAGE_SIZE)
-        );
+        const q = query(collection(db, COLLECTION), where('status', '==', 'active'), orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
         return onSnapshot(q, (snapshot) => {
-            const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing));
-            callback(listings);
+            callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing)));
         }, (error) => {
             console.error('Error watching latest listings:', error);
         });
     },
 
-    // Subscribe to seller listings in real-time
     watchListingsBySeller(sellerId: string, callback: (listings: Listing[]) => void): () => void {
-        const q = query(
-            collection(db, COLLECTION),
-            where('sellerId', '==', sellerId),
-            where('status', 'in', ['active', 'sold']),
-            orderBy('createdAt', 'desc')
-        );
+        const q = query(collection(db, COLLECTION), where('sellerId', '==', sellerId), where('status', 'in', ['active', 'sold']), orderBy('createdAt', 'desc'));
         return onSnapshot(q, (snapshot) => {
-            const listings = snapshot.docs.map((listingDoc) => ({ id: listingDoc.id, ...listingDoc.data() } as Listing));
-            callback(listings);
+            callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing)));
         }, (error) => {
             console.error(`Error watching listings for seller ${sellerId}:`, error);
         });

@@ -3,7 +3,8 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // Listing images - anyone can read, only authenticated users can write
-    match /listings/{listingId}/{imageId} {
+    // Matches: listings/photos/*, listings/ai_logs/*, etc.
+    match /listings/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null
                    && request.resource.size < 10 * 1024 * 1024

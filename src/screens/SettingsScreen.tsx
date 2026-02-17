@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, Alert, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, Pressable, Alert, Switch, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -73,9 +73,54 @@ export function SettingsScreen({ navigation }: Props) {
     );
     const [languageChanging, setLanguageChanging] = useState(false);
     const [pushNotifications, setPushNotifications] = useState(true);
+    const [chatNotifications, setChatNotifications] = useState(true);
+    const [priceDropNotifications, setPriceDropNotifications] = useState(true);
+    const [marketingNotifications, setMarketingNotifications] = useState(false);
+
     const [emailNotifications, setEmailNotifications] = useState(false);
     const [profilePublic, setProfilePublic] = useState(true);
     const [darkMode, setDarkMode] = useState(false);
+
+    useEffect(() => {
+        const userId = userService.getCurrentUserId();
+        if (!userId) return;
+
+        const unsubscribe = userService.watchUserById(userId, (user) => {
+            if (user?.notificationSettings) {
+                setPushNotifications(user.notificationSettings.pushEnabled);
+                setChatNotifications(user.notificationSettings.chatEnabled);
+                setPriceDropNotifications(user.notificationSettings.priceDropEnabled);
+                setMarketingNotifications(user.notificationSettings.marketingEnabled);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const toggleNotification = async (key: 'pushEnabled' | 'chatEnabled' | 'priceDropEnabled' | 'marketingEnabled', value: boolean) => {
+        const userId = userService.getCurrentUserId();
+        if (!userId) return;
+
+        // Optimistic UI update
+        if (key === 'pushEnabled') setPushNotifications(value);
+        if (key === 'chatEnabled') setChatNotifications(value);
+        if (key === 'priceDropEnabled') setPriceDropNotifications(value);
+        if (key === 'marketingEnabled') setMarketingNotifications(value);
+
+        try {
+            await userService.updateUser(userId, {
+                notificationSettings: {
+                    pushEnabled: key === 'pushEnabled' ? value : pushNotifications,
+                    chatEnabled: key === 'chatEnabled' ? value : chatNotifications,
+                    priceDropEnabled: key === 'priceDropEnabled' ? value : priceDropNotifications,
+                    marketingEnabled: key === 'marketingEnabled' ? value : marketingNotifications,
+                }
+            });
+        } catch (error) {
+            console.error('Failed to update notification settings', error);
+            Alert.alert(t('common.error'), t('screen.settings.language.errorMessage'));
+        }
+    };
 
     const handleLanguagePress = () => {
         Alert.alert(
@@ -99,6 +144,12 @@ export function SettingsScreen({ navigation }: Props) {
             setLanguageChanging(true);
             await changeAppLanguage(nextLanguage);
             setSelectedLanguage(nextLanguage);
+
+            // Sync with Firestore
+            const userId = userService.getCurrentUserId();
+            if (userId) {
+                await userService.updateUser(userId, { language: nextLanguage });
+            }
         } catch (error) {
             console.error('Failed to change language', error);
             Alert.alert(
@@ -145,15 +196,25 @@ export function SettingsScreen({ navigation }: Props) {
                 {
                     text: t('screen.settings.account.delete'),
                     style: 'destructive',
-                    onPress: () => {
-                        Alert.alert(
-                            t('screen.settings.account.deleteWarningTitle'),
-                            t('screen.settings.account.deleteWarningMessage')
-                        );
+                    onPress: async () => {
+                        try {
+                            await authService.deleteAccount();
+                            navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+                        } catch (error: any) {
+                            if (error.code === 'auth/requires-recent-login') {
+                                Alert.alert(t('common.error'), t('screen.settings.account.deleteReAuthError'));
+                            } else {
+                                Alert.alert(t('common.error'), t('screen.settings.account.deleteError'));
+                            }
+                        }
                     },
                 },
             ]
         );
+    };
+
+    const handleExportData = () => {
+        Linking.openURL('mailto:privacy@adon.app?subject=Data%20Export%20Request&body=Please%20export%20my%20personal%20data%20as%20required%20by%20GDPR%20Art.%2020.');
     };
 
     const getLanguageLabel = (code: AppLanguage) => {
@@ -224,7 +285,31 @@ export function SettingsScreen({ navigation }: Props) {
                         label={t('screen.settings.notifications.push')}
                         isSwitch
                         switchValue={pushNotifications}
-                        onSwitchChange={setPushNotifications}
+                        onSwitchChange={(val) => toggleNotification('pushEnabled', val)}
+                    />
+                    <View style={styles.divider} />
+                    <SettingItem
+                        icon="chat"
+                        label={t('screen.settings.notifications.chat')}
+                        isSwitch
+                        switchValue={chatNotifications}
+                        onSwitchChange={(val) => toggleNotification('chatEnabled', val)}
+                    />
+                    <View style={styles.divider} />
+                    <SettingItem
+                        icon="trending-down"
+                        label={t('screen.settings.notifications.priceDrop')}
+                        isSwitch
+                        switchValue={priceDropNotifications}
+                        onSwitchChange={(val) => toggleNotification('priceDropEnabled', val)}
+                    />
+                    <View style={styles.divider} />
+                    <SettingItem
+                        icon="campaign"
+                        label={t('screen.settings.notifications.marketing')}
+                        isSwitch
+                        switchValue={marketingNotifications}
+                        onSwitchChange={(val) => toggleNotification('marketingEnabled', val)}
                     />
                     <View style={styles.divider} />
                     <SettingItem
@@ -245,6 +330,12 @@ export function SettingsScreen({ navigation }: Props) {
                         isSwitch
                         switchValue={profilePublic}
                         onSwitchChange={setProfilePublic}
+                    />
+                    <View style={styles.divider} />
+                    <SettingItem
+                        icon="download"
+                        label={t('screen.settings.privacy.exportData')}
+                        onPress={handleExportData}
                     />
                 </View>
 

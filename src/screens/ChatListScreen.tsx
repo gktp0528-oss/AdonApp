@@ -27,8 +27,9 @@ export default function ChatListScreen({ navigation }: Props) {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [userCache, setUserCache] = useState<Record<string, User>>({});
     const [loading, setLoading] = useState(true);
-    const [showUnreadOnly, setShowUnreadOnly] = useState(false);
     const [keyword, setKeyword] = useState('');
+    const [isSelectMode, setIsSelectMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     // Watch conversations
     useEffect(() => {
@@ -73,11 +74,8 @@ export default function ChatListScreen({ navigation }: Props) {
 
     const filteredConversations = useMemo(() => {
         const q = keyword.trim().toLowerCase();
+        if (!q) return conversations;
         return conversations.filter((conv) => {
-            const unreadCount = conv.unreadCount?.[currentUserId] || 0;
-            if (showUnreadOnly && unreadCount === 0) return false;
-            if (!q) return true;
-
             const otherUserId = conv.participants.find((p) => p !== currentUserId) || '';
             const otherUser = userCache[otherUserId];
             const name = otherUser?.name || '';
@@ -87,9 +85,56 @@ export default function ChatListScreen({ navigation }: Props) {
                 conv.listingTitle.toLowerCase().includes(q)
             );
         });
-    }, [showUnreadOnly, keyword, conversations, currentUserId, userCache]);
+    }, [keyword, conversations, currentUserId, userCache]);
 
-    const handleDeleteConversation = (id: string, name: string) => {
+    const enterSelectMode = (id?: string) => {
+        setIsSelectMode(true);
+        if (id) setSelectedIds(new Set([id]));
+    };
+
+    const exitSelectMode = () => {
+        setIsSelectMode(false);
+        setSelectedIds(new Set());
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const handleDeleteSelected = () => {
+        const count = selectedIds.size;
+        if (count === 0) return;
+        Alert.alert(
+            t('common.confirm.delete.title', { defaultValue: 'Delete Chats' }),
+            t('screen.chat.delete.multi.message', { count, defaultValue: `Delete ${count} conversation(s)?` }),
+            [
+                { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+                {
+                    text: t('common.delete', { defaultValue: 'Delete' }),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await Promise.all(
+                                [...selectedIds].map((id) =>
+                                    chatService.deleteConversation(id, currentUserId!)
+                                )
+                            );
+                            exitSelectMode();
+                        } catch (error) {
+                            Alert.alert(t('common.error', { defaultValue: 'Error' }), t('screen.chat.delete.error', { defaultValue: 'Failed to delete chat.' }));
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleDeleteSingle = (id: string, name: string) => {
         Alert.alert(
             t('common.confirm.delete.title', { defaultValue: 'Delete Chat' }),
             t('common.confirm.delete.message', { name, defaultValue: `Are you sure you want to delete the chat with ${name}?` }),
@@ -100,7 +145,7 @@ export default function ChatListScreen({ navigation }: Props) {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await chatService.deleteConversation(id);
+                            await chatService.deleteConversation(id, currentUserId!);
                         } catch (error) {
                             Alert.alert(t('common.error', { defaultValue: 'Error' }), t('screen.chat.delete.error', { defaultValue: 'Failed to delete chat.' }));
                         }
@@ -115,14 +160,28 @@ export default function ChatListScreen({ navigation }: Props) {
             <TabTransitionView style={{ flex: 1 }}>
                 <View style={styles.header}>
                     <Text style={styles.title}>{t('screen.chat.title')}</Text>
-                    <Pressable
-                        style={[styles.filterButton, showUnreadOnly && styles.filterButtonActive]}
-                        onPress={() => setShowUnreadOnly((prev) => !prev)}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('screen.chat.accessibility.toggleFilter')}
-                    >
-                        <MaterialIcons name="tune" size={20} color="#19e61b" />
-                    </Pressable>
+                    {isSelectMode ? (
+                        <View style={styles.selectActions}>
+                            {selectedIds.size > 0 && (
+                                <Pressable style={styles.deleteButton} onPress={handleDeleteSelected}>
+                                    <Text style={styles.deleteButtonText}>
+                                        {t('screen.chat.button.delete')} ({selectedIds.size})
+                                    </Text>
+                                </Pressable>
+                            )}
+                            <Pressable style={styles.cancelButton} onPress={exitSelectMode}>
+                                <Text style={styles.cancelButtonText}>
+                                    {t('screen.chat.button.cancel')}
+                                </Text>
+                            </Pressable>
+                        </View>
+                    ) : (
+                        <Pressable style={styles.selectButton} onPress={() => enterSelectMode()}>
+                            <Text style={styles.selectButtonText}>
+                                {t('screen.chat.button.select')}
+                            </Text>
+                        </Pressable>
+                    )}
                 </View>
 
                 <View style={styles.searchWrap}>
@@ -135,7 +194,6 @@ export default function ChatListScreen({ navigation }: Props) {
                         onChangeText={setKeyword}
                     />
                 </View>
-                <Text style={styles.filterHint}>{showUnreadOnly ? t('screen.chat.filter.unread') : t('screen.chat.filter.all')}</Text>
 
                 {loading ? (
                     <View style={styles.emptyWrap}>
@@ -154,16 +212,30 @@ export default function ChatListScreen({ navigation }: Props) {
                             const unreadCount = conv.unreadCount?.[currentUserId] || 0;
                             const hasUnread = unreadCount > 0;
                             const isOnline = otherUser?.isOnline;
+                            const isSelected = selectedIds.has(conv.id);
 
                             return (
                                 <Pressable
                                     key={conv.id}
-                                    style={styles.row}
-                                    onPress={() => navigation.navigate('Chat', { conversationId: conv.id })}
-                                    onLongPress={() => handleDeleteConversation(conv.id, displayName)}
+                                    style={[styles.row, isSelected && styles.rowSelected]}
+                                    onPress={() => {
+                                        if (isSelectMode) {
+                                            toggleSelect(conv.id);
+                                        } else {
+                                            navigation.navigate('Chat', { conversationId: conv.id });
+                                        }
+                                    }}
+                                    onLongPress={() => {
+                                        if (!isSelectMode) enterSelectMode(conv.id);
+                                    }}
                                     accessibilityRole="button"
                                     accessibilityLabel={t('screen.chat.accessibility.openThread', { name: displayName })}
                                 >
+                                    {isSelectMode && (
+                                        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                                            {isSelected && <MaterialIcons name="check" size={14} color="#fff" />}
+                                        </View>
+                                    )}
                                     <View>
                                         <Image
                                             source={{ uri: displayAvatar }}
@@ -180,7 +252,7 @@ export default function ChatListScreen({ navigation }: Props) {
                                             {conv.lastMessage || conv.listingTitle}
                                         </Text>
                                     </View>
-                                    {hasUnread ? <View style={styles.unreadDot} /> : null}
+                                    {!isSelectMode && hasUnread ? <View style={styles.unreadDot} /> : null}
                                 </Pressable>
                             );
                         })}
@@ -207,19 +279,49 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
     },
     title: { fontSize: 32, fontWeight: '800', color: '#064e3b' },
-    filterButton: {
-        width: 40,
-        height: 40,
+    selectButton: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
         borderRadius: 12,
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#e5e7eb',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
-    filterButtonActive: {
-        borderColor: '#86efac',
-        backgroundColor: '#f0fdf4',
+    selectButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+    },
+    selectActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    deleteButton: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 12,
+        backgroundColor: '#fee2e2',
+        borderWidth: 1,
+        borderColor: '#fca5a5',
+    },
+    deleteButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#dc2626',
+    },
+    cancelButton: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
+    cancelButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
     },
     searchWrap: {
         marginHorizontal: 16,
@@ -235,13 +337,6 @@ const styles = StyleSheet.create({
         height: 46,
     },
     searchInput: { flex: 1, fontSize: 14 },
-    filterHint: {
-        paddingHorizontal: 16,
-        marginBottom: 4,
-        color: '#6b7280',
-        fontWeight: '600',
-        fontSize: 12,
-    },
     list: { paddingHorizontal: 16, paddingBottom: 120 },
     row: {
         flexDirection: 'row',
@@ -250,6 +345,23 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#edf2ed',
         paddingVertical: 14,
+    },
+    rowSelected: {
+        backgroundColor: '#f0fdf4',
+    },
+    checkbox: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#d1d5db',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+    },
+    checkboxSelected: {
+        backgroundColor: '#22c55e',
+        borderColor: '#22c55e',
     },
     avatar: { width: 56, height: 56, borderRadius: 28 },
     onlineDot: {

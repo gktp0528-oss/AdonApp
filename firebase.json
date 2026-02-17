@@ -8,6 +8,12 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
+  },
   "auth": {
     "providers": {
       "googleSignIn": {

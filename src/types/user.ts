@@ -20,4 +20,15 @@ export interface User {
     isOnline?: boolean;
     pushToken?: string;
     keywords?: string[];
+    language?: string; // 'ko', 'en', 'hu'
+    // Notification Settings
+    notificationSettings?: {
+        pushEnabled: boolean;
+        chatEnabled: boolean;
+        priceDropEnabled: boolean;
+        marketingEnabled: boolean;
+    };
+    // Consent & Legal
+    consentedAt?: string;   // ISO timestamp when user accepted terms
+    marketingOptIn?: boolean; // Whether user opted in to marketing emails
 }

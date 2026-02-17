@@ -14,9 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import { getGenerativeModel } from "firebase/ai";
-import { aiBackend } from '../firebaseConfig';
-import * as ImageManipulator from 'expo-image-manipulator';
+import { aiListingService } from '../services/aiListingService';
 
 import { useTranslation } from 'react-i18next';
 
@@ -57,42 +55,11 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
         }
     }, [imageUris]);
 
-    const processImage = async (uri: string) => {
-        try {
-            const manipulResult = await ImageManipulator.manipulateAsync(
-                uri,
-                [{ resize: { width: 512 } }],
-                { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-            );
-            return manipulResult.uri;
-        } catch (error) {
-            return uri;
-        }
-    };
-
     const runDeepAnalysis = async (originalUris: string[]) => {
         setLoading(true);
         try {
-            const model = getGenerativeModel(aiBackend, { model: "gemini-2.5-flash-lite" });
-
-            // Image optimization
-            const uris = await Promise.all(originalUris.map(uri => processImage(uri)));
-
-            const imageParts = await Promise.all(uris.map(async (uri) => {
-                const response = await fetch(uri);
-                const blob = await response.blob();
-                const reader = new FileReader();
-                const base64: string = await new Promise((resolve) => {
-                    reader.onloadend = () => {
-                        const result = reader.result as string;
-                        resolve(result.split(',')[1]);
-                    };
-                    reader.readAsDataURL(blob);
-                });
-                return {
-                    inlineData: { data: base64, mimeType: "image/jpeg" },
-                };
-            }));
+            // Optimize images
+            const uris = await Promise.all(originalUris.map(uri => aiListingService.processImage(uri, 512)));
 
             const languageMap: Record<string, string> = {
                 ko: '한국어 (Korean)',
@@ -101,37 +68,13 @@ export default function AiPriceAssistantScreen({ navigation, route }: Props) {
             };
             const targetLang = languageMap[i18n.language] || 'English';
 
-            const prompt = `당신은 유럽(독일, 프랑스, 스페인 등)의 중고 마켓(eBay, Vinted, Wallapop) 시세에 정통한 매우 보수적이고 객관적인 가격 책정 전문가입니다.
-      
-      [분석 지침]
-      1. 여러 장의 사진을 대조하여 제품의 정확한 모델명과 진위 여부를 확인하세요.
-      2. 사진마다 스크래치, 찍힘, 오염, 사용감 등 '현실적인 감가 요인'을 정밀하게 찾아내십시오. 
-      3. 가격 책정 시 매우 보수적이어야 합니다. 에어팟이나 가전제품에 미세한 스크래치라도 보인다면, 시장 평균가보다 훨씬 낮은 가격을 제시해야 합니다.
-      4. 사용자가 보고한 상태보다 사진에서 직접 확인되는 물리적 훼손에 더 큰 가중치를 두어 가격을 깎으세요.
-      
-      다음 JSON 형식으로 상세 리포트를 작성해주세요:
-      {
-        "itemName": "식별된 정확한 모델명",
-        "conditionScore": 1~10 사이 점수 (물리적 손상이 보이면 엄격하게 감점),
-        "marketDemand": "유럽 내 수요 (High/Medium/Low)",
-        "priceRange": { "min": 보수적 최소유로, "max": 현실적 최대유로 },
-        "insights": ["구체적인 감가 요인 분석", "현지 마켓 실거래가와 비교 분석"],
-        "reasoning": "왜 이 가격으로 산출했는지 사진 속의 구체적인 하자를 근거로 설명"
-      }
-      MUST be written in ${targetLang}. Response language should match exactly ${targetLang}.`;
+            const report = await aiListingService.analyzeListing(uris, targetLang);
 
-
-            const result = await model.generateContent([prompt, ...imageParts]);
-            const text = (await result.response).text();
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            const data = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
-
-            if (!data || !data.priceRange || typeof data.priceRange.min !== 'number' || typeof data.priceRange.max !== 'number') {
+            if (report) {
+                setAnalysis(report);
+            } else {
                 setAnalysis(null);
-                return;
             }
-
-            setAnalysis(data);
         } catch (error) {
             console.error('Deep Analysis failed:', error);
             setAnalysis(null);

@@ -74,6 +74,13 @@
         "comingSoonMsg": "A(z) {{feature}} funkció hamarosan elérhető lesz."
       }
     },
+    "forgotPassword": {
+      "title": "Elfelejtett Jelszó",
+      "description": "Kérjük, adja meg e-mail címét.\nKüldünk egy linket a jelszó visszaállításához.",
+      "submit": "Link Küldése",
+      "successTitle": "E-mail Elküldve",
+      "successMessage": "A jelszó visszaállító linket elküldtük az e-mail címére. Kérjük, ellenőrizze a bejövő leveleit (vagy a spam mappát)."
+    },
     "signup": {
       "title": "ADON",
       "subtitle": "Csatlakozzon a prémium viszonteladói közösséghez",
@@ -81,22 +88,28 @@
       "label": {
         "name": "Név",
         "email": "E-mail cím",
-        "password": "Jelszó"
+        "password": "Jelszó",
+        "confirmPassword": "Jelszó megerősítése"
       },
       "placeholder": {
         "name": "Kovács János",
         "email": "hello@example.com",
-        "password": "••••••••"
+        "password": "••••••••",
+        "confirmPassword": "••••••••"
       },
-      "submit": "Csatlakozás és Kezdés",
+      "submit": "Csatlakozás az Adonhoz",
       "terms": "A csatlakozással elfogadja a Felhasználási Feltételeket és az Adatvédelmi Irányelveket.",
       "loginText": "Már van fiókja?",
       "loginLink": "Bejelentkezés",
+      "passwordRuleLength": "Legalább 8 karakter",
+      "passwordRuleNumber": "Legalább egy szám",
+      "passwordRuleSpecial": "Legalább egy speciális karakter",
       "alert": {
         "inputNeeded": "Adatok szükségesek",
         "nameMissing": "Kérjük, adja meg a nevét.",
-        "passwordError": "Jelszó hiba",
-        "passwordLength": "A jelszónak legalább 6 karakter hosszúnak kell lennie.",
+        "passwordError": "Jelszó szabályzat",
+        "passwordLength": "A jelszó nem felel meg a biztonsági követelményeknek.",
+        "passwordMismatch": "A jelszavak nem egyeznek.",
         "success": "Üdvözöljük",
         "successMsg": "A fiók sikeresen létrehozva.",
         "failed": "Hiba",
@@ -124,7 +137,11 @@
     "onboardingFinish": {
       "title": "Minden készen áll!",
       "subtitle": "Minden rendben. Most már szabadon\nfelfedezhet és kereskedhet az Adon-on.",
-      "start": "Kezdés"
+      "start": "Kezdés",
+      "notificationsTitle": "Maradjon képben",
+      "notificationsSubtitle": "Értesítést kap, ha üzenetet kap, vagy ha kedvenc termékei akciósak fognak lenni.",
+      "enableNotifications": "Értesítések engedélyezése",
+      "maybeLater": "Talán később"
     },
     "landing": {
       "subtitle": "A prémium viszonteladás új standardja",
@@ -248,7 +265,10 @@
       },
       "desc": {
         "title": "Leírás",
-        "empty": "Nincs leírás."
+        "empty": "Nincs leírás.",
+        "translate": "Fordítás",
+        "showOriginal": "Eredeti megjelenítése",
+        "translating": "Fordítás..."
       },
       "location": {
         "title": "Helyszín",

@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import {
     collection,
     addDoc,
@@ -20,7 +21,7 @@ const NOTIFICATIONS_COLLECTION = 'notifications';
 export interface AdonNotification {
     id?: string;
     userId: string;
-    type: 'system' | 'keyword' | 'priceDrop';
+    type: 'system' | 'keyword' | 'priceDrop' | 'like';
     title: string;
     body: string;
     data?: any;
@@ -46,6 +47,12 @@ export const notificationService = {
     async registerForPushNotificationsAsync(): Promise<string | undefined> {
         let token;
 
+        // 1. Check if it's a physical device (iOS simulator doesn't support real push tokens reliably)
+        if (!Constants.isDevice) {
+            console.log('[NotificationService] Running on simulator, skipping push token registration.');
+            return undefined;
+        }
+
         if (Platform.OS === 'android') {
             await Notifications.setNotificationChannelAsync('default', {
                 name: 'default',
@@ -68,7 +75,7 @@ export const notificationService = {
             return;
         }
 
-        // Get the token that uniquely identifies this device
+        // 2. Get the token with robust error handling
         try {
             // For native FCM integration, we use getDevicePushTokenAsync
             const tokenResponse = await Notifications.getDevicePushTokenAsync();
@@ -80,8 +87,10 @@ export const notificationService = {
             if (userId) {
                 await userService.updateUser(userId, { pushToken: token });
             }
-        } catch (e) {
-            console.error('Error getting push token:', e);
+        } catch (e: any) {
+            // Log warning instead of throwing to prevent app crash/scary red screen
+            console.warn('[NotificationService] Error getting push token:', e.message);
+            console.log('Note: On iOS, this requires "Push Notifications" capability in Xcode and potentially a paid developer account.');
         }
 
         return token;
@@ -103,14 +112,9 @@ export const notificationService = {
                 createdAt: Timestamp.now(),
             });
 
-            // 2. If it's the current user, also send a local notification for immediate feedback
-            const currentUserId = userService.getCurrentUserId();
-            if (userId === currentUserId) {
-                await Notifications.scheduleNotificationAsync({
-                    content: { title, body, data },
-                    trigger: null,
-                });
-            }
+            // Note: We removed the local Notifications.scheduleNotificationAsync call here 
+            // because App.tsx has a Firestore listener that will trigger the 
+            // in-app notification banner automatically for the current user.
         } catch (error) {
             console.error('[NotificationService] Error sending notification:', error);
         }
@@ -164,8 +168,30 @@ export const notificationService = {
                 title,
                 body,
                 data,
+                sound: true,
+                priority: Notifications.AndroidNotificationPriority.HIGH,
             },
             trigger: null, // send immediately
+        });
+    },
+
+    /**
+     * Trigger a delayed test notification (for simulating background test)
+     * @param seconds delay in seconds
+     */
+    async triggerTestNotification(seconds: number = 3) {
+        console.log(`[NotificationService] Test notification scheduled in ${seconds}s...`);
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: 'Adon 🌟',
+                body: 'Haeun-nim! This is a test notification from the future! 🚀',
+                data: { test: true },
+                sound: true,
+            },
+            trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds,
+            },
         });
     }
 };

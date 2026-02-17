@@ -71,7 +71,9 @@ export default function AiAnalysisResultScreen({ navigation, route }: Props) {
                             </View>
                             <View style={[styles.badge, styles.categoryBadge]}>
                                 <MaterialIcons name="category" size={14} color="#166534" />
-                                <Text style={styles.categoryBadgeText}>{report.category.toUpperCase()}</Text>
+                                <Text style={styles.categoryBadgeText} numberOfLines={1} ellipsizeMode="middle">
+                                    {report.category}
+                                </Text>
                             </View>
                         </View>
                         <Text style={styles.itemName}>{report.itemName}</Text>

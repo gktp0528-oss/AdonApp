@@ -57,15 +57,22 @@ export function SplashScreen({ navigation }: Props) {
     if (loading) return;
     setLoading(true);
     try {
+      let result;
       if (provider === 'Google') {
-        await authService.signInWithGoogle();
+        result = await authService.signInWithGoogle();
       } else {
         if (!appleAvailable) {
           throw new Error('Apple Sign-In is not supported on this device or account (Personal Team)');
         }
-        await authService.signInWithApple();
+        result = await authService.signInWithApple();
       }
-      navigation.replace('Welcome');
+      if (result.isNew) {
+        // New user → collect consent before onboarding
+        navigation.replace('SocialConsent');
+      } else {
+        // Returning user → go straight to app
+        navigation.replace('MainTabs');
+      }
     } catch (error: any) {
       if (error.message !== 'User canceled Apple Sign-In') {
         alert(t('screen.login.alert.failed') + ': ' + error.message);

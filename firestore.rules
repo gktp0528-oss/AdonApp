@@ -23,30 +23,25 @@ service cloud.firestore {
     }
 
     function hasValidListingShape() {
-      return request.resource.data.keys().hasAll([
-        "title",
-        "description",
-        "price",
-        "currency",
-        "photos",
-        "category",
-        "condition",
-        "sellerId",
-        "status",
-        "createdAt",
-        "updatedAt"
+      let data = request.resource.data;
+      return data.keys().hasAll([
+        "title", "description", "price", "currency", 
+        "photos", "category", "condition", "sellerId", 
+        "status", "createdAt", "updatedAt"
       ])
-      && request.resource.data.title is string
-      && request.resource.data.description is string
-      && request.resource.data.price is number
-      && request.resource.data.currency is string
-      && request.resource.data.photos is list
-      && request.resource.data.category is string
-      && request.resource.data.condition is string
-      && request.resource.data.sellerId is string
-      && request.resource.data.status is string
-      && request.resource.data.createdAt is timestamp
-      && request.resource.data.updatedAt is timestamp;
+      && data.title is string
+      && data.description is string
+      && data.price is number
+      && data.currency is string
+      && data.photos is list
+      && data.category is string
+      && data.condition is number
+      && data.sellerId is string
+      && data.status is string
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp
+      // Optional fields validation if they exist
+      && (!data.keys().hasAny(['pickupLocation']) || data.pickupLocation is map);
     }
 
     // LISTINGS RULES
@@ -57,8 +52,16 @@ service cloud.firestore {
       // Create: authenticated owner only, with schema validation.
       allow create: if isAllowedSellerCreate() && hasValidListingShape();
 
-      // Update/Delete: authenticated owner only.
-      allow update, delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
+      // Update: seller can update all fields, others can only update likes/hotUntil
+      allow update: if isAuthenticated() && (
+        // Seller can update everything
+        resource.data.sellerId == request.auth.uid
+        // Anyone authenticated can update likes/hotUntil (for wishlist system)
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'hotUntil'])
+      );
+      
+      // Delete: authenticated owner only
+      allow delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
     }
 
     // USERS RULES
@@ -67,6 +70,7 @@ service cloud.firestore {
       // Allow updates if owner OR if authenticated user updating only allowed fields (for ratings)
       allow update: if isOwner(userId) || (isAuthenticated() && onlyUpdatingAllowedFields());
       allow create: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
     // REVIEWS RULES
@@ -89,6 +93,10 @@ service cloud.firestore {
       allow update: if isAuthenticated()
         && request.auth.uid in resource.data.participants;
 
+      // Only participants can delete the conversation
+      allow delete: if isAuthenticated()
+        && request.auth.uid in resource.data.participants;
+
       // Messages subcollection
       match /messages/{messageId} {
         // Participants of the parent conversation can read messages
@@ -99,9 +107,13 @@ service cloud.firestore {
         allow create: if isAuthenticated()
           && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
           && request.resource.data.senderId == request.auth.uid;
-          
+
         // Allow updating messages for translations by participants
         allow update: if isAuthenticated()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+
+        // Participants can delete messages
+        allow delete: if isAuthenticated()
           && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
       }
     }

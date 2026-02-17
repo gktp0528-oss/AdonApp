@@ -5,6 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { theme } from '../theme';
 import { DocumentSnapshot } from 'firebase/firestore';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
@@ -179,6 +180,18 @@ export function HomeScreen({ navigation }: Props) {
             accessibilityLabel={t('screen.home.searchPlaceholder')}
           >
             <MaterialIcons name="search" size={26} color="#111827" />
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              import('../services/notificationService').then(({ notificationService }) => {
+                notificationService.triggerTestNotification(3);
+                alert('3초 뒤에 알림이 와요! 얼른 앱 밖으로(홈 화면으로) 나가보세요! ✨');
+              });
+            }}
+            style={styles.iconButton}
+          >
+            <MaterialIcons name="bug-report" size={24} color={theme.colors.primary} />
           </Pressable>
 
           <Pressable

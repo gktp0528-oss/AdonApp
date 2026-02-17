@@ -6,9 +6,12 @@ export type MainTabParamList = {
 };
 
 export type RootStackParamList = {
+  Launch: undefined;
   Splash: undefined;
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: undefined;
+  EmailVerification: { email: string };
   Welcome: undefined;
   NicknameSetup: undefined;
   OnboardingFinish: undefined;
@@ -56,4 +59,6 @@ export type RootStackParamList = {
   Wishlist: undefined;
   EditListing: { listingId: string };
   UserListings: { sellerId: string; sellerName: string };
+  Legal: { type: 'terms' | 'privacy' };
+  SocialConsent: undefined;
 };

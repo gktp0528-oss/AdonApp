@@ -35,4 +35,5 @@ export interface Conversation {
         avatar?: string | null;
     }>;
     createdAt: Timestamp;
+    deletedFor?: string[]; // UIDs of users who have "deleted" this conversation
 }

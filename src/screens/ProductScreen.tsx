@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import i18n from 'i18next';
 import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View, ActivityIndicator, useWindowDimensions, FlatList } from 'react-native';
 import { Image } from 'expo-image';
 import ImageViewing from 'react-native-image-viewing';
@@ -16,6 +17,7 @@ import { wishlistService } from '../services/wishlistService';
 import { Listing } from '../types/listing';
 import { User } from '../types/user';
 import { formatCurrency, formatDate } from '../utils/format';
+import { translationService } from '../services/translationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Product'>;
 
@@ -63,6 +65,9 @@ export function ProductScreen({ navigation, route }: Props) {
   const [isChatStarting, setIsChatStarting] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(true);
 
   useEffect(() => {
     if (!targetId) {
@@ -210,6 +215,35 @@ export function ProductScreen({ navigation, route }: Props) {
       );
     } finally {
       setIsChatStarting(false);
+    }
+  };
+
+  const handleTranslateDesc = async () => {
+    if (!listing?.description) return;
+
+    if (translatedDesc) {
+      setShowOriginal(!showOriginal);
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const currentLang = i18n.language;
+      const detected = await translationService.detectLanguage(listing.description);
+      const result = await translationService.translateText(
+        listing.description,
+        detected || 'en',
+        currentLang
+      );
+      if (result) {
+        setTranslatedDesc(result);
+        setShowOriginal(false);
+      }
+    } catch (error) {
+      console.error('Description translation failed:', error);
+      Alert.alert(t('common.error'), t('screen.chat.error.quota'));
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -451,9 +485,31 @@ export function ProductScreen({ navigation, route }: Props) {
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionTitle}>{t('screen.product.desc.title')}</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>{t('screen.product.desc.title')}</Text>
+            {listing.description && (
+              <Pressable
+                onPress={handleTranslateDesc}
+                style={styles.translateBtn}
+                disabled={isTranslating}
+              >
+                {isTranslating ? (
+                  <ActivityIndicator size="small" color="#22c55e" />
+                ) : (
+                  <>
+                    <MaterialIcons name="translate" size={14} color="#22c55e" />
+                    <Text style={styles.translateBtnText}>
+                      {translatedDesc
+                        ? (showOriginal ? t('screen.product.desc.translate') : t('screen.product.desc.showOriginal'))
+                        : t('screen.product.desc.translate')}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            )}
+          </View>
           <Text style={styles.desc}>
-            {listing.description || t('screen.product.desc.empty')}
+            {translatedDesc && !showOriginal ? translatedDesc : (listing.description || t('screen.product.desc.empty'))}
           </Text>
 
           {/* Shipping & Location (Static/Placeholder for now as per schema optional) */}
@@ -660,6 +716,9 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: '#e5e7eb', marginBottom: 14, marginTop: 2 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  translateBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#f0fdf4' },
+  translateBtnText: { fontSize: 13, color: '#22c55e', fontWeight: '700' },
   desc: { marginTop: 10, color: '#475569', lineHeight: 25, fontSize: 16 },
   readMore: { marginTop: 8, color: '#22c55e', fontWeight: '800', fontSize: 16 },
 

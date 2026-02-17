@@ -8,12 +8,15 @@ import {
     GoogleAuthProvider,
     OAuthProvider,
     signInWithCredential,
-    AuthCredential
+    AuthCredential,
+    sendEmailVerification,
+    deleteUser,
+    sendPasswordResetEmail as sendFirebasePasswordResetEmail
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { User } from '../types/user';
-import { notificationService } from './notificationService';
+import i18n from 'i18next';
 
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
@@ -46,8 +49,8 @@ const initializeGoogleSignin = () => {
 };
 
 export const authService = {
-    // Helper: Create or Fetch User from Firestore
-    async _handleUserInFirestore(user: FirebaseUser, name?: string | null): Promise<User> {
+    // Helper: Create or Fetch User from Firestore. Returns isNew=true when doc was just created.
+    async _handleUserInFirestore(user: FirebaseUser, name?: string | null, consentData?: { marketingOptIn?: boolean }): Promise<{ user: User; isNew: boolean }> {
         if (!db) {
             console.error('Firestore db is not initialized. Initialization order issue?');
             throw new Error('Database connection is temporary unavailable. Please try again in a few seconds.');
@@ -57,7 +60,7 @@ export const authService = {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() } as User;
+            return { user: { id: docSnap.id, ...docSnap.data() } as User, isNew: false };
         } else {
             const newUser: User = {
                 id: user.uid,
@@ -69,29 +72,42 @@ export const authService = {
                 sales: 0,
                 joinedAt: new Date().toISOString(),
                 responseTime: 'screen.profile.stats.responseValue.unknown',
-                reliabilityLabel: 'New Member'
+                reliabilityLabel: 'New Member',
+                // consentedAt is only set when user explicitly agrees (consentData provided)
+                ...(consentData ? {
+                    consentedAt: new Date().toISOString(),
+                    marketingOptIn: consentData.marketingOptIn ?? false,
+                } : {}),
             };
             await setDoc(docRef, newUser);
 
-            // Send real welcome notification
-            await notificationService.sendNotification(
-                user.uid,
-                'system',
-                'Welcome to Adon! 🎉',
-                'Start buying and selling premium items today. Complete your profile to get started!'
-            );
+            // Send real welcome notification (lazy import to avoid circular dependency)
+            try {
+                const { notificationService } = await import('./notificationService');
+                await notificationService.sendNotification(
+                    user.uid,
+                    'system',
+                    'Welcome to Adon! 🎉',
+                    'Start buying and selling premium items today. Complete your profile to get started!'
+                );
+            } catch (e) {
+                console.warn('Could not send welcome notification:', e);
+            }
 
-            return newUser;
+            return { user: newUser, isNew: true };
         }
     },
 
     // Sign Up (Email)
-    async signUp(email: string, password: string, name: string): Promise<User> {
+    async signUp(email: string, password: string, name?: string, marketingOptIn?: boolean): Promise<User> {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            await updateProfile(user, { displayName: name });
-            return await this._handleUserInFirestore(user, name);
+            if (name) {
+                await updateProfile(user, { displayName: name });
+            }
+            const { user: firestoreUser } = await this._handleUserInFirestore(user, name, { marketingOptIn });
+            return firestoreUser;
         } catch (error) {
             console.error('Error signing up:', error);
             throw error;
@@ -102,15 +118,16 @@ export const authService = {
     async login(email: string, password: string): Promise<User> {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            return await this._handleUserInFirestore(userCredential.user);
+            const { user } = await this._handleUserInFirestore(userCredential.user);
+            return user;
         } catch (error) {
             console.error('Error logging in:', error);
             throw error;
         }
     },
 
-    // Google Sign-In
-    async signInWithGoogle(): Promise<User> {
+    // Google Sign-In — returns isNew=true when this is a brand-new account
+    async signInWithGoogle(): Promise<{ user: User; isNew: boolean }> {
         if (!initializeGoogleSignin()) {
             throw new Error('Google Sign-In is not supported in Expo Go. Please use a Development Build.');
         }
@@ -129,8 +146,8 @@ export const authService = {
         }
     },
 
-    // Apple Sign-In
-    async signInWithApple(): Promise<User> {
+    // Apple Sign-In — returns isNew=true when this is a brand-new account
+    async signInWithApple(): Promise<{ user: User; isNew: boolean }> {
         try {
             if (!AppleAuthentication) {
                 try {
@@ -194,5 +211,66 @@ export const authService = {
     // Get current user (Auth object)
     getCurrentUser(): FirebaseUser | null {
         return auth.currentUser;
+    },
+
+    // Check if nickname is already taken
+    async checkNicknameAvailability(nickname: string): Promise<boolean> {
+        if (!db) return true;
+        try {
+            const q = query(
+                collection(db, USERS_COLLECTION),
+                where('name', '==', nickname.trim().toLowerCase()),
+                limit(1)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.empty;
+        } catch (error) {
+            console.error('Error checking nickname availability:', error);
+            return true;
+        }
+    },
+
+    // Send verification email to current user
+    async sendVerificationEmail(): Promise<void> {
+        const user = auth.currentUser;
+        if (user) {
+            // Sync Firebase Auth language with app language
+            auth.languageCode = i18n.language || 'en';
+            await sendEmailVerification(user);
+        }
+    },
+
+    // Delete Account (GDPR Art. 17)
+    async deleteAccount(): Promise<void> {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No authenticated user');
+
+        // Delete Firestore user document first
+        const docRef = doc(db, USERS_COLLECTION, user.uid);
+        await deleteDoc(docRef);
+
+        // Delete Firebase Auth account (requires recent login)
+        await deleteUser(user);
+    },
+
+    // Check if user's email is verified (reloads user state)
+    async isEmailVerified(): Promise<boolean> {
+        const user = auth.currentUser;
+        if (user) {
+            await user.reload();
+            return auth.currentUser?.emailVerified || false;
+        }
+        return false;
+    },
+
+    // Send Password Reset Email
+    async sendPasswordResetEmail(email: string): Promise<void> {
+        try {
+            auth.languageCode = i18n.language || 'en';
+            await sendFirebasePasswordResetEmail(auth, email);
+        } catch (error) {
+            console.error('Error sending password reset email:', error);
+            throw error;
+        }
     }
 };

@@ -13,31 +13,61 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export function SignupScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
+
+  // Password rules validation
+  const hasMinLength = password.length >= 8;
+  const hasNumber = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const isPasswordStrong = hasMinLength && hasNumber && hasSpecialChar;
 
   const handleSignup = async () => {
-    if (!name.trim() || !email.trim() || !password) {
-      Alert.alert(t('screen.signup.alert.inputNeeded'), t('screen.signup.alert.nameMissing'));
+    if (!email.trim() || !password || !confirmPassword) {
+      Alert.alert(t('screen.signup.alert.inputNeeded'), t('screen.signup.alert.emailMissing', 'Email and password are required'));
+      return;
+    }
+
+    if (!isPasswordStrong) {
+      Alert.alert(t('screen.signup.alert.passwordError'), t('screen.signup.alert.passwordLength'));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(t('screen.signup.alert.passwordError'), t('screen.signup.alert.passwordMismatch'));
       return;
     }
 
     setLoading(true);
     try {
-      await authService.signUp(email, password, name);
-      Alert.alert(
-        t('screen.signup.alert.success'),
-        t('screen.signup.alert.successMsg'),
-        [{ text: t('common.confirm'), onPress: () => navigation.replace('Welcome') }]
-      );
+      await authService.signUp(email, password, undefined, marketingOptIn);
+      // Send verification email right after signup
+      await authService.sendVerificationEmail();
+      navigation.replace('EmailVerification', { email });
     } catch (error: any) {
       Alert.alert(t('screen.signup.alert.failed'), error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const renderPasswordRule = (label: string, isValid: boolean) => (
+    <View style={styles.passwordRuleRow}>
+      <Ionicons
+        name={isValid ? "checkmark-circle" : "ellipse-outline"}
+        size={16}
+        color={isValid ? theme.colors.primary : theme.colors.muted}
+      />
+      <Text style={[styles.passwordRuleText, isValid && styles.passwordRuleTextValid]}>
+        {label}
+      </Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -56,14 +86,6 @@ export function SignupScreen({ navigation }: Props) {
           <Text style={styles.subtitle}>{t('screen.signup.subtitle')}</Text>
 
           <View style={styles.formContainer}>
-            <Text style={styles.label}>{t('screen.signup.label.name')}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={t('screen.signup.placeholder.name')}
-              placeholderTextColor={theme.colors.muted}
-              value={name}
-              onChangeText={setName}
-            />
 
             <Text style={styles.label}>{t('screen.signup.label.email')}</Text>
             <TextInput
@@ -78,7 +100,7 @@ export function SignupScreen({ navigation }: Props) {
 
             <Text style={styles.label}>{t('screen.signup.label.password')}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { marginBottom: 12 }]}
               placeholder={t('screen.signup.placeholder.password')}
               placeholderTextColor={theme.colors.muted}
               secureTextEntry
@@ -86,15 +108,80 @@ export function SignupScreen({ navigation }: Props) {
               onChangeText={setPassword}
             />
 
+            {/* Password Policy UI */}
+            <View style={styles.passwordRulesContainer}>
+              {renderPasswordRule(t('screen.signup.passwordRuleLength'), hasMinLength)}
+              {renderPasswordRule(t('screen.signup.passwordRuleNumber'), hasNumber)}
+              {renderPasswordRule(t('screen.signup.passwordRuleSpecial'), hasSpecialChar)}
+            </View>
+
+            <Text style={styles.label}>{t('screen.signup.label.confirmPassword')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t('screen.signup.placeholder.confirmPassword')}
+              placeholderTextColor={theme.colors.muted}
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+
             <View style={styles.spacer} />
+
+            {/* Consent Checkboxes */}
+            <View style={styles.consentSection}>
+              {/* Terms & Privacy — required */}
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity onPress={() => setAgreedToTerms(!agreedToTerms)} style={styles.checkboxTouch}>
+                  <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
+                    {agreedToTerms && <Ionicons name="checkmark" size={12} color="#fff" />}
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.checkboxLabel} onPress={() => setAgreedToTerms(!agreedToTerms)}>
+                  {t('screen.signup.termsPrefix')}{' '}
+                  <Text style={styles.termsLink} onPress={() => navigation.navigate('Legal', { type: 'terms' })}>
+                    {t('screen.signup.termsLink')}
+                  </Text>
+                  {' '}{t('screen.signup.termsAnd')}{' '}
+                  <Text style={styles.termsLink} onPress={() => navigation.navigate('Legal', { type: 'privacy' })}>
+                    {t('screen.signup.privacyLink')}
+                  </Text>
+                  {' *'}
+                </Text>
+              </View>
+
+              {/* Age confirmation — required */}
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity onPress={() => setAgeConfirmed(!ageConfirmed)} style={styles.checkboxTouch}>
+                  <View style={[styles.checkbox, ageConfirmed && styles.checkboxChecked]}>
+                    {ageConfirmed && <Ionicons name="checkmark" size={12} color="#fff" />}
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.checkboxLabel} onPress={() => setAgeConfirmed(!ageConfirmed)}>
+                  {t('screen.signup.consentAge')}{' *'}
+                </Text>
+              </View>
+
+              {/* Marketing opt-in — optional */}
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity onPress={() => setMarketingOptIn(!marketingOptIn)} style={styles.checkboxTouch}>
+                  <View style={[styles.checkbox, marketingOptIn && styles.checkboxChecked]}>
+                    {marketingOptIn && <Ionicons name="checkmark" size={12} color="#fff" />}
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.checkboxLabel} onPress={() => setMarketingOptIn(!marketingOptIn)}>
+                  {t('screen.signup.consentMarketing')}
+                </Text>
+              </View>
+
+            </View>
+
+            <View style={{ height: 16 }} />
 
             <PrimaryButton
               label={loading ? t('common.loading') : t('screen.signup.submit')}
               onPress={handleSignup}
-              disabled={loading}
+              disabled={loading || !agreedToTerms || !ageConfirmed}
             />
-
-            <Text style={styles.terms}>{t('screen.signup.terms')}</Text>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>{t('screen.signup.loginText')} </Text>
@@ -162,15 +249,62 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginBottom: 20,
   },
+  passwordRulesContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 8,
+    gap: 8,
+  },
+  passwordRuleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  passwordRuleText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    fontWeight: '500',
+  },
+  passwordRuleTextValid: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
   spacer: {
     height: 20,
   },
-  terms: {
-    marginTop: 16,
+  consentSection: {
+    gap: 10,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  checkboxTouch: {
+    paddingTop: 1,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkboxLabel: {
+    flex: 1,
     fontSize: 12,
     color: theme.colors.muted,
-    textAlign: 'center',
     lineHeight: 18,
+  },
+  termsLink: {
+    color: theme.colors.primary,
+    textDecorationLine: 'underline',
   },
   footer: {
     flexDirection: 'row',
