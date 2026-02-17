@@ -80,7 +80,7 @@ export function AiListingScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (route.params?.selectedPrice) {
-      setPrice(route.params.selectedPrice);
+      setPrice(formatNumberWithCommas(route.params.selectedPrice));
       navigation.setParams({ selectedPrice: undefined } as any);
     }
   }, [route.params?.selectedPrice, navigation]);
@@ -161,12 +161,25 @@ export function AiListingScreen({ navigation, route }: Props) {
     };
   }, []);
 
+  const formatNumberWithCommas = (value: string) => {
+    // Remove all non-digits
+    const numericValue = value.replace(/[^0-9]/g, '');
+    // Add commas every 3 digits
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  const handlePriceChange = (text: string) => {
+    const formatted = formatNumberWithCommas(text);
+    setPrice(formatted);
+  };
+
   const getRecommendedPriceFromRange = (range: { min: number; max: number } | null): string | null => {
     if (!range) return null;
     const min = Number(range.min);
     const max = Number(range.max);
     if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return null;
-    return String(Math.round((min + max) / 2));
+    const rounded = Math.round((min + max) / 2);
+    return formatNumberWithCommas(String(rounded));
   };
 
   const inferConditionFromScore = (score: number | null): ListingCondition => {
@@ -189,7 +202,7 @@ export function AiListingScreen({ navigation, route }: Props) {
     const normalizedTitle = title.trim();
     const normalizedCategory = category.trim();
     const normalizedDescription = description.trim();
-    const normalizedPrice = Number(price.replace(',', '.'));
+    const normalizedPrice = Number(price.replace(/,/g, ''));
 
     if (!normalizedTitle) {
       Alert.alert('제목을 입력해 주세요.');
@@ -534,6 +547,7 @@ export function AiListingScreen({ navigation, route }: Props) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // We can adjust this if needed, but often 0 is fine with correct structure
       >
         <View style={{ flex: 1 }}>
           <AdonHeader
@@ -546,7 +560,7 @@ export function AiListingScreen({ navigation, route }: Props) {
             scrollEnabled={!isSliderInteracting}
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: (isKeyboardVisible ? 550 : 100) + insets.bottom },
+              { paddingBottom: 100 + insets.bottom },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -582,16 +596,24 @@ export function AiListingScreen({ navigation, route }: Props) {
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.photoScroll}
+              contentContainerStyle={styles.photoScrollContent}
               keyboardShouldPersistTaps="always"
               nestedScrollEnabled={true}
             >
               <Pressable style={styles.addPhotoBtn} onPress={pickImage}>
-                <MaterialIcons name="add-a-photo" size={24} color="#19e61b" />
-                <Text style={styles.addPhotoText}>{t('screen.aiListing.section.photos')} + ({photos.length}/10)</Text>
+                <View style={styles.addPhotoIconWrapper}>
+                  <MaterialIcons name="add-a-photo" size={28} color="#16a34a" />
+                </View>
+                <Text style={styles.addPhotoText}>({photos.length}/10)</Text>
               </Pressable>
               {photos.map((uri, index) => (
                 <View key={index} style={styles.photoCard}>
                   <Image source={{ uri }} style={styles.photoImage} />
+                  {index === 0 && (
+                    <View style={styles.mainPhotoBadge}>
+                      <Text style={styles.mainPhotoBadgeText}>{t('common.main') || 'Main'}</Text>
+                    </View>
+                  )}
                   <Pressable
                     style={styles.removePhotoBtn}
                     onPress={() => setPhotos(photos.filter((_, i) => i !== index))}
@@ -651,19 +673,36 @@ export function AiListingScreen({ navigation, route }: Props) {
               </Pressable>
             </View>
 
+            {/* Description Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder={t('screen.aiListing.placeholder.description')}
+                placeholderTextColor="#64748b"
+                multiline
+                textAlignVertical="top"
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
             {/* Price Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('screen.aiListing.label.price')}</Text>
               <View style={styles.priceContainer}>
-                <Text style={styles.currencySymbol}>€</Text>
                 <TextInput
                   style={styles.priceInput}
                   placeholder={t('screen.aiListing.placeholder.price')}
-                  placeholderTextColor="#64748b"
+                  placeholderTextColor="#94a3b8"
                   keyboardType="numeric"
                   value={price}
-                  onChangeText={setPrice}
+                  onChangeText={handlePriceChange}
+                  maxLength={13} // Account for commas (10 digits + 3 commas)
                 />
+                <View style={styles.currencyBadge}>
+                  <Text style={styles.currencyBadgeText}>Ft</Text>
+                </View>
               </View>
             </View>
 
@@ -679,22 +718,6 @@ export function AiListingScreen({ navigation, route }: Props) {
             {/* Location Picker */}
             <LocationPicker onLocationChange={setPickupLocation} />
 
-            {/* Description Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('screen.aiListing.label.description')}</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder={t('screen.aiListing.placeholder.description')}
-                placeholderTextColor="#64748b"
-                multiline
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
-
-            {/* Extra spacer when keyboard is active to allow scrolling above the keyboard */}
-            {isKeyboardVisible && <View style={{ height: 350 }} />}
           </ScrollView>
 
           {/* Footer / CTA - Hidden when keyboard is visible to avoid blocking inputs */}
@@ -722,7 +745,7 @@ export function AiListingScreen({ navigation, route }: Props) {
           )}
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </View >
   );
 }
 
@@ -1231,41 +1254,72 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   photoScroll: {
-    flexDirection: 'row',
     marginBottom: 32,
-    overflow: 'visible',
+    marginHorizontal: -20, // Negative margin to allow full-width scroll
+  },
+  photoScrollContent: {
+    paddingHorizontal: 20, // Add padding back to content
+    gap: 12,
   },
   addPhotoBtn: {
     width: 100,
     height: 100,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#19e61b',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  addPhotoIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#f0fdf4',
-    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   addPhotoText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#19e61b',
-    marginTop: 6,
+    color: '#64748b',
     textAlign: 'center',
-    paddingHorizontal: 4,
   },
   photoCard: {
     width: 100,
     height: 100,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    marginRight: 12,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   photoImage: {
     width: '100%',
     height: '100%',
+  },
+  mainPhotoBadge: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(22, 163, 74, 0.9)',
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  mainPhotoBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   aiActionRow: {
     marginTop: -10,
@@ -1302,11 +1356,16 @@ const styles = StyleSheet.create({
   },
   removePhotoBtn: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 10,
-    padding: 4,
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   inputGroup: {
     marginBottom: 24,
@@ -1349,22 +1408,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    borderWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  currencySymbol: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#64748b',
-    marginRight: 8,
+    paddingLeft: 20,
+    paddingRight: 8,
+    height: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
   },
   priceInput: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 22,
+    fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.5,
+  },
+  currencyBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  currencyBadgeText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#475569',
   },
   conditionRow: {
     flexDirection: 'row',
