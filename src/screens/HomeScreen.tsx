@@ -8,9 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { theme } from '../theme';
 import { DocumentSnapshot } from 'firebase/firestore';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { TabTransitionView } from '../components/TabTransitionView';
-import { CATEGORIES, USERS } from '../data/mockData';
+import { CATEGORIES } from '../data/mockData';
 import { listingService } from '../services/listingService';
 import { wishlistService } from '../services/wishlistService';
 import { userService } from '../services/userService';
@@ -28,7 +27,6 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1483985988355-763728e1
 
 export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const me = USERS.me;
   const [activeListings, setActiveListings] = useState<Listing[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -37,15 +35,6 @@ export function HomeScreen({ navigation }: Props) {
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null);
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
-
-  const toCategoryKey = (value?: string) => {
-    const v = (value || '').toLowerCase();
-    if (v.includes('fashion')) return 'fashion';
-    if (v.includes('tech') || v.includes('electronic')) return 'tech';
-    if (v.includes('home') || v.includes('living')) return 'home';
-    if (v.includes('kid') || v.includes('baby')) return 'kids';
-    return null;
-  };
 
   useEffect(() => {
     void loadInitialListings();
@@ -118,8 +107,6 @@ export function HomeScreen({ navigation }: Props) {
     if (diffHour < 24) return t('common.time.ago.h', { count: diffHour });
     return t('common.time.ago.d', { count: Math.floor(diffHour / 24) });
   };
-
-  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'home');
 
   const getBadges = (item: Listing) => {
     const result = { isNew: false, isHot: false };

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { StyleSheet, Text, View, Animated, Pressable, Platform, Image } from 'react-native';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+import { StyleSheet, Text, View, Animated, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 

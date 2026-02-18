@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Modal, Pressable, Platform } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Modal, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { changeAppLanguage, SUPPORTED_LANGUAGES, AppLanguage } from '../i18n';
 import { theme } from '../theme';

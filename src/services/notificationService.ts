@@ -10,8 +10,7 @@ import {
     onSnapshot,
     updateDoc,
     doc,
-    Timestamp,
-    getDocs
+    Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { userService } from './userService';

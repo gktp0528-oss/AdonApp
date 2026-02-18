@@ -5,11 +5,6 @@ import {
     getDoc,
     serverTimestamp,
     collection,
-    query,
-    where,
-    getDocs,
-    orderBy,
-    limit,
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db, aiBackend } from '../firebaseConfig';
@@ -33,7 +28,7 @@ const MAX_RECENT_SEARCHES = 10;
 
 class SearchServiceImpl implements SearchService {
     // Enhanced Suggestions using Algolia
-    async getSuggestions(queryText: string, userId?: string): Promise<string[]> {
+    async getSuggestions(queryText: string, _userId?: string): Promise<string[]> {
         const normalizedQuery = queryText.trim();
         if (!normalizedQuery) return this.getRecentSearches();
 
@@ -115,7 +110,7 @@ class SearchServiceImpl implements SearchService {
             if (!normalizedQuery) return [];
 
             // Step 1: AI Expansion
-            const { category: aiCategory, keywords } = await this.expandQueryWithAi(normalizedQuery);
+            const { keywords } = await this.expandQueryWithAi(normalizedQuery);
 
             // Combine original query and keywords, remove duplicates
             const allTerms = Array.from(new Set([normalizedQuery, ...keywords]));
@@ -144,25 +139,21 @@ class SearchServiceImpl implements SearchService {
     async trackSearch(queryText: string, meta?: any): Promise<void> {
         if (!queryText.trim()) return;
         await this.addToRecentSearches(queryText);
-        try {
-            addDoc(collection(db, SEARCH_LOGS_COLLECTION), {
-                query: queryText,
-                timestamp: serverTimestamp(),
-                ...meta
-            }).catch(err => console.warn('Failed to log search:', err));
-        } catch (e) { }
+        void addDoc(collection(db, SEARCH_LOGS_COLLECTION), {
+            query: queryText,
+            timestamp: serverTimestamp(),
+            ...meta
+        }).catch(err => console.warn('Failed to log search:', err));
     }
 
     async trackClick(queryText: string, listingId: string, position: number, meta?: any): Promise<void> {
-        try {
-            addDoc(collection(db, 'search_clicks'), {
-                query: queryText,
-                listingId,
-                position,
-                timestamp: serverTimestamp(),
-                ...meta
-            }).catch(err => console.warn('Failed to log click:', err));
-        } catch (e) { }
+        void addDoc(collection(db, 'search_clicks'), {
+            query: queryText,
+            listingId,
+            position,
+            timestamp: serverTimestamp(),
+            ...meta
+        }).catch(err => console.warn('Failed to log click:', err));
     }
 
     async getRecentSearches(): Promise<string[]> {

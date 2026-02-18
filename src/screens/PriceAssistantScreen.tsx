@@ -8,7 +8,6 @@ import {
     Pressable,
     Image,
     ActivityIndicator,
-    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -18,13 +17,11 @@ import { aiListingService } from '../services/aiListingService';
 
 import { useTranslation } from 'react-i18next';
 
-const { width } = Dimensions.get('window');
-
 type Props = NativeStackScreenProps<RootStackParamList, 'AiPriceAssistant'>;
 
 export default function AiPriceAssistantScreen({ navigation, route }: Props) {
     const { t, i18n } = useTranslation();
-    const { imageUris, initialPrice } = route.params || {};
+    const { imageUris } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [analysis, setAnalysis] = useState<any>(null);
 

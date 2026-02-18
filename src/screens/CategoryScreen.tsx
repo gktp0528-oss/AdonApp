@@ -6,9 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DocumentSnapshot } from 'firebase/firestore';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { TabTransitionView } from '../components/TabTransitionView';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -73,7 +71,6 @@ const rootCategories = (ALL_CATEGORIES as CategoryItem[])
 
 export function CategoryScreen({ navigation }: Props) {
     const { t } = useTranslation();
-    const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'category');
 
     const renderHeader = () => (
         <View>

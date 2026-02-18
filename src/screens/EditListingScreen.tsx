@@ -7,21 +7,18 @@ import {
     TextInput,
     View,
     Platform,
-    Keyboard,
     KeyboardAvoidingView,
     Alert,
     ActivityIndicator,
 } from 'react-native';
 import { ConditionSlider } from '../components/ConditionSlider';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 import { AdonHeader } from '../components/AdonHeader';
 import { listingService } from '../services/listingService';
-import { Listing, ListingCondition } from '../types/listing';
-import { formatCurrency } from '../utils/format';
+import { ListingCondition } from '../types/listing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditListing'>;
 
@@ -32,7 +29,6 @@ export default function EditListingScreen({ navigation, route }: Props) {
 
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
     // Form State
     const [title, setTitle] = useState('');
@@ -40,29 +36,17 @@ export default function EditListingScreen({ navigation, route }: Props) {
     const [category, setCategory] = useState('');
     const [condition, setCondition] = useState<ListingCondition>(60); // Default to 60%
     const [description, setDescription] = useState('');
-    const [listing, setListing] = useState<Listing | null>(null);
 
     // Removed: conditions and conditionLabelMap (now using slider 0-100)
 
     useEffect(() => {
         loadListing();
-
-        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-        const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
-        const hideSub = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
-
-        return () => {
-            showSub.remove();
-            hideSub.remove();
-        };
     }, []);
 
     const loadListing = async () => {
         try {
             const data = await listingService.getListingById(listingId);
             if (data) {
-                setListing(data);
                 setTitle(data.title);
                 setPrice(data.price.toString());
                 setCategory(data.category);

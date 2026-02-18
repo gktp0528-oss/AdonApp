@@ -53,6 +53,17 @@
       "expo-font"
     ],
     "extra": {
+      "EXPO_PUBLIC_ALGOLIA_APP_ID": "OGLDTZUAKT",
+      "EXPO_PUBLIC_ALGOLIA_SEARCH_KEY": "adfec707a3796646e5923b06f2819c22",
+      "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyAtVJWcR13JX-KW1PUF_r6uQ9yZuSlFxvY",
+      "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "adon-315b7.firebaseapp.com",
+      "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "adon-315b7",
+      "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "adon-315b7.firebasestorage.app",
+      "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "760431967573",
+      "EXPO_PUBLIC_FIREBASE_APP_ID": "1:760431967573:web:6f12693cdd82a6faee83dc",
+      "EXPO_PUBLIC_GOOGLE_PLACES_API_KEY": "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U",
+      "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "760431967573-0escabmjg96unsnad2ispl0hh9g1ub9c.apps.googleusercontent.com",
+      "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "760431967573-b2er6jj8p9aph4bo407sf276j0umb73m.apps.googleusercontent.com",
       "eas": {
         "projectId": "94600924-2d94-4689-9717-1d6e2042dc2f"
       }

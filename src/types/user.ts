@@ -1,6 +1,7 @@
 export interface User {
     id: string;
     name: string;
+    nameLower?: string;
     email: string; // Private field, maybe keep it out of public profile type if needed
     avatar?: string | null;
     coverImage?: string | null;

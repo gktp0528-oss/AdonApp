@@ -5,9 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
-import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { BottomTabMock } from '../components/BottomTabMock';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CategoryList'>;
 
@@ -169,7 +167,6 @@ export function SneakersListScreen({ navigation, route }: Props) {
     }
     return withSignal;
   }, [items, sortKey]);
-  const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'category');
   const sortOptions: SortKey[] = ['latest', 'priceLow', 'nearby', 'rating'];
 
   return (

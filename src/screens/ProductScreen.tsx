@@ -60,7 +60,6 @@ export function ProductScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
-  const [following, setFollowing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isChatStarting, setIsChatStarting] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

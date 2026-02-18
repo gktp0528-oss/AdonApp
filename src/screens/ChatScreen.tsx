@@ -14,8 +14,6 @@ import { chatService } from '../services/chatService';
 import { userService } from '../services/userService';
 import { Message, Conversation } from '../types/chat';
 import { User } from '../types/user';
-import { ReviewModal } from '../components/ReviewModal';
-import { reviewService } from '../services/reviewService';
 import { translationService } from '../services/translationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
@@ -195,7 +193,23 @@ export function ChatScreen({ navigation, route }: Props) {
             Alert.alert(
               t('screen.chat.menu.deleteConfirm.title', 'Delete Conversation'),
               t('screen.chat.menu.deleteConfirm.desc', 'Are you sure you want to delete this chat? This cannot be undone.'),
-              [{ text: t('common.cancel'), style: 'cancel' }, { text: t('common.delete'), style: 'destructive', onPress: () => navigation.goBack() }]
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('common.delete'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    if (!currentUserId) return;
+                    try {
+                      await chatService.deleteConversation(conversationId, currentUserId);
+                      navigation.goBack();
+                    } catch (error) {
+                      console.error('Failed to delete conversation:', error);
+                      Alert.alert(t('common.error'), t('common.error'));
+                    }
+                  }
+                }
+              ]
             );
           },
           style: 'destructive'

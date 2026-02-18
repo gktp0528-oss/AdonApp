@@ -7,7 +7,6 @@ import { CompositeScreenProps } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { resetToTab, TabKey } from '../navigation/tabRouting';
 import { TabTransitionView } from '../components/TabTransitionView';
 import { chatService } from '../services/chatService';
 import { userService } from '../services/userService';
@@ -21,7 +20,6 @@ type Props = CompositeScreenProps<
 
 export default function ChatListScreen({ navigation }: Props) {
     const { t } = useTranslation();
-    const handleTabPress = (tab: TabKey) => resetToTab(navigation, tab, 'chat');
     const currentUserId = userService.getCurrentUserId();
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -129,27 +127,6 @@ export default function ChatListScreen({ navigation }: Props) {
                             Alert.alert(t('common.error', { defaultValue: 'Error' }), t('screen.chat.delete.error', { defaultValue: 'Failed to delete chat.' }));
                         }
                     },
-                },
-            ]
-        );
-    };
-
-    const handleDeleteSingle = (id: string, name: string) => {
-        Alert.alert(
-            t('common.confirm.delete.title', { defaultValue: 'Delete Chat' }),
-            t('common.confirm.delete.message', { name, defaultValue: `Are you sure you want to delete the chat with ${name}?` }),
-            [
-                { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-                {
-                    text: t('common.delete', { defaultValue: 'Delete' }),
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await chatService.deleteConversation(id, currentUserId!);
-                        } catch (error) {
-                            Alert.alert(t('common.error', { defaultValue: 'Error' }), t('screen.chat.delete.error', { defaultValue: 'Failed to delete chat.' }));
-                        }
-                    }
                 },
             ]
         );

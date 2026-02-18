@@ -1,7 +1,17 @@
-import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from "firebase-functions/v2/firestore";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
+
+const AZURE_TRANSLATOR_KEY = defineSecret("AZURE_TRANSLATOR_KEY");
+const AZURE_TRANSLATOR_REGION = defineSecret("AZURE_TRANSLATOR_REGION");
+const AZURE_ENDPOINT = "https://api.cognitive.microsofttranslator.com";
+const SUPPORTED_TRANSLATION_LANGUAGES = new Set(["en", "ko", "hu"]);
+const ALGOLIA_APP_ID = defineSecret("ALGOLIA_APP_ID");
+const ALGOLIA_ADMIN_KEY = defineSecret("ALGOLIA_ADMIN_KEY");
+const ALGOLIA_INDEX_NAME = "listings";
 
 /**
  * Triggered when a new message is created in a conversation.
@@ -251,3 +261,192 @@ export const onPriceDropped = onDocumentUpdated("listings/{listingId}", async (e
 
     await Promise.all(promises);
 });
+
+function toAlgoliaSerializable(value: unknown): unknown {
+    if (value instanceof admin.firestore.Timestamp) {
+        return value.toMillis();
+    }
+    if (value instanceof admin.firestore.GeoPoint) {
+        return { lat: value.latitude, lng: value.longitude };
+    }
+    if (value instanceof Date) {
+        return value.getTime();
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => toAlgoliaSerializable(item));
+    }
+    if (value && typeof value === "object") {
+        const result: Record<string, unknown> = {};
+        for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+            result[key] = toAlgoliaSerializable(nestedValue);
+        }
+        return result;
+    }
+    return value;
+}
+
+async function algoliaRequest(
+    appId: string,
+    adminKey: string,
+    method: "PUT" | "DELETE",
+    path: string,
+    body?: unknown
+): Promise<void> {
+    const response = await fetch(`https://${appId}.algolia.net${path}`, {
+        method,
+        headers: {
+            "X-Algolia-Application-Id": appId,
+            "X-Algolia-API-Key": adminKey,
+            "Content-Type": "application/json",
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+        const details = await response.text();
+        throw new Error(`Algolia request failed (${response.status}): ${details}`);
+    }
+}
+
+export const onListingWriteToAlgolia = onDocumentWritten(
+    {
+        document: "listings/{listingId}",
+        region: "europe-west1",
+        secrets: [ALGOLIA_APP_ID, ALGOLIA_ADMIN_KEY],
+    },
+    async (event) => {
+        const appId = ALGOLIA_APP_ID.value();
+        const adminKey = ALGOLIA_ADMIN_KEY.value();
+        if (!appId || !adminKey) {
+            throw new HttpsError("failed-precondition", "Algolia secrets are not configured.");
+        }
+
+        const listingId = event.params.listingId;
+        const indexPath = `/1/indexes/${encodeURIComponent(ALGOLIA_INDEX_NAME)}/${encodeURIComponent(listingId)}`;
+        const after = event.data?.after;
+
+        // Document deleted -> remove from Algolia
+        if (!after?.exists) {
+            await algoliaRequest(appId, adminKey, "DELETE", indexPath);
+            console.log(`[Algolia] Deleted listing ${listingId}`);
+            return;
+        }
+
+        // Document created/updated -> upsert into Algolia
+        const rawData = after.data() || {};
+        const normalized = toAlgoliaSerializable(rawData) as Record<string, unknown>;
+        const payload = {
+            objectID: listingId,
+            id: listingId,
+            ...normalized,
+        };
+
+        await algoliaRequest(appId, adminKey, "PUT", indexPath, payload);
+        console.log(`[Algolia] Upserted listing ${listingId}`);
+    }
+);
+
+function requireStringField(value: unknown, fieldName: string): string {
+    if (typeof value !== "string" || value.trim().length === 0) {
+        throw new HttpsError("invalid-argument", `${fieldName} must be a non-empty string.`);
+    }
+    return value.trim();
+}
+
+export const detectLanguageSecure = onCall(
+    {
+        region: "europe-west1",
+        secrets: [AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_REGION],
+    },
+    async (request) => {
+        if (!request.auth) {
+            throw new HttpsError("unauthenticated", "Authentication required.");
+        }
+
+        const text = requireStringField(request.data?.text, "text");
+        if (text.length < 3) {
+            return { language: null };
+        }
+
+        const key = AZURE_TRANSLATOR_KEY.value();
+        const region = AZURE_TRANSLATOR_REGION.value();
+        if (!key || !region) {
+            throw new HttpsError("failed-precondition", "Azure Translator secrets are not configured.");
+        }
+
+        const response = await fetch(`${AZURE_ENDPOINT}/detect?api-version=3.0`, {
+            method: "POST",
+            headers: {
+                "Ocp-Apim-Subscription-Key": key,
+                "Ocp-Apim-Subscription-Region": region,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify([{ text }]),
+        });
+
+        if (!response.ok) {
+            throw new HttpsError("internal", `Azure detect failed (${response.status}).`);
+        }
+
+        const data = await response.json() as Array<{ language?: string }>;
+        const detectedLanguage = data[0]?.language;
+        if (!detectedLanguage || !SUPPORTED_TRANSLATION_LANGUAGES.has(detectedLanguage)) {
+            return { language: null };
+        }
+
+        return { language: detectedLanguage };
+    }
+);
+
+export const translateTextSecure = onCall(
+    {
+        region: "europe-west1",
+        secrets: [AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_REGION],
+    },
+    async (request) => {
+        if (!request.auth) {
+            throw new HttpsError("unauthenticated", "Authentication required.");
+        }
+
+        const text = requireStringField(request.data?.text, "text");
+        const fromLang = requireStringField(request.data?.fromLang, "fromLang");
+        const toLang = requireStringField(request.data?.toLang, "toLang");
+
+        if (!SUPPORTED_TRANSLATION_LANGUAGES.has(toLang)) {
+            throw new HttpsError("invalid-argument", "Unsupported target language.");
+        }
+        if (fromLang === toLang) {
+            return { text };
+        }
+
+        const key = AZURE_TRANSLATOR_KEY.value();
+        const region = AZURE_TRANSLATOR_REGION.value();
+        if (!key || !region) {
+            throw new HttpsError("failed-precondition", "Azure Translator secrets are not configured.");
+        }
+
+        const response = await fetch(
+            `${AZURE_ENDPOINT}/translate?api-version=3.0&from=${encodeURIComponent(fromLang)}&to=${encodeURIComponent(toLang)}`,
+            {
+                method: "POST",
+                headers: {
+                    "Ocp-Apim-Subscription-Key": key,
+                    "Ocp-Apim-Subscription-Region": region,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify([{ text }]),
+            }
+        );
+
+        if (response.status === 429) {
+            throw new HttpsError("resource-exhausted", "QUOTA_EXCEEDED");
+        }
+        if (!response.ok) {
+            throw new HttpsError("internal", `Azure translate failed (${response.status}).`);
+        }
+
+        const data = await response.json() as Array<{ translations?: Array<{ text?: string }> }>;
+        const translatedText = data[0]?.translations?.[0]?.text ?? null;
+        return { text: translatedText };
+    }
+);

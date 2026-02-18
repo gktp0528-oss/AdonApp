@@ -7,7 +7,6 @@ import {
     View,
     Animated,
     Easing,
-    Dimensions,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,19 +15,6 @@ import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiIntro'>;
-
-const { width } = Dimensions.get('window');
-
-const FEATURES = [
-    {
-        id: 'vision',
-        icon: 'center-focus-strong',
-    },
-    {
-        id: 'price',
-        icon: 'candlestick-chart',
-    },
-];
 
 export function AiIntroScreen({ navigation }: Props) {
     const { t } = useTranslation();

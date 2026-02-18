@@ -18,7 +18,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { RootStackParamList } from '../navigation/types';
 import { userService } from '../services/userService';
-import { User } from '../types/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Keywords'>;
 

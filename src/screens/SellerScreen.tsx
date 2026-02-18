@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -9,10 +9,8 @@ import { CompositeScreenProps } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { resetToTab, TabKey } from '../navigation/tabRouting';
-import { PrimaryButton } from '../components/PrimaryButton';
 import { DetailBackButton } from '../components/DetailBackButton';
 import { TabTransitionView } from '../components/TabTransitionView';
-import { StarRating } from '../components/StarRating';
 import { userService } from '../services/userService';
 import { listingService } from '../services/listingService';
 import { User } from '../types/user';

@@ -12,27 +12,22 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Alert,
-  ActivityIndicator,
   Easing,
   Animated,
   InteractionManager,
-  TouchableWithoutFeedback,
-  Dimensions,
 } from 'react-native';
 import { ConditionSlider } from '../components/ConditionSlider';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
-import { TabTransitionView } from '../components/TabTransitionView';
 import { AdonHeader } from '../components/AdonHeader';
 
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { storage, db } from '../firebaseConfig';
 import { aiListingService } from '../services/aiListingService';
 
@@ -89,7 +84,6 @@ export function AiListingScreen({ navigation, route }: Props) {
     if (data.itemName) setTitle(data.itemName);
     if (data.category) setCategory(data.category);
     if (data.priceRange) {
-      setAiPriceRange(data.priceRange);
       const suggested = getRecommendedPriceFromRange(data.priceRange);
       if (suggested) setPrice(suggested);
     }
@@ -138,9 +132,7 @@ export function AiListingScreen({ navigation, route }: Props) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [postStep, setPostStep] = useState<'uploading' | 'listing' | 'finalizing' | null>(null);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [aiStep, setAiStep] = useState<'uploading' | 'analyzing' | 'finalizing' | null>(null);
-  const [aiPriceRange, setAiPriceRange] = useState<{ min: number, max: number } | null>(null);
   const [aiReport, setAiReport] = useState<UnifiedAiReport | null>(null);
   const [pickupLocation, setPickupLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
 
@@ -159,18 +151,6 @@ export function AiListingScreen({ navigation, route }: Props) {
       });
     }, 150);
   };
-
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const formatNumberWithCommas = (value: string) => {
     // Remove all non-digits
@@ -196,15 +176,6 @@ export function AiListingScreen({ navigation, route }: Props) {
   const inferConditionFromScore = (score: number | null): ListingCondition => {
     if (score === null) return 60; // Default to 60%
     return Math.round(score * 10); // Convert 1-10 score to 10-100%
-  };
-
-  const handleApplyRecommendedPrice = () => {
-    const suggestedPrice = getRecommendedPriceFromRange(aiPriceRange);
-    if (!suggestedPrice) {
-      Alert.alert('추천 가격을 계산할 수 없어요.', '리포트를 한 번 더 분석해 주세요.');
-      return;
-    }
-    setPrice(suggestedPrice);
   };
 
   const handlePostItem = async () => {
@@ -392,20 +363,6 @@ export function AiListingScreen({ navigation, route }: Props) {
     analyzePhotosWithAi(photos);
   };
 
-  const processImage = async (uri: string) => {
-    try {
-      const manipulResult = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: 1024 } }], // Increased resolution to 1024px for better OCR/Identification
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Slightly higher quality
-      );
-      return manipulResult.uri;
-    } catch (error) {
-      console.warn('Image resizing failed, using original:', error);
-      return uri;
-    }
-  };
-
   const analyzePhotosWithAi = async (originalUris: string[]) => {
     // If somehow not already loading, ensure it starts
     if (!isAiLoading) setIsAiLoading(true);
@@ -466,7 +423,6 @@ export function AiListingScreen({ navigation, route }: Props) {
       if (report) {
         setAiStep('finalizing');
         setTitle(report.itemName);
-        setAiPriceRange(report.priceRange);
         setCategory(report.category);
 
         await new Promise(resolve => setTimeout(resolve, 1500));

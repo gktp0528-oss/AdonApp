@@ -8,7 +8,6 @@ import {
     GoogleAuthProvider,
     OAuthProvider,
     signInWithCredential,
-    AuthCredential,
     sendEmailVerification,
     deleteUser,
     sendPasswordResetEmail as sendFirebasePasswordResetEmail
@@ -17,6 +16,7 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs, limit, deleteDo
 import { auth, db } from '../firebaseConfig';
 import { User } from '../types/user';
 import i18n from 'i18next';
+import { publicRuntimeConfig } from '../config/publicRuntimeConfig';
 
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
@@ -25,6 +25,8 @@ let GoogleSignin: any;
 let AppleAuthentication: any;
 
 const USERS_COLLECTION = 'users';
+const GOOGLE_WEB_CLIENT_ID = publicRuntimeConfig.googleWebClientId;
+const GOOGLE_IOS_CLIENT_ID = publicRuntimeConfig.googleIosClientId;
 
 const initializeGoogleSignin = () => {
     // Check if running in Expo Go or Store Client
@@ -37,8 +39,8 @@ const initializeGoogleSignin = () => {
         if (!GoogleSignin) {
             GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin;
             GoogleSignin.configure({
-                webClientId: '760431967573-0escabmjg96unsnad2ispl0hh9g1ub9c.apps.googleusercontent.com',
-                iosClientId: '760431967573-b2er6jj8p9aph4bo407sf276j0umb73m.apps.googleusercontent.com',
+                webClientId: GOOGLE_WEB_CLIENT_ID,
+                iosClientId: GOOGLE_IOS_CLIENT_ID,
             });
         }
         return true;
@@ -62,9 +64,11 @@ export const authService = {
         if (docSnap.exists()) {
             return { user: { id: docSnap.id, ...docSnap.data() } as User, isNew: false };
         } else {
+            const normalizedName = ((name && name.trim()) || user.displayName || 'User').trim();
             const newUser: User = {
                 id: user.uid,
-                name: (name && name.trim()) || user.displayName || 'User',
+                name: normalizedName,
+                nameLower: normalizedName.toLowerCase(),
                 email: user.email || '',
                 avatar: user.photoURL || null,
                 isVerified: false,
@@ -217,9 +221,10 @@ export const authService = {
     async checkNicknameAvailability(nickname: string): Promise<boolean> {
         if (!db) return true;
         try {
+            const normalized = nickname.trim().toLowerCase();
             const q = query(
                 collection(db, USERS_COLLECTION),
-                where('name', '==', nickname.trim().toLowerCase()),
+                where('nameLower', '==', normalized),
                 limit(1)
             );
             const querySnapshot = await getDocs(q);

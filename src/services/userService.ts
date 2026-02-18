@@ -1,5 +1,4 @@
 import {
-    collection,
     doc,
     getDoc,
     setDoc,
@@ -57,7 +56,11 @@ export const userService = {
     async updateUser(userId: string, data: Partial<User>): Promise<void> {
         try {
             const docRef = doc(db, COLLECTION, userId);
-            await setDoc(docRef, data, { merge: true });
+            const normalizedData: Partial<User> = { ...data };
+            if (typeof data.name === 'string') {
+                normalizedData.nameLower = data.name.trim().toLowerCase();
+            }
+            await setDoc(docRef, normalizedData, { merge: true });
         } catch (error) {
             console.error(`Error updating user ${userId}:`, error);
             throw error;

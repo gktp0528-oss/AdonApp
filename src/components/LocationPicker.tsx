@@ -1,22 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     StyleSheet,
     View,
     Text,
     TextInput,
     FlatList,
-    Pressable,
     ActivityIndicator,
-    Keyboard,
     Platform,
     Modal,
     SafeAreaView,
     TouchableOpacity,
-    Dimensions,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
-import { aiBackend } from '../firebaseConfig';
+import { publicRuntimeConfig } from '../config/publicRuntimeConfig';
 
 interface LocationPickerProps {
     onLocationChange: (location: { latitude: number; longitude: number; address: string }) => void;
@@ -32,16 +29,7 @@ interface Prediction {
     };
 }
 
-// Platform-specific API keys for better compatibility and security
-const GOOGLE_API_KEY = Platform.select({
-    ios: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U", // Final key from Europe Damoa project
-    android: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U",
-    default: "AIzaSyCtZZQdtT1D38yRSV9riYHZS0O03pk0V3U",
-});
-
-// Default map center (Budapest, Hungary) - Still kept for coords if needed, but MapView is gone
-const DEFAULT_LATITUDE = 47.497913;
-const DEFAULT_LONGITUDE = 19.040236;
+const GOOGLE_API_KEY = publicRuntimeConfig.googlePlacesApiKey;
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({
     onLocationChange,
@@ -54,6 +42,17 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [predictions, setPredictions] = useState<Prediction[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
+    const autocompleteRequestSeqRef = useRef(0);
+    const detailsRequestSeqRef = useRef(0);
+    const autocompleteAbortRef = useRef<AbortController | null>(null);
+    const detailsAbortRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        return () => {
+            autocompleteAbortRef.current?.abort();
+            detailsAbortRef.current?.abort();
+        };
+    }, []);
 
     useEffect(() => {
         if (searchInput.length < 3) {
@@ -70,6 +69,10 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const fetchPredictions = async (query: string) => {
         if (!query.trim()) return;
+        const requestId = ++autocompleteRequestSeqRef.current;
+        autocompleteAbortRef.current?.abort();
+        const controller = new AbortController();
+        autocompleteAbortRef.current = controller;
         setIsLoading(true);
         console.log('🔍 Address search query (New API):', query);
         try {
@@ -98,9 +101,11 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 method: 'POST',
                 headers,
                 body: JSON.stringify(body),
+                signal: controller.signal,
             });
             const data = await response.json();
 
+            if (requestId !== autocompleteRequestSeqRef.current) return;
             console.log('📍 Autocomplete (New) Response:', !!data.suggestions);
 
             if (data.suggestions) {
@@ -124,14 +129,21 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 setPredictions([]);
             }
         } catch (error: any) {
+            if (error?.name === 'AbortError') return;
             console.error('❌ Fetch predictions failed:', error);
             setApiError(error.message || 'Network error');
         } finally {
-            setIsLoading(false);
+            if (requestId === autocompleteRequestSeqRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 
     const handleSelectPlace = async (placeId: string, description: string) => {
+        const requestId = ++detailsRequestSeqRef.current;
+        detailsAbortRef.current?.abort();
+        const controller = new AbortController();
+        detailsAbortRef.current = controller;
         setIsLoading(true);
         setApiError(null);
         try {
@@ -148,9 +160,10 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 headers['X-Android-Package'] = 'com.adonapp.adon';
             }
 
-            const response = await fetch(url, { headers });
+            const response = await fetch(url, { headers, signal: controller.signal });
             const data = await response.json();
 
+            if (requestId !== detailsRequestSeqRef.current) return;
             if (data.location) {
                 const { latitude, longitude } = data.location;
 
@@ -169,10 +182,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 setApiError(data.error.message || data.error.status);
             }
         } catch (error: any) {
+            if (error?.name === 'AbortError') return;
             console.error('Fetch place details failed:', error);
             setApiError(error.message || 'Network error');
         } finally {
-            setIsLoading(false);
+            if (requestId === detailsRequestSeqRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 

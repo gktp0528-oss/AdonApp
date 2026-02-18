@@ -1,86 +1,51 @@
-import { db } from '../firebaseConfig';
+import { db, functions } from '../firebaseConfig';
 import { SUPPORTED_LANGUAGES } from '../i18n/index';
-
-// [NOTE] 대표님이 제공해주신 최강 Azure 번역기 키를 적용했어요! 💖
-// 보안을 위해 .env 파일에서 관리하며, EXPO_PUBLIC_ 접두어를 사용해 안전하게 불러옵니다.
-const AZURE_TRANSLATOR_KEY = process.env.EXPO_PUBLIC_AZURE_TRANSLATOR_KEY || '';
-const AZURE_REGION = 'westeurope'; // 헝가리에서 가장 가까운 westeurope으로 설정했어요.
-const AZURE_ENDPOINT = 'https://api.cognitive.microsofttranslator.com';
+import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
 const CONVERSATIONS = 'conversations';
 const MESSAGES = 'messages';
 
-import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
+const detectLanguageSecure = httpsCallable<{ text: string }, { language: string | null }>(
+    functions,
+    'detectLanguageSecure'
+);
+const translateTextSecure = httpsCallable<
+    { text: string; fromLang: string; toLang: string },
+    { text: string | null }
+>(functions, 'translateTextSecure');
 
 export const translationService = {
     /**
-     * Detect language of text using Gemini AI
+     * Detect language via secure Firebase Function (Azure Translator backend)
      * Returns ISO code: 'ko', 'en', 'hu', or null
      */
     async detectLanguage(text: string): Promise<string | null> {
         try {
             if (!text || text.trim().length < 3) return null;
-
-            const response = await fetch(`${AZURE_ENDPOINT}/detect?api-version=3.0`, {
-                method: 'POST',
-                headers: {
-                    'Ocp-Apim-Subscription-Key': AZURE_TRANSLATOR_KEY,
-                    'Ocp-Apim-Subscription-Region': AZURE_REGION,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify([{ text }]),
-            });
-
-            if (!response.ok) {
-                console.warn('Azure detect failed:', response.status);
-                return null;
-            }
-
-            const data = await response.json();
-            const detectedCode = data[0]?.language;
-
+            const response = await detectLanguageSecure({ text });
+            const detectedCode = response.data?.language;
             return SUPPORTED_LANGUAGES.includes(detectedCode as any) ? detectedCode : null;
         } catch (error) {
-            console.error('Language detection failed:', error);
+            console.error('Language detection failed (secure function):', error);
             return null;
         }
     },
 
     /**
-     * Translate text to target language using Azure Translator
+     * Translate text via secure Firebase Function (Azure Translator backend)
      */
     async translateText(text: string, fromLang: string, toLang: string): Promise<string | null> {
         try {
             if (!text || fromLang === toLang) return text;
 
-            const response = await fetch(
-                `${AZURE_ENDPOINT}/translate?api-version=3.0&from=${fromLang}&to=${toLang}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Ocp-Apim-Subscription-Key': AZURE_TRANSLATOR_KEY,
-                        'Ocp-Apim-Subscription-Region': AZURE_REGION,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify([{ text }]),
-                }
-            );
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                if (response.status === 429) {
-                    console.warn('Azure quota exceeded (429)');
-                    throw new Error('QUOTA_EXCEEDED');
-                }
-                console.error('Azure translation failed:', errorData);
-                return null;
-            }
-
-            const data = await response.json();
-            return data[0]?.translations[0]?.text || null;
+            const response = await translateTextSecure({ text, fromLang, toLang });
+            return response.data?.text || null;
         } catch (error: any) {
-            if (error.message === 'QUOTA_EXCEEDED') throw error;
-            console.error('Translation failed:', error);
+            if (error?.code === 'functions/resource-exhausted' || error?.message === 'QUOTA_EXCEEDED') {
+                throw new Error('QUOTA_EXCEEDED');
+            }
+            console.error('Translation failed (secure function):', error);
             return null;
         }
     },

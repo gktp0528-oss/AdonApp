@@ -7,19 +7,15 @@ import {
     ScrollView,
     TouchableOpacity,
     Animated,
-    Dimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { RootStackParamList } from '../navigation/types';
-import { UnifiedAiReport } from '../types/listing';
 import { useTranslation } from 'react-i18next';
 import { aiBridge } from '../services/aiBridge';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AiAnalysisResult'>;
-
-const { width } = Dimensions.get('window');
 
 export default function AiAnalysisResultScreen({ navigation, route }: Props) {
     const { report, imageUri } = route.params;

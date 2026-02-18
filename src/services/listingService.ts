@@ -38,14 +38,10 @@ export const listingService = {
         };
 
         try {
-            console.log('[ListingService] Attempting addDoc with:', JSON.stringify(finalData, null, 2));
             const docRef = await addDoc(collection(db, COLLECTION), finalData);
             listingId = docRef.id;
-            console.log('[ListingService] Listing created successfully:', listingId);
         } catch (error: any) {
-            console.error('[ListingService] addDoc FAILED:', error);
-            console.error('[ListingService] Error Message:', error.message);
-            console.error('[ListingService] Error Code:', error.code);
+            console.error('[ListingService] addDoc failed:', error);
             throw error;
         }
 
@@ -55,6 +51,7 @@ export const listingService = {
             const q = query(usersRef, where('keywords', '!=', []));
             const userSnapshots = await getDocs(q);
             const normalizedTitle = (listingData.title || '').toLowerCase();
+            const notificationTasks: Promise<void>[] = [];
 
             for (const userDoc of userSnapshots.docs) {
                 const userData = userDoc.data();
@@ -67,15 +64,19 @@ export const listingService = {
                 );
 
                 if (matchedKeyword) {
-                    await notificationService.sendNotification(
-                        userId,
-                        'keyword',
-                        'New item matched! ✨',
-                        `A new item matching your keyword "${matchedKeyword}" was just listed: ${listingData.title}`,
-                        { listingId }
+                    notificationTasks.push(
+                        notificationService.sendNotification(
+                            userId,
+                            'keyword',
+                            'New item matched! ✨',
+                            `A new item matching your keyword "${matchedKeyword}" was just listed: ${listingData.title}`,
+                            { listingId }
+                        )
                     );
                 }
             }
+
+            await Promise.all(notificationTasks);
         } catch (err) {
             console.warn('[ListingService] Keyword matching failed (background):', err);
         }
@@ -122,16 +123,19 @@ export const listingService = {
                         await updateDoc(docRef, { oldPrice: currentPrice });
                     }
                     const wishlists = await wishlistService.getWishlistByListing(id);
-                    for (const item of wishlists) {
-                        if (item.userId === oldData.sellerId) continue;
-                        await notificationService.sendNotification(
-                            item.userId,
-                            'priceDrop',
-                            'Price Drop! 💸',
-                            `An item you wishlisted "${oldData.title}" is now cheaper!`,
-                            { listingId: id }
-                        );
-                    }
+                    await Promise.all(
+                        wishlists
+                            .filter((item) => item.userId !== oldData.sellerId)
+                            .map((item) =>
+                                notificationService.sendNotification(
+                                    item.userId,
+                                    'priceDrop',
+                                    'Price Drop! 💸',
+                                    `An item you wishlisted "${oldData.title}" is now cheaper!`,
+                                    { listingId: id }
+                                )
+                            )
+                    );
                 } else if (data.price >= initialPrice) {
                     await updateDoc(docRef, { oldPrice: null });
                 }

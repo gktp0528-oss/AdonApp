@@ -68,7 +68,8 @@ export function NicknameSetupScreen({ navigation }: Props) {
             const user = authService.getCurrentUser();
             if (user) {
                 await updateDoc(doc(db, 'users', user.uid), {
-                    name: nickname.trim()
+                    name: nickname.trim(),
+                    nameLower: nickname.trim().toLowerCase(),
                 });
                 navigation.replace('OnboardingFinish');
             } else {

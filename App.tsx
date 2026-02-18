@@ -3,9 +3,15 @@ import { View } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+// Navigation Types
 import { MainTabParamList, RootStackParamList } from './src/navigation/types';
+
+// Components
 import { BottomTabMock } from './src/components/BottomTabMock';
 
+// Screens
 import { LaunchScreen } from './src/screens/LaunchScreen';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -39,6 +45,8 @@ import { UserListingsScreen } from './src/screens/UserListingsScreen';
 import { LegalScreen } from './src/screens/LegalScreen';
 import { SocialConsentScreen } from './src/screens/SocialConsentScreen';
 
+import initI18n from './src/i18n';
+import i18next from 'i18next';
 import * as Notifications from 'expo-notifications';
 import { notificationService } from './src/services/notificationService';
 import { InAppNotification, InAppNotificationRef } from './src/components/InAppNotification';
@@ -46,22 +54,15 @@ import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from './src/firebaseConfig';
 
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import initI18n from './src/i18n';
-import i18next from 'i18next';
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 function MainTabNavigator() {
   return (
     <Tab.Navigator
       tabBar={(props) => <BottomTabMock {...props} />}
-      screenOptions={{
-        headerShown: false,
-      }}
+      screenOptions={{ headerShown: false }}
       backBehavior="none"
     >
       <Tab.Screen name="HomeTab" component={HomeScreen as any} />
@@ -73,18 +74,16 @@ function MainTabNavigator() {
 }
 
 export default function App() {
+  console.log('🏗️ [App] Render start (Full Recovery)');
   const [isI18nReady, setIsI18nReady] = React.useState(false);
   const notificationRef = React.useRef<InAppNotificationRef>(null);
 
   const handleNotificationClick = (data: any) => {
     console.log('[Notification] Handling click with data:', data);
-
     if (navigationRef.isReady()) {
       if (data?.listingId) {
-        // Navigate to Product Detail
         navigationRef.navigate('Product', { listingId: data.listingId } as any);
       } else if (data?.conversationId) {
-        // Navigate to Chat Room
         navigationRef.navigate('Chat', { conversationId: data.conversationId });
       } else if (data?.screen === 'Notifications') {
         navigationRef.navigate('Notifications');
@@ -94,8 +93,12 @@ export default function App() {
 
   React.useEffect(() => {
     const setup = async () => {
-      await initI18n();
-      setIsI18nReady(true);
+      try {
+        await initI18n();
+        setIsI18nReady(true);
+      } catch (error) {
+        console.error('initI18n failed:', error);
+      }
     };
     setup();
   }, []);
@@ -103,50 +106,32 @@ export default function App() {
   // Presence Heartbeat
   React.useEffect(() => {
     import('./src/services/userService').then(({ userService }) => {
-      // Update immediately on mount/resume
       const updatePresence = async () => {
         const userId = userService.getCurrentUserId();
         if (userId) {
           try {
-            await userService.updateUser(userId, {
-              lastActive: new Date(),
-              isOnline: true
-            });
+            await userService.updateUser(userId, { lastActive: new Date(), isOnline: true });
           } catch (e) {
             console.log('Presence update failed', e);
           }
         }
       };
-
       updatePresence();
-      const interval = setInterval(updatePresence, 60000); // 1 minute heartbeat
+      const interval = setInterval(updatePresence, 60000);
       return () => clearInterval(interval);
     });
   }, []);
 
-  // Firestore-based in-app notification listener (foreground)
+  // Firestore-based in-app notification listener
   React.useEffect(() => {
     let notifUnsubscribe: (() => void) | null = null;
-
     const authUnsubscribe = onAuthStateChanged(getAuth(), (user) => {
-      if (notifUnsubscribe) {
-        notifUnsubscribe();
-        notifUnsubscribe = null;
-      }
+      if (notifUnsubscribe) { notifUnsubscribe(); notifUnsubscribe = null; }
       if (!user) return;
-
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', user.uid),
-        where('read', '==', false)
-      );
-
+      const q = query(collection(db, 'notifications'), where('userId', '==', user.uid), where('read', '==', false));
       let isFirstSnapshot = true;
       notifUnsubscribe = onSnapshot(q, (snapshot) => {
-        if (isFirstSnapshot) {
-          isFirstSnapshot = false;
-          return;
-        }
+        if (isFirstSnapshot) { isFirstSnapshot = false; return; }
         snapshot.docChanges().forEach(change => {
           if (change.type === 'added' && notificationRef.current) {
             const data = change.doc.data();
@@ -154,53 +139,27 @@ export default function App() {
           }
         });
       }, (error: any) => {
-        // Listener fires briefly after account deletion — silence completely to avoid scary Red Box in development
-        if (error.code !== 'permission-denied') {
-          console.warn('[Notification listener]', error);
-        }
+        if (error.code !== 'permission-denied') console.warn('[Notification listener]', error);
       });
     });
-
-    return () => {
-      authUnsubscribe();
-      if (notifUnsubscribe) notifUnsubscribe();
-    };
+    return () => { authUnsubscribe(); if (notifUnsubscribe) notifUnsubscribe(); };
   }, []);
 
   // Notification Setup
   React.useEffect(() => {
     const setupNotifications = async () => {
-      // 1. Refresh push token only if permission was already granted.
-      //    New users get the permission prompt in OnboardingFinishScreen instead.
       const { status } = await Notifications.getPermissionsAsync();
-      if (status === 'granted') {
-        await notificationService.registerForPushNotificationsAsync();
-      }
-
-      // 2. Notification received while app is running (Foreground)
+      if (status === 'granted') await notificationService.registerForPushNotificationsAsync();
       const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-        console.log('[Notification] Received in foreground:', notification);
         const { title, body, data } = notification.request.content;
-
-        // Show our premium in-app banner!
-        if (notificationRef.current) {
-          notificationRef.current.show(title || 'Adon', body || '', data);
-        }
+        if (notificationRef.current) notificationRef.current.show(title || 'Adon', body || '', data);
       });
-
-      // 3. User tapped on a notification
       const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
         const data = response.notification.request.content.data;
-        console.log('[Notification] Response received (Tapped):', data);
         handleNotificationClick(data);
       });
-
-      return () => {
-        notificationListener.remove();
-        responseListener.remove();
-      };
+      return () => { notificationListener.remove(); responseListener.remove(); };
     };
-
     setupNotifications();
   }, []);
 
@@ -215,23 +174,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator
-          initialRouteName="Launch"
-          screenOptions={{
-            headerShown: false,
-            gestureEnabled: true,
-          }}
-        >
-          <Stack.Screen
-            name="Launch"
-            component={LaunchScreen}
-            options={{ animation: 'fade' }}
-          />
-          <Stack.Screen
-            name="Splash"
-            component={SplashScreen}
-            options={{ animation: 'fade' }}
-          />
+        <Stack.Navigator initialRouteName="Launch" screenOptions={{ headerShown: false, gestureEnabled: true }}>
+          <Stack.Screen name="Launch" component={LaunchScreen} options={{ animation: 'fade' }} />
+          <Stack.Screen name="Splash" component={SplashScreen} options={{ animation: 'fade' }} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -241,39 +186,14 @@ export default function App() {
           <Stack.Screen name="NicknameSetup" component={NicknameSetupScreen} />
           <Stack.Screen name="OnboardingFinish" component={OnboardingFinishScreen} />
           <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ gestureEnabled: false }} />
-
-          {/* Modal Screens - Slide from bottom */}
-          <Stack.Screen
-            name="AiListing"
-            component={AiListingScreen}
-            options={{
-              presentation: 'fullScreenModal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-
-          {/* Sub Screens - Default Slide Animation */}
-          <Stack.Screen
-            name="CategoryList"
-            component={SneakersListScreen}
-            options={{
-              animation: 'slide_from_right',
-              presentation: 'card'
-            }}
-          />
+          <Stack.Screen name="AiListing" component={AiListingScreen} options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="CategoryList" component={SneakersListScreen} options={{ animation: 'slide_from_right', presentation: 'card' }} />
           <Stack.Screen name="Product" component={ProductScreen} />
           <Stack.Screen name="Seller" component={SellerScreen as any} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen
-            name="CategorySelect"
-            component={CategorySelectScreen}
-            options={{
-              animation: 'slide_from_right',
-              presentation: 'fullScreenModal',
-            }}
-          />
+          <Stack.Screen name="CategorySelect" component={CategorySelectScreen} options={{ animation: 'slide_from_right', presentation: 'fullScreenModal' }} />
           <Stack.Screen name="AiIntro" component={AiIntroScreen} />
           <Stack.Screen name="AiAnalysisResult" component={AiAnalysisResultScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="Review" component={ReviewScreen} />
@@ -281,37 +201,19 @@ export default function App() {
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Wishlist" component={WishlistScreen} />
           <Stack.Screen name="QuerySearch" component={QuerySearchScreen} options={{ animation: 'slide_from_right' }} />
-          <Stack.Screen
-            name="SearchResult"
-            component={SearchResultScreen}
-            options={{
-              animation: 'slide_from_right',
-              presentation: 'card'
-            }}
-          />
-          <Stack.Screen
-            name="EditListing"
-            component={EditListingScreen}
-            options={{ title: i18next.t('screen.aiListing.edit.title', 'Edit Listing') }}
-          />
-          <Stack.Screen
-            name="UserListings"
-            component={UserListingsScreen}
-            options={{ animation: 'slide_from_right' }}
-          />
-          <Stack.Screen
-            name="Legal"
-            component={LegalScreen}
-            options={{ animation: 'slide_from_right' }}
-          />
+          <Stack.Screen name="SearchResult" component={SearchResultScreen} options={{ animation: 'slide_from_right', presentation: 'card' }} />
+          <Stack.Screen name="EditListing" component={EditListingScreen} options={{ title: i18next.t('screen.aiListing.edit.title', 'Edit Listing') }} />
+          <Stack.Screen name="UserListings" component={UserListingsScreen} options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="Legal" component={LegalScreen} options={{ animation: 'slide_from_right' }} />
         </Stack.Navigator>
-
-        {/* Global In-App Notification Overlay */}
-        <InAppNotification
-          ref={notificationRef}
-          onPress={handleNotificationClick}
-        />
+        <InAppNotification ref={notificationRef} onPress={handleNotificationClick} />
       </NavigationContainer>
     </SafeAreaProvider>
   );
 }
+
+/*
+// Original code commented out for debugging
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+// ... rest of code
+*/

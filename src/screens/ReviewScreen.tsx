@@ -19,7 +19,6 @@ import { StarRating } from '../components/StarRating';
 import { reviewService } from '../services/reviewService';
 import { userService } from '../services/userService';
 import { DetailBackButton } from '../components/DetailBackButton';
-import { chatService } from '../services/chatService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Review'>;
 
@@ -48,14 +47,6 @@ export default function ReviewScreen({ route, navigation }: Props) {
             // Send system message to chat if possible (we need conversationId)
             // For now, we just show success and go back
             Alert.alert(t('common.success'), t('screen.review.success'));
-
-            // Try to find conversation to send a completion message
-            try {
-                // In a real app, you'd pass conversationId or fetch it
-                // Skipping for simplicity of the prompt requirement
-            } catch (e) {
-                console.log('Failed to send review message:', e);
-            }
 
             navigation.navigate('Home');
         } catch (error) {

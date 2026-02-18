@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, Platform, Pressable, Linking } from 'react-native';
-import MapView, { UrlTile, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { StyleSheet, View, Text, Pressable, Linking } from 'react-native';
+import MapView, { UrlTile, Marker } from 'react-native-maps';
 
 interface MapComponentProps {
     latitude?: number;
@@ -18,7 +18,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     latitude = DEFAULT_LATITUDE,
     longitude = DEFAULT_LONGITUDE,
     height = 200,
-    label = 'Pickup Location',
+    label: _label = 'Pickup Location',
 }) => {
     const handleOpenMap = () => {
         // Force Google Maps URL scheme for both platforms if possible, 

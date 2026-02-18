@@ -56,17 +56,17 @@ export function ConditionSlider({ value, onValueChange, onInteractionChange, dis
         PanResponder.create({
             onStartShouldSetPanResponder: () => !disabled,
             // Capture the touch if it's more horizontal than vertical, or if already interacting
-            onMoveShouldSetPanResponder: (evt, gestureState) => {
+            onMoveShouldSetPanResponder: (_evt, gestureState) => {
                 if (disabled) return false;
                 return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) || isInteracting.current;
             },
             onStartShouldSetPanResponderCapture: () => !disabled,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+            onMoveShouldSetPanResponderCapture: (_evt, gestureState) => {
                 if (disabled) return false;
                 // Aggressively capture if we detect horizontal movement
                 return Math.abs(gestureState.dx) > 2;
             },
-            onPanResponderGrant: (evt, gestureState) => {
+            onPanResponderGrant: (evt, _gestureState) => {
                 if (disabled) return;
                 isInteracting.current = true;
                 onInteractionChange?.(true);
@@ -81,7 +81,7 @@ export function ConditionSlider({ value, onValueChange, onInteractionChange, dis
 
                 handleTouch(evt.nativeEvent.pageX);
             },
-            onPanResponderMove: (evt, gestureState) => {
+            onPanResponderMove: (evt, _gestureState) => {
                 if (disabled) return;
                 handleTouch(evt.nativeEvent.pageX);
             },

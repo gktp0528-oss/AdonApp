@@ -1,12 +1,5 @@
-import { RootStackParamList } from './types';
-
 export type TabKey = 'home' | 'category' | 'post' | 'chat' | 'profile' | 'search';
 export type MainTabKey = Exclude<TabKey, 'post'>;
-
-type TabResetNavigation = {
-  reset: (state: { index: number; routes: Array<{ name: keyof RootStackParamList }> }) => void;
-  navigate: (name: keyof RootStackParamList) => void;
-};
 
 let lastMainTabBeforePost: MainTabKey = 'home';
 

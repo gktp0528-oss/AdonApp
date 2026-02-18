@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, Animated, Platform, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, Animated, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../navigation/types';
